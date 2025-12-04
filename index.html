@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myanmar Invoice System</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap');
+        body { font-family: 'Padauk', sans-serif; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #invoice-paper, #invoice-paper * { visibility: visible; }
+            #invoice-paper { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
+            @page { size: auto; margin: 5mm; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b px-4 py-3 flex justify-between items-center no-print">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="app.setView('home')">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i data-lucide="file-text"></i>
+            </div>
+            <h1 class="font-bold text-lg text-blue-900">Myanmar Invoice</h1>
+        </div>
+        <div id="auth-buttons">
+            <!-- Will be populated by JS -->
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto p-4" id="main-container">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Hidden Inputs -->
+    <input type="file" id="item-image-input" hidden accept="image/*" onchange="app.processItemImage(this)">
+    <input type="file" id="setting-logo-input" hidden accept="image/*" onchange="app.processLogo(this)">
+
+    <!-- Scanner Modal -->
+    <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-[60] flex flex-col items-center justify-center p-4">
+        <div class="bg-white p-4 rounded-xl w-full max-w-md relative">
+            <button onclick="app.stopScanner()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500">
+                <i data-lucide="x" width="24" height="24"></i>
+            </button>
+            <h3 class="text-center font-bold mb-4">Scan QR Code</h3>
+            <div id="reader" style="width: 100%;"></div>
+            <p class="text-center text-sm text-gray-500 mt-4">ကင်မရာကို QR Code တည့်တည့်ချိန်ပေးပါ</p>
+        </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    
+    <!-- 1. Home View -->
+    <template id="tpl-home">
+        <div class="flex flex-col items-center justify-center py-10 text-center space-y-6 fade-in">
+            <div class="bg-white p-4 rounded-full shadow-sm">
+                <i data-lucide="shield-check" class="text-blue-600 w-12 h-12"></i>
+            </div>
+            <h2 class="text-2xl md:text-4xl font-extrabold text-gray-900">ငွေပေးချေမှု စစ်ဆေးရန်</h2>
+            
+            <div class="w-full max-w-md space-y-6">
+                <!-- Manual Input -->
+                <div class="bg-white p-6 rounded-xl shadow border">
+                    <label class="block text-left text-sm font-medium text-gray-700 mb-2">နည်းလမ်း (၁) - နံပါတ်ရိုက်ထည့်ရန်</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="search-input" placeholder="Invoice No / Security Code" class="flex-1 border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                        <button onclick="app.handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            စစ်မည်
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 text-sm">OR</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <!-- Scan QR -->
+                <button onclick="app.startScanner()" class="w-full bg-gray-800 hover:bg-gray-900 text-white p-6 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]">
+                    <i data-lucide="qr-code" width="32" height="32"></i>
+                    <div class="text-left">
+                        <div class="font-bold text-lg">နည်းလမ်း (၂) - QR Code ဖတ်ရန်</div>
+                        <div class="text-xs text-gray-400">ကင်မရာအသုံးပြု၍ စစ်ဆေးပါ</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- 2. Admin Login -->
+    <template id="tpl-login">
+        <div class="max-w-md mx-auto mt-10 bg-white p-8 rounded-2xl shadow-xl border fade-in">
+            <h2 class="text-2xl font-bold mb-2 text-center text-gray-800">Admin ဝင်ရောက်ရန်</h2>
+            <p class="text-center text-gray-500 text-sm mb-6">သင့်အီးမေးလ်နှင့် စကားဝှက်ကို အသုံးပြုပါ</p>
+            
+            <button onclick="app.googleLogin()" class="w-full mb-6 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 font-medium shadow-sm">
+                Sign in with Google
+            </button>
+
+            <div class="relative flex py-2 items-center mb-6">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-400 text-sm">Or with Email</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <form onsubmit="app.handleEmailAuth(event)" class="space-y-4">
+                <div id="auth-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200"></div>
+                <input type="email" id="email" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="admin@example.com" required>
+                <input type="password" id="password" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••" required>
+                <button type="submit" id="auth-submit-btn" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition font-medium">ဝင်ရောက်မည် (Login)</button>
+            </form>
+        </div>
+    </template>
+
+    <!-- 3. Dashboard -->
+    <template id="tpl-dashboard">
+        <div class="fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Invoices စာရင်း</h2>
+                <div class="flex gap-2">
+                    <button onclick="app.setView('settings')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm border">
+                        <i data-lucide="settings" width="18"></i> Settings
+                    </button>
+                    <button onclick="app.createInvoiceMode()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+                        <i data-lucide="plus" width="18"></i> အသစ်ဖန်တီးမည်
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden border">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="p-4 font-semibold text-gray-600">Invoice / Security</th>
+                                <th class="p-4 font-semibold text-gray-600">Client</th>
+                                <th class="p-4 font-semibold text-gray-600">Amount</th>
+                                <th class="p-4 font-semibold text-gray-600">Paid / Bal</th>
+                                <th class="p-4 font-semibold text-gray-600">Status</th>
+                                <th class="p-4 font-semibold text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-list" class="divide-y">
+                            <!-- JS will populate rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 4. Create/Edit Invoice -->
+    <template id="tpl-create">
+        <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
+            <h2 class="text-xl font-bold mb-6 border-b pb-2" id="form-title">Invoice အသစ်ဖန်တီးခြင်း</h2>
+            <form onsubmit="app.handleSave(event)" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
+                    <input type="text" id="client-name" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                
+                <div id="items-container">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Items</label>
+                    <!-- Items will be added here -->
+                </div>
+                
+                <button type="button" onclick="app.addItem()" class="text-sm text-blue-600 font-medium flex items-center gap-1">
+                    <i data-lucide="plus"></i> နောက်ထပ်ထည့်မည်
+                </button>
+
+                <!-- Calculations -->
+                <div class="border-t pt-4 bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span class="font-medium" id="subtotal-display">0</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-gray-600">Discount (Ks):</span>
+                        <input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')">
+                    </div>
+                    <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2">
+                        <span>Total Invoice Amount:</span>
+                        <span><span id="create-total">0</span> Ks</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-blue-700 font-medium">1st Payment / Deposit:</span>
+                            <select id="init-payment-method" class="text-sm border rounded p-1">
+                                <option value="Cash">Cash</option>
+                                <option value="KPay">KPay</option>
+                                <option value="Wave">Wave</option>
+                                <option value="Bank">Bank</option>
+                            </select>
+                        </div>
+                        <input type="number" id="init-payment-input" value="0" min="0" class="border p-1 w-32 text-right rounded border-blue-300 focus:ring-2 focus:ring-blue-200" onchange="app.updateCalc(this.value, 'payment')">
+                    </div>
+                    <div class="flex justify-between items-center text-red-600 font-bold border-t border-gray-200 pt-2">
+                        <span>2nd Payment (Balance Due):</span>
+                        <span><span id="create-balance">0</span> Ks</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="app.setView('dashboard')" class="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Invoice</button>
+                </div>
+            </form>
+        </div>
+    </template>
+
+    <!-- 5. Settings Template -->
+    <template id="tpl-settings">
+        <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
+            <h2 class="text-xl font-bold mb-6 border-b pb-2">Admin Settings</h2>
+            <form onsubmit="app.handleSaveSettings(event)" class="space-y-6">
+                
+                <!-- Logo Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                    <div class="flex items-center gap-4">
+                        <div id="logo-preview" class="w-32 h-20 border rounded bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden relative">
+                            <!-- Logo Image will appear here -->
+                            <span id="logo-placeholder">No Logo</span>
+                        </div>
+                        <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium border">
+                            <i data-lucide="upload" class="inline w-4 h-4 mr-1"></i> Change Logo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Accounts -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Accounts (KBZPay, Wave, Bank etc.)</label>
+                    <textarea id="setting-accounts" rows="4" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. KBZPay: 09xxxxxxxxx (Name)"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">This text will appear next to the QR code on the invoice.</p>
+                </div>
+
+                <!-- Payment Terms -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms / Footer Note</label>
+                    <textarea id="setting-terms" rows="2" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Thank you for your business."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 border-t pt-4">
+                    <button type="button" onclick="app.setView('dashboard')" class="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </template>
+
+    <!-- 6. Verify/Print Template -->
+    <template id="tpl-verify">
+        <div class="flex flex-col items-center fade-in">
+            <div class="w-full max-w-4xl mb-4 flex justify-between no-print">
+                <button onclick="app.backHome()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                    <i data-lucide="arrow-left"></i> Back
+                </button>
+                <div class="flex gap-2" id="verify-actions">
+                    <button onclick="window.print()" class="bg-white border text-blue-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-50">
+                        <i data-lucide="printer"></i> Print / PDF
+                    </button>
+                    <button onclick="app.downloadPDF()" class="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-900">
+                        <i data-lucide="download"></i> Download Image PDF
+                    </button>
+                </div>
+            </div>
+
+            <div id="verify-content" class="w-full flex justify-center">
+                <!-- Invoice Paper or Not Found Message -->
+            </div>
+        </div>
+    </template>
+
+    <!-- 7. Payment Modal Template -->
+    <template id="tpl-payment-modal">
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800" id="payment-modal-title">Add Payment</h3>
+                    <button onclick="app.closeModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+                </div>
+                
+                <div class="bg-gray-50 p-3 rounded-lg mb-4 space-y-1">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Total Amount:</span>
+                        <span id="modal-total" class="font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-green-600">
+                        <span>Paid So Far:</span>
+                        <span id="modal-paid" class="font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between text-sm font-bold text-red-600 border-t pt-1 mt-1">
+                        <span>Balance (Remaining):</span>
+                        <span id="modal-balance">0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Amount to Pay</label>
+                        <input type="number" id="payment-amount" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500 font-bold text-gray-800">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Payment Method</label>
+                        <select id="payment-method-select" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="Cash">Cash (ငွေသား)</option>
+                            <option value="KPay">KPay</option>
+                            <option value="Wave Money">Wave Money</option>
+                            <option value="KBZ Banking">KBZ Banking</option>
+                            <option value="CB Pay">CB Pay</option>
+                            <option value="AYA Pay">AYA Pay</option>
+                            <option value="Other">Other (အခြား)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-6">
+                    <button onclick="app.closeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
+                    <button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">Confirm Payment</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, setDoc, getDoc, onSnapshot, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBz5Cm-qsKe9pshGLaBkzw0WTOg9OLDwHk",
+            authDomain: "invoice-99bdb.firebaseapp.com",
+            projectId: "invoice-99bdb",
+            storageBucket: "invoice-99bdb.firebasestorage.app",
+            messagingSenderId: "1055209115726",
+            appId: "1:1055209115726:web:926791697e6ad783e5b31f"
+        };
+
+        const appInstance = initializeApp(firebaseConfig);
+        const auth = getAuth(appInstance);
+        const db = getFirestore(appInstance);
+
+        // --- App Logic ---
+        const state = {
+            user: null,
+            isAdmin: false,
+            view: 'home',
+            invoices: [],
+            currentInvoice: null,
+            items: [{desc: '', price: 0, qty: 1, image: null}],
+            discount: 0,
+            initPayment: 0, 
+            tempInvoice: null, 
+            html5QrCode: null,
+            editingId: null,
+            unlockPassword: '1234',
+            uploadingRowIndex: null,
+            // New Settings State
+            settings: {
+                logo: null,
+                accounts: '',
+                terms: ''
+            }
+        };
+
+        const app = {
+            init: () => {
+                onAuthStateChanged(auth, async (u) => {
+                    if (u) {
+                        state.user = u;
+                        state.isAdmin = !u.isAnonymous;
+                        if(state.isAdmin) app.listenInvoices();
+                    } else {
+                        try { await signInAnonymously(auth); } catch(e) { console.error("Anon Login Error:", e); }
+                    }
+                    app.renderNavbar();
+                    
+                    const params = new URLSearchParams(window.location.search);
+                    if(params.get('id') || params.get('code')) {
+                        app.handleSearch(params.get('code') || params.get('id'));
+                    } else {
+                        app.setView('home');
+                    }
+                });
+                
+                // Real-time Settings Listener (NEW: Ensures online DB sync)
+                app.listenSettings();
+                lucide.createIcons();
+            },
+
+            // --- Settings Logic ---
+            listenSettings: () => {
+                onSnapshot(doc(db, 'invoices', 'config_general'), (doc) => {
+                    if (doc.exists()) {
+                        state.settings = doc.data();
+                        // If viewing invoice, refresh to show new logo/text immediately
+                        if (state.view === 'verify' && state.currentInvoice) {
+                            app.renderInvoicePaper(state.currentInvoice);
+                        }
+                    }
+                });
+            },
+
+            handleSaveSettings: async (e) => {
+                e.preventDefault();
+                const accounts = document.getElementById('setting-accounts').value;
+                const terms = document.getElementById('setting-terms').value;
+                
+                // Update local state immediately for UX
+                state.settings.accounts = accounts;
+                state.settings.terms = terms;
+
+                try {
+                    await setDoc(doc(db, 'invoices', 'config_general'), {
+                        logo: state.settings.logo,
+                        accounts,
+                        terms
+                    });
+                    alert("Settings saved successfully to Database!");
+                    app.setView('dashboard');
+                } catch (err) {
+                    alert("Error saving settings: " + err.message);
+                }
+            },
+
+            processLogo: (input) => {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 300; 
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        state.settings.logo = canvas.toDataURL('image/png');
+                        // Update preview
+                        const preview = document.getElementById('logo-preview');
+                        preview.innerHTML = `<img src="${state.settings.logo}" class="w-full h-full object-contain">`;
+                        input.value = '';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+
+            setView: (viewName) => {
+                state.view = viewName;
+                const main = document.getElementById('main-container');
+                const tpl = document.getElementById(`tpl-${viewName}`);
+                
+                if((viewName === 'dashboard' || viewName === 'settings') && !state.isAdmin) return app.setView('login');
+                
+                main.innerHTML = '';
+                main.appendChild(tpl.content.cloneNode(true));
+                lucide.createIcons();
+
+                if(viewName === 'dashboard') app.renderInvoiceList();
+                if(viewName === 'settings') {
+                    // Pre-fill settings
+                    if(state.settings.logo) {
+                        document.getElementById('logo-preview').innerHTML = `<img src="${state.settings.logo}" class="w-full h-full object-contain">`;
+                    }
+                    document.getElementById('setting-accounts').value = state.settings.accounts || '';
+                    document.getElementById('setting-terms').value = state.settings.terms || '';
+                }
+                if(viewName === 'create') {
+                    if (state.editingId) {
+                        document.getElementById('form-title').innerText = "Invoice ပြင်ဆင်ခြင်း";
+                        const inv = state.invoices.find(i => i.id === state.editingId);
+                        if (inv) {
+                            document.getElementById('client-name').value = inv.clientName;
+                            state.items = JSON.parse(JSON.stringify(inv.items));
+                            state.discount = inv.discount || 0;
+                            document.getElementById('discount-input').value = state.discount;
+                            
+                            document.getElementById('init-payment-input').disabled = true;
+                            document.getElementById('init-payment-method').disabled = true;
+                        }
+                    } else {
+                        document.getElementById('form-title').innerText = "Invoice အသစ်ဖန်တီးခြင်း";
+                        state.discount = 0;
+                        state.initPayment = 0;
+                    }
+                    app.renderCreateItems();
+                }
+            },
+
+            renderNavbar: () => {
+                const container = document.getElementById('auth-buttons');
+                if(state.isAdmin) {
+                    container.innerHTML = `
+                        <button onclick="app.setView('dashboard')" class="text-sm text-gray-600 font-medium hover:text-blue-600 mr-4">Dashboard</button>
+                        <button onclick="app.logout()" class="text-sm text-red-500 font-medium hover:underline flex items-center gap-1"><i data-lucide="log-out" width="16"></i> Logout</button>
+                    `;
+                } else {
+                    container.innerHTML = `<button onclick="app.setView('login')" class="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1"><i data-lucide="log-in" width="16"></i> Admin Login</button>`;
+                }
+                lucide.createIcons();
+            },
+
+            // --- Auth ---
+            handleEmailAuth: async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const pass = document.getElementById('password').value;
+                try {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    app.setView('dashboard');
+                } catch (err) {
+                    alert("Error: " + err.message);
+                }
+            },
+
+            googleLogin: async () => {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    provider.setCustomParameters({ client_id: '1055209115726-8ng62eogmv65v2smavt6ohqvohf5krcc.apps.googleusercontent.com' });
+                    await signInWithPopup(auth, provider);
+                    app.setView('dashboard');
+                } catch (e) { alert("Google Sign in error: " + e.message); }
+            },
+
+            logout: async () => {
+                await signOut(auth);
+                state.isAdmin = false;
+                app.setView('home');
+                try { await signInAnonymously(auth); } catch(e){}
+            },
+
+            // --- Invoice Logic ---
+            listenInvoices: () => {
+                const q = collection(db, 'invoices');
+                onSnapshot(q, (snapshot) => {
+                    state.invoices = snapshot.docs
+                        .map(doc => ({id: doc.id, ...doc.data()}))
+                        .filter(doc => doc.id !== 'config_general') // Exclude settings doc
+                        .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                    
+                    if(state.view === 'dashboard') app.renderInvoiceList();
+                });
+            },
+
+            renderInvoiceList: () => {
+                const tbody = document.getElementById('invoice-list');
+                if(!tbody) return;
+                tbody.innerHTML = state.invoices.map(inv => {
+                    const isPaid = inv.status === 'paid';
+                    const isPartial = inv.status === 'partial';
+                    
+                    let paidAmount = 0;
+                    if(inv.payments && Array.isArray(inv.payments)) {
+                        paidAmount = inv.payments.reduce((sum, p) => sum + p.amount, 0);
+                    } else if (inv.status === 'paid') {
+                        paidAmount = inv.totalAmount;
+                    }
+                    const balance = inv.totalAmount - paidAmount;
+
+                    let statusBadge = '';
+                    if (isPaid) statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">PAID</span>`;
+                    else if (isPartial) statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">PARTIAL</span>`;
+                    else statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-700">PENDING</span>`;
+
+                    return `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="p-4">
+                            <div class="font-medium text-blue-600">${inv.invoiceNumber}</div>
+                            <div class="text-xs text-gray-400 font-mono">${inv.securityCode}</div>
+                        </td>
+                        <td class="p-4">${inv.clientName}</td>
+                        <td class="p-4">${Number(inv.totalAmount).toLocaleString()} Ks</td>
+                        <td class="p-4 text-sm text-gray-600">
+                            <div><span class="text-green-600">${paidAmount.toLocaleString()}</span> / <span class="text-red-500">${balance.toLocaleString()}</span></div>
+                        </td>
+                        <td class="p-4">
+                            ${statusBadge}
+                        </td>
+                        <td class="p-4 flex gap-2 items-center">
+                            <button onclick="app.showVerify('${inv.id}')" class="p-2 text-gray-600 hover:bg-gray-200 rounded" title="Print/View"><i data-lucide="printer" width="16"></i></button>
+                            <button onclick="app.handleStatusClick('${inv.id}')" class="p-2 ${isPaid?'text-green-600': (isPartial ? 'text-blue-600' : 'text-gray-400')} hover:bg-gray-100 rounded" title="Add Payment">
+                                <i data-lucide="credit-card" width="16"></i>
+                            </button>
+                            <div class="w-px h-4 bg-gray-300 mx-1"></div>
+                            
+                            <button onclick="app.editInvoice('${inv.id}')" class="p-2 ${isPaid ? 'text-gray-400 hover:text-red-500' : 'text-blue-600 hover:bg-blue-100'} rounded" title="${isPaid ? 'Locked (Click to Unlock)' : 'Edit'}">
+                                <i data-lucide="${isPaid ? 'lock' : 'pencil'}" width="16"></i>
+                            </button>
+                            
+                            <button onclick="app.deleteInvoice('${inv.id}')" class="p-2 ${isPaid ? 'text-gray-400 hover:text-red-600' : 'text-red-600 hover:bg-red-100'} rounded" title="${isPaid ? 'Locked (Password Required)' : 'Delete'}">
+                                <i data-lucide="trash-2" width="16"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `}).join('');
+                lucide.createIcons();
+            },
+
+            handleStatusClick: (id) => {
+                const inv = state.invoices.find(i => i.id === id);
+                if (!inv) return;
+                
+                let paidAmount = 0;
+                let installmentCount = 0;
+                if(inv.payments && Array.isArray(inv.payments)) {
+                    paidAmount = inv.payments.reduce((sum, p) => sum + p.amount, 0);
+                    installmentCount = inv.payments.length;
+                } else if (inv.status === 'paid') {
+                    paidAmount = inv.totalAmount;
+                    installmentCount = 1;
+                }
+
+                if (inv.status === 'paid') {
+                    if(confirm('This invoice is fully paid. Do you want to reset payment status to Pending? (This will clear payments)')) {
+                        const pass = prompt("Enter Admin Password to Reset Payment:");
+                        if(pass === state.unlockPassword) {
+                            app.resetPayments(id);
+                        } else alert("Wrong password");
+                    }
+                    return;
+                }
+
+                state.tempInvoice = { 
+                    ...inv, 
+                    paidAmount, 
+                    balance: inv.totalAmount - paidAmount,
+                    nextInstallment: installmentCount + 1
+                };
+                app.openModal();
+            },
+
+            openModal: () => {
+                const container = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-payment-modal');
+                container.innerHTML = '';
+                container.appendChild(tpl.content.cloneNode(true));
+                
+                document.getElementById('payment-modal-title').innerText = `Add Payment (#${state.tempInvoice.nextInstallment})`;
+                document.getElementById('modal-total').innerText = state.tempInvoice.totalAmount.toLocaleString() + ' Ks';
+                document.getElementById('modal-paid').innerText = state.tempInvoice.paidAmount.toLocaleString() + ' Ks';
+                document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString() + ' Ks';
+                document.getElementById('payment-amount').value = state.tempInvoice.balance;
+
+                lucide.createIcons();
+            },
+            closeModal: () => {
+                document.getElementById('modal-container').innerHTML = '';
+                state.tempInvoice = null;
+            },
+            
+            confirmPayment: async () => {
+                const amt = Number(document.getElementById('payment-amount').value);
+                const method = document.getElementById('payment-method-select').value;
+                
+                if(!amt || amt <= 0) return alert("Please enter valid amount");
+                if(!state.tempInvoice) return;
+
+                const inv = state.tempInvoice;
+                const newPayment = {
+                    amount: amt,
+                    method: method,
+                    date: new Date().toISOString()
+                };
+
+                let currentPayments = inv.payments && Array.isArray(inv.payments) ? [...inv.payments] : [];
+                currentPayments.push(newPayment);
+
+                const totalPaid = currentPayments.reduce((sum, p) => sum + p.amount, 0);
+                let newStatus = 'partial';
+                if (totalPaid >= inv.totalAmount) newStatus = 'paid';
+
+                await updateDoc(doc(db, 'invoices', inv.id), { 
+                    status: newStatus, 
+                    payments: currentPayments,
+                    paidAt: newStatus === 'paid' ? serverTimestamp() : (inv.paidAt || null),
+                    paymentMethod: method 
+                });
+                
+                app.closeModal();
+            },
+
+            resetPayments: async (id) => {
+                await updateDoc(doc(db, 'invoices', id), {
+                    status: 'pending',
+                    payments: [],
+                    paidAt: null,
+                    paymentMethod: null
+                });
+            },
+
+            deleteInvoice: async (id) => {
+                const inv = state.invoices.find(i => i.id === id);
+                if (inv && inv.status === 'paid') {
+                    const pass = prompt("ဤ Invoice သည် ငွေချေပြီးဖြစ်သောကြောင့် Lock ကျနေပါသည်။ ဖျက်လိုပါက Password ရိုက်ထည့်ပါ:");
+                    if (pass !== state.unlockPassword) {
+                        alert("စကားဝှက်မှားယွင်းနေပါသည်။");
+                        return;
+                    }
+                }
+                
+                if(confirm("Are you sure you want to delete this invoice? This action cannot be undone.")) {
+                    try {
+                        await deleteDoc(doc(db, 'invoices', id));
+                    } catch(e) { alert("Error deleting: " + e.message); }
+                }
+            },
+
+            createInvoiceMode: () => {
+                state.editingId = null;
+                state.items = [{desc: '', price: 0, qty: 1, image: null}];
+                state.discount = 0;
+                state.initPayment = 0;
+                app.setView('create');
+            },
+
+            editInvoice: (id) => {
+                const inv = state.invoices.find(i => i.id === id);
+                if (inv && inv.status === 'paid') {
+                    const pass = prompt("ဤ Invoice သည် ငွေချေပြီးဖြစ်သောကြောင့် Lock ကျနေပါသည်။ ပြင်ဆင်လိုပါက Password ရိုက်ထည့်ပါ:");
+                    if (pass !== state.unlockPassword) {
+                        alert("စကားဝှက်မှားယွင်းနေပါသည်။");
+                        return;
+                    }
+                }
+                state.editingId = id;
+                app.setView('create');
+            },
+
+            // --- Image Handling ---
+            triggerImageUpload: (idx) => {
+                state.uploadingRowIndex = idx;
+                document.getElementById('item-image-input').click();
+            },
+
+            processItemImage: (input) => {
+                const file = input.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 300;
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        state.items[state.uploadingRowIndex].image = canvas.toDataURL('image/jpeg', 0.7);
+                        app.renderCreateItems();
+                        input.value = '';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+
+            removeImage: (idx) => {
+                state.items[idx].image = null;
+                app.renderCreateItems();
+            },
+
+            // --- Form Logic ---
+            renderCreateItems: () => {
+                const container = document.getElementById('items-container');
+                if(!container) return;
+                container.innerHTML = `<label class="block text-sm font-medium text-gray-700 mb-2">Items</label>`;
+                state.items.forEach((item, idx) => {
+                    const row = document.createElement('div');
+                    row.className = "flex flex-col gap-2 mb-4 border-b pb-4";
+                    
+                    const inputs = `
+                    <div class="flex gap-2 items-start">
+                        <input placeholder="Desc" class="flex-grow border p-2 rounded" onchange="app.updateItem(${idx}, 'desc', this.value)" value="${item.desc}">
+                        <input type="number" placeholder="Qty" class="w-16 border p-2 rounded" onchange="app.updateItem(${idx}, 'qty', this.value)" value="${item.qty}">
+                        <input type="number" placeholder="Price" class="w-24 border p-2 rounded" onchange="app.updateItem(${idx}, 'price', this.value)" value="${item.price}">
+                        <button type="button" onclick="app.triggerImageUpload(${idx})" class="p-2 text-gray-500 hover:text-blue-500 border rounded" title="Add Photo"><i data-lucide="camera" width="18"></i></button>
+                        <button type="button" onclick="app.removeItem(${idx})" class="text-red-500 p-2"><i data-lucide="x-circle" width="18"></i></button>
+                    </div>`;
+                    
+                    const imgPreview = item.image ? `
+                    <div class="relative w-20 h-20 group">
+                        <img src="${item.image}" class="w-full h-full object-cover rounded border">
+                        <button type="button" onclick="app.removeImage(${idx})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="x" width="12"></i></button>
+                    </div>` : '';
+
+                    row.innerHTML = inputs + imgPreview;
+                    container.appendChild(row);
+                });
+                lucide.createIcons();
+                app.calcTotal();
+            },
+
+            updateItem: (idx, field, val) => {
+                state.items[idx][field] = field === 'desc' ? val : Number(val);
+                app.calcTotal();
+            },
+            addItem: () => {
+                state.items.push({desc: '', price: 0, qty: 1, image: null});
+                app.renderCreateItems();
+            },
+            removeItem: (idx) => {
+                state.items.splice(idx, 1);
+                app.renderCreateItems();
+            },
+            updateCalc: (val, type) => {
+                if(type === 'discount') state.discount = Number(val);
+                if(type === 'payment') state.initPayment = Number(val);
+                app.calcTotal();
+            },
+            calcTotal: () => {
+                const subtotal = state.items.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                const total = subtotal - state.discount;
+                const balance = total - state.initPayment;
+                
+                document.getElementById('subtotal-display').innerText = subtotal.toLocaleString();
+                document.getElementById('create-total').innerText = total.toLocaleString();
+                document.getElementById('create-balance').innerText = balance.toLocaleString();
+                return total;
+            },
+
+            handleSave: async (e) => {
+                e.preventDefault();
+                const clientName = document.getElementById('client-name').value;
+                const total = app.calcTotal();
+                
+                try {
+                    const docData = {
+                        clientName,
+                        items: state.items,
+                        discount: state.discount,
+                        totalAmount: total
+                    };
+
+                    if (!state.editingId && state.initPayment > 0) {
+                        const method = document.getElementById('init-payment-method').value;
+                        docData.payments = [{
+                            amount: state.initPayment,
+                            method: method,
+                            date: new Date().toISOString()
+                        }];
+                        docData.paymentMethod = method;
+                        docData.status = state.initPayment >= total ? 'paid' : 'partial';
+                        if(docData.status === 'paid') docData.paidAt = serverTimestamp();
+                    } else if (!state.editingId) {
+                        docData.payments = [];
+                        docData.status = 'pending';
+                    }
+
+                    if (state.editingId) {
+                        await updateDoc(doc(db, 'invoices', state.editingId), docData);
+                    } else {
+                        await addDoc(collection(db, 'invoices'), {
+                            ...docData,
+                            createdAt: serverTimestamp(),
+                            invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+                            securityCode: `SEC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+                            createdBy: state.user.uid
+                        });
+                    }
+                    app.setView('dashboard');
+                } catch(e) { alert("Error saving invoice: " + e.message); }
+            },
+
+            // --- Verify & Print ---
+            handleSearch: async (val) => {
+                const queryVal = val || document.getElementById('search-input').value;
+                if(!queryVal) return;
+
+                app.setView('verify');
+                const container = document.getElementById('verify-content');
+                container.innerHTML = '<div class="p-10 text-blue-600">Searching...</div>';
+
+                let found = null;
+                // Search by invoice number
+                const q1 = query(collection(db, 'invoices'), where("invoiceNumber", "==", queryVal));
+                const s1 = await getDocs(q1);
+                if(!s1.empty) found = {id: s1.docs[0].id, ...s1.docs[0].data()};
+                
+                // If not found, search by security code
+                if(!found) {
+                    const q2 = query(collection(db, 'invoices'), where("securityCode", "==", queryVal));
+                    const s2 = await getDocs(q2);
+                    if(!s2.empty) found = {id: s2.docs[0].id, ...s2.docs[0].data()};
+                }
+
+                if(found) app.renderInvoicePaper(found);
+                else container.innerHTML = `<div class="bg-white p-10 rounded-2xl shadow-lg text-center border-2 border-red-100">
+                     <div class="text-red-500 mb-4 flex justify-center"><i data-lucide="x-circle" width="60" height="60"></i></div>
+                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Invoice မတွေ့ရှိပါ</h2>
+                     <button onclick="app.backHome()" class="mt-6 text-blue-600 font-medium hover:underline">ပင်မစာမျက်နှာသို့</button>
+                </div>`;
+                lucide.createIcons();
+            },
+
+            showVerify: (id) => {
+                const inv = state.invoices.find(i => i.id === id);
+                app.setView('verify');
+                app.renderInvoicePaper(inv);
+            },
+
+            startScanner: () => {
+                document.getElementById('scanner-modal').classList.remove('hidden');
+                state.html5QrCode = new Html5Qrcode("reader");
+                state.html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => {
+                        app.stopScanner();
+                        if(decodedText.includes('?code=')) app.handleSearch(new URL(decodedText).searchParams.get('code'));
+                        else if(decodedText.includes('?id=')) app.handleSearch(new URL(decodedText).searchParams.get('id'));
+                        else app.handleSearch(decodedText);
+                    }
+                ).catch(err => { alert("Camera error"); app.stopScanner(); });
+            },
+
+            stopScanner: () => {
+                if(state.html5QrCode) {
+                    state.html5QrCode.stop().then(() => {
+                        state.html5QrCode.clear();
+                        document.getElementById('scanner-modal').classList.add('hidden');
+                    });
+                } else document.getElementById('scanner-modal').classList.add('hidden');
+            },
+
+            renderInvoicePaper: (inv) => {
+                state.currentInvoice = inv;
+                const container = document.getElementById('verify-content');
+                const verifyUrl = `${window.location.origin}${window.location.pathname}?code=${inv.securityCode}`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
+                const subtotal = inv.items.reduce((s,i)=>s+(i.price*i.qty),0);
+                
+                let paymentsHTML = '';
+                if (inv.payments && inv.payments.length > 0) {
+                    paymentsHTML = `
+                        <div class="mt-4 border-t pt-2">
+                            <p class="font-bold text-gray-700 text-xs uppercase mb-1">Payment History</p>
+                            <table class="w-full text-xs text-gray-600">
+                                <thead class="border-b font-medium text-gray-500 bg-gray-50">
+                                    <tr>
+                                        <th class="py-1 text-left">No.</th>
+                                        <th class="py-1 text-left">Date</th>
+                                        <th class="py-1 text-left">Method</th>
+                                        <th class="py-1 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                ${inv.payments.map((p, idx) => `
+                                    <tr class="border-b border-gray-50 last:border-none">
+                                        <td class="py-1 text-gray-400">#${idx + 1}</td>
+                                        <td class="py-1">${new Date(p.date).toLocaleDateString()}</td>
+                                        <td class="py-1">${p.method}</td>
+                                        <td class="py-1 text-right font-medium text-gray-800">${Number(p.amount).toLocaleString()} Ks</td>
+                                    </tr>
+                                `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                const logoSrc = state.settings.logo || '';
+                const logoHtml = logoSrc 
+                    ? `<img src="${logoSrc}" class="h-20 max-w-[150px] object-contain border rounded">`
+                    : `<div class="h-20 w-32 bg-gray-100 flex items-center justify-center text-gray-400 border rounded">LOGO HERE</div>`;
+
+                container.innerHTML = `
+                    <div id="invoice-paper" class="bg-white p-8 md:p-12 shadow-2xl rounded-sm w-full max-w-4xl text-gray-800 border relative min-h-[800px] flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start border-b pb-8 mb-8 z-10 relative">
+                                <div>
+                                    <h1 class="text-4xl font-extrabold text-blue-900 tracking-tight">INVOICE</h1>
+                                    <p class="text-gray-500 mt-1"># ${inv.invoiceNumber}</p>
+                                    <div class="mt-4 text-sm text-gray-600">
+                                        <p class="font-bold">From:</p>
+                                        <p>Your Company Name</p>
+                                        <p>123 Merchant Road, Yangon</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    ${logoHtml}
+                                    <div class="mt-2 text-xs font-mono bg-gray-100 px-2 py-1 rounded inline-block">SEC: ${inv.securityCode}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between mb-8">
+                                <div>
+                                    <p class="text-gray-500 text-sm font-bold uppercase">Bill To:</p>
+                                    <h3 class="text-xl font-bold text-gray-800">${inv.clientName}</h3>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-gray-500 text-sm font-bold uppercase">Date:</p>
+                                    <p class="font-medium">${inv.createdAt?.seconds ? new Date(inv.createdAt.seconds*1000).toLocaleDateString() : 'Now'}</p>
+                                    
+                                    ${inv.status === 'paid' ? `
+                                        <div class="mt-4 text-right">
+                                            <p class="font-bold text-green-700 border-2 border-green-700 px-2 inline-block rounded">REMARK: PAID</p>
+                                            ${inv.paidAt?.seconds ? `<p class="text-xs text-gray-500 mt-1">${new Date(inv.paidAt.seconds*1000).toLocaleString()}</p>` : ''}
+                                        </div>
+                                    ` : ''}
+                                    ${paymentsHTML}
+                                </div>
+                            </div>
+
+                            <table class="w-full mb-8">
+                                <thead class="bg-gray-100 text-gray-600 text-sm uppercase">
+                                    <tr><th class="py-3 px-4 text-left">Desc</th><th class="py-3 px-4 text-right">Qty</th><th class="py-3 px-4 text-right">Price</th><th class="py-3 px-4 text-right">Total</th></tr>
+                                </thead>
+                                <tbody class="text-gray-700">
+                                    ${inv.items.map(i => `
+                                        <tr class="border-b border-gray-50">
+                                            <td class="py-4 px-4">
+                                                <div>${i.desc}</div>
+                                                ${i.image ? `<img src="${i.image}" class="mt-2 h-16 object-contain border rounded">` : ''}
+                                            </td>
+                                            <td class="py-4 px-4 text-right align-top">${i.qty}</td>
+                                            <td class="py-4 px-4 text-right align-top">${i.price.toLocaleString()}</td>
+                                            <td class="py-4 px-4 text-right font-medium align-top">${(i.price*i.qty).toLocaleString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="relative">
+                            
+                            <div class="mt-8 pt-8 border-t">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex flex-col gap-4 max-w-sm">
+                                        <div class="flex gap-4">
+                                            <div class="flex-shrink-0 text-center">
+                                                <img src="${qrUrl}" crossOrigin="anonymous" class="w-20 h-20 mb-1 border p-1">
+                                                <p class="text-[10px] text-gray-400">Scan to Verify</p>
+                                            </div>
+                                            <div class="text-sm text-gray-600">
+                                                <p class="font-bold text-gray-700 mb-1">Payment Options:</p>
+                                                <p class="whitespace-pre-line text-xs">${state.settings.accounts || '-'}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-xs text-gray-500 mt-2">
+                                            <p class="font-bold mb-1">Terms & Notes:</p>
+                                            <p class="whitespace-pre-line">${state.settings.terms || '-'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="w-64 text-right">
+                                        <div class="flex justify-between py-1 text-gray-600">
+                                            <span>Subtotal</span>
+                                            <span>${subtotal.toLocaleString()} Ks</span>
+                                        </div>
+                                        ${inv.discount > 0 ? `
+                                        <div class="flex justify-between py-1 text-red-500">
+                                            <span>Discount</span>
+                                            <span>- ${Number(inv.discount).toLocaleString()} Ks</span>
+                                        </div>` : ''}
+                                        <div class="flex justify-between py-2 text-xl font-bold text-blue-900 border-t mt-2">
+                                            <span>Total</span>
+                                            <span>${Number(inv.totalAmount).toLocaleString()} Ks</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 text-center text-sm text-gray-400">
+                                <p>Thank you for your business!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            downloadPDF: async () => {
+                const element = document.getElementById('invoice-paper');
+                const canvas = await html2canvas(element, { scale: 3, useCORS: true, windowWidth: 1024 });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`Invoice-${state.currentInvoice.invoiceNumber}.pdf`);
+            },
+
+            backHome: () => {
+                app.setView(state.isAdmin ? 'dashboard' : 'home');
+            }
+        };
+
+        // Initialize
+        window.app = app;
+        app.init();
+    </script>
+</body>
+</html>
