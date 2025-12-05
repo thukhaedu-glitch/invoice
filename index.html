@@ -21,18 +21,23 @@
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
+        /* Print Styles - Only show #invoice-paper */
         @media print {
             body * { visibility: hidden; }
             #invoice-paper, #invoice-paper * { visibility: visible; }
             #invoice-paper { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
-            @page { size: auto; margin: 5mm; }
+            @page { size: auto; margin: 12.7mm; } /* 0.5 inch margin */
             .no-print { display: none !important; }
         }
+        
+        /* Hide scrollbar for tabs */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col justify-center">
 
-    <main class="w-full max-w-5xl mx-auto p-4" id="main-container">
+    <main class="w-full max-w-6xl mx-auto p-2 md:p-4" id="main-container">
         </main>
 
     <div id="modal-container"></div>
@@ -43,56 +48,38 @@
 
     <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-[60] flex flex-col items-center justify-center p-4">
         <div class="bg-white p-4 rounded-xl w-full max-w-md relative">
-            <button onclick="app.stopScanner()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500">
-                <i data-lucide="x" width="24" height="24"></i>
-            </button>
+            <button onclick="app.stopScanner()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500"><i data-lucide="x"></i></button>
             <h3 class="text-center font-bold mb-4">Scan QR Code</h3>
             <div id="reader" style="width: 100%;"></div>
-            <p class="text-center text-sm text-gray-500 mt-4">ကင်မရာကို QR Code တည့်တည့်ချိန်ပေးပါ</p>
         </div>
     </div>
 
     <template id="tpl-home">
         <div class="flex flex-col items-center justify-center py-4 text-center space-y-6 fade-in min-h-[80vh]">
-            
             <div class="mb-4">
                 <div class="bg-blue-600 text-white p-3 rounded-2xl inline-block shadow-lg mb-3">
                     <i data-lucide="file-text" width="32" height="32"></i>
                 </div>
                 <h1 class="font-bold text-xl text-blue-900">Freelance Services By Thukha Aung</h1>
             </div>
-
             <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">ငွေပေးချေမှု စစ်ဆေးရန်</h2>
-            
             <div class="w-full max-w-md space-y-6">
                 <div class="bg-white p-6 rounded-xl shadow border">
-                    <label class="block text-left text-sm font-medium text-gray-700 mb-2">နည်းလမ်း (၁) - နံပါတ်ရိုက်ထည့်ရန်</label>
+                    <label class="block text-left text-sm font-medium text-gray-700 mb-2">Invoice / Quotation ID</label>
                     <div class="flex gap-2">
-                        <input type="text" id="search-input" placeholder="Invoice / Quotation / Security Code" class="flex-1 border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
-                        <button onclick="app.handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
-                            စစ်မည်
-                        </button>
+                        <input type="text" id="search-input" placeholder="INV-xxx / QTN-xxx" class="flex-1 border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
+                        <button onclick="app.handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">Search</button>
                     </div>
                 </div>
-
                 <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-gray-300"></div>
-                    <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">OR</span>
-                    <div class="flex-grow border-t border-gray-300"></div>
+                    <div class="flex-grow border-t border-gray-300"></div><span class="flex-shrink-0 mx-4 text-gray-400 text-xs">OR</span><div class="flex-grow border-t border-gray-300"></div>
                 </div>
-
                 <button onclick="app.startScanner()" class="w-full bg-gray-800 hover:bg-gray-900 text-white p-5 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]">
                     <i data-lucide="qr-code" width="28" height="28"></i>
-                    <div class="text-left">
-                        <div class="font-bold text-base">နည်းလမ်း (၂) - QR Code ဖတ်ရန်</div>
-                        <div class="text-xs text-gray-400">ကင်မရာအသုံးပြု၍ စစ်ဆေးပါ</div>
-                    </div>
+                    <div class="text-left"><div class="font-bold text-base">Scan QR Code</div><div class="text-xs text-gray-400">Use Camera</div></div>
                 </button>
-
                 <div class="text-center pt-2">
-                    <button onclick="app.handleAuthClick()" class="text-[10px] text-gray-300 hover:text-gray-500 underline cursor-pointer transition-colors">
-                        Click Here
-                    </button>
+                    <button onclick="app.handleAuthClick()" class="text-[10px] text-gray-300 hover:text-gray-500 underline cursor-pointer transition-colors">Click Here</button>
                 </div>
             </div>
         </div>
@@ -100,75 +87,45 @@
 
     <template id="tpl-login">
         <div class="max-w-md mx-auto mt-4 bg-white p-8 rounded-2xl shadow-xl border fade-in relative">
-            <button onclick="app.setView('home')" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600">
-                <i data-lucide="arrow-left" width="20"></i>
-            </button>
-            <h2 class="text-2xl font-bold mb-2 text-center text-gray-800">Admin ဝင်ရောက်ရန်</h2>
-            <p class="text-center text-gray-500 text-sm mb-6">သင့်အီးမေးလ်နှင့် စကားဝှက်ကို အသုံးပြုပါ</p>
-            
-            <button onclick="app.googleLogin()" class="w-full mb-6 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 font-medium shadow-sm">
-                Sign in with Google
-            </button>
-
-            <div class="relative flex py-2 items-center mb-6">
-                <div class="flex-grow border-t border-gray-300"></div>
-                <span class="flex-shrink-0 mx-4 text-gray-400 text-sm">Or with Email</span>
-                <div class="flex-grow border-t border-gray-300"></div>
-            </div>
-
+            <button onclick="app.setView('home')" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600"><i data-lucide="arrow-left" width="20"></i></button>
+            <h2 class="text-2xl font-bold mb-2 text-center text-gray-800">Admin Login</h2>
+            <button onclick="app.googleLogin()" class="w-full mb-6 mt-4 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 font-medium shadow-sm">Sign in with Google</button>
+            <div class="relative flex py-2 items-center mb-6"><div class="flex-grow border-t border-gray-300"></div><span class="flex-shrink-0 mx-4 text-gray-400 text-sm">Or with Email</span><div class="flex-grow border-t border-gray-300"></div></div>
             <form onsubmit="app.handleEmailAuth(event)" class="space-y-4">
                 <div id="auth-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200"></div>
-                <input type="email" id="email" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="admin@example.com" required>
-                <input type="password" id="password" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••" required>
-                <button type="submit" id="auth-submit-btn" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition font-medium">ဝင်ရောက်မည် (Login)</button>
+                <input type="email" id="email" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Email" required>
+                <input type="password" id="password" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Password" required>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium">Login</button>
             </form>
         </div>
     </template>
 
     <template id="tpl-dashboard">
         <div class="fade-in">
-            <div class="flex justify-between items-center mb-6 pb-4 border-b">
-                 <button onclick="app.setView('home')" class="text-gray-500 hover:text-gray-800 flex items-center gap-1">
-                    <i data-lucide="arrow-left" width="18"></i> Home
-                </button>
-                <h2 class="font-bold text-lg text-gray-800">Dashboard</h2>
-                <button onclick="app.logout()" class="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1">
-                    <i data-lucide="log-out" width="16"></i> Logout
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                 <button onclick="app.setView('home')" class="text-gray-500 hover:text-gray-800 flex items-center gap-1 text-sm"><i data-lucide="arrow-left" width="16"></i> Home</button>
+                 <h2 class="font-bold text-gray-800">Admin Dashboard</h2>
+                 <button onclick="app.logout()" class="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1"><i data-lucide="log-out" width="14"></i> Logout</button>
+            </div>
+
+            <div class="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
+                <button onclick="app.switchTab('invoice')" id="tab-invoice" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium bg-white border shadow-sm">Invoices</button>
+                <button onclick="app.switchTab('quotation')" id="tab-quotation" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Quotations</button>
+                <button onclick="app.switchTab('customer')" id="tab-customer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Customers</button>
+                <button onclick="app.switchTab('expense')" id="tab-expense" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Expenses</button>
+                <button onclick="app.switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Reports</button>
+                <button onclick="app.setView('settings')" class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50"><i data-lucide="settings" width="16" class="inline"></i></button>
+            </div>
+
+            <div id="action-bar" class="flex justify-end mb-4">
+                <button onclick="app.handleCreateButtonClick()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm text-sm">
+                    <i data-lucide="plus" width="16"></i> <span id="create-btn-text">Create New</span>
                 </button>
             </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div class="flex bg-gray-100 p-1 rounded-lg">
-                    <button onclick="app.switchTab('invoice')" id="tab-invoice" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white shadow text-gray-800">Invoices</button>
-                    <button onclick="app.switchTab('quotation')" id="tab-quotation" class="px-4 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">Quotations</button>
-                </div>
-                
-                <div class="flex gap-2">
-                    <button onclick="app.setView('settings')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm border">
-                        <i data-lucide="settings" width="18"></i>
-                    </button>
-                    <button onclick="app.handleCreateButtonClick()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
-                        <i data-lucide="plus" width="18"></i> Create New
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow overflow-hidden border">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b">
-                            <tr>
-                                <th class="p-4 font-semibold text-gray-600">ID / Code</th>
-                                <th class="p-4 font-semibold text-gray-600">Client</th>
-                                <th class="p-4 font-semibold text-gray-600">Amount</th>
-                                <th class="p-4 font-semibold text-gray-600">Status</th>
-                                <th class="p-4 font-semibold text-gray-600">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="list-container" class="divide-y">
-                            </tbody>
-                    </table>
-                </div>
+            <div class="bg-white rounded-xl shadow overflow-hidden border min-h-[400px]">
+                <div id="dashboard-content" class="overflow-x-auto">
+                    </div>
             </div>
         </div>
     </template>
@@ -179,182 +136,146 @@
                 <h2 class="text-xl font-bold" id="form-title">Create New</h2>
                 <span id="form-mode-badge" class="px-2 py-1 bg-gray-100 text-xs rounded uppercase font-bold text-gray-500">MODE</span>
             </div>
-            
             <form onsubmit="app.handleSave(event)" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
-                    <input type="text" id="client-name" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Client Name / Customer ID</label>
+                    <input type="text" id="client-name" list="customer-list" onchange="app.fillCustomerInfo(this.value)" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Type name or select...">
+                    <datalist id="customer-list"></datalist>
+                    <input type="hidden" id="client-id">
+                    <div id="client-details" class="text-xs text-gray-500 mt-1 hidden">
+                        <span id="client-phone"></span> | <span id="client-address"></span>
+                    </div>
                 </div>
-                
                 <div id="items-container">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Items</label>
-                    </div>
-                
-                <button type="button" onclick="app.addItem()" class="text-sm text-blue-600 font-medium flex items-center gap-1">
-                    <i data-lucide="plus"></i> နောက်ထပ်ထည့်မည်
-                </button>
+                </div>
+                <button type="button" onclick="app.addItem()" class="text-sm text-blue-600 font-medium flex items-center gap-1"><i data-lucide="plus"></i> Add Item</button>
 
                 <div class="border-t pt-4 bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-gray-600">Subtotal:</span>
-                        <span class="font-medium" id="subtotal-display">0</span>
-                    </div>
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-gray-600">Discount (Ks):</span>
-                        <input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')">
-                    </div>
-                    <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2">
-                        <span>Total Amount:</span>
-                        <span><span id="create-total">0</span> Ks</span>
-                    </div>
-
+                    <div class="flex justify-between items-center mb-2"><span class="text-gray-600">Subtotal:</span><span class="font-medium" id="subtotal-display">0</span></div>
+                    <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Discount (Ks):</span><input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')"></div>
+                    <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2"><span>Total:</span><span><span id="create-total">0</span> Ks</span></div>
                     <div id="invoice-payment-section">
                         <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="text-blue-700 font-medium">1st Payment / Deposit:</span>
-                                <select id="init-payment-method" class="text-sm border rounded p-1">
-                                    <option value="Cash">Cash</option>
-                                    <option value="KPay">KPay</option>
-                                    <option value="Wave">Wave</option>
-                                    <option value="Bank">Bank</option>
-                                </select>
-                            </div>
+                            <div class="flex items-center gap-2"><span class="text-blue-700 font-medium">Payment / Deposit:</span><select id="init-payment-method" class="text-sm border rounded p-1"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select></div>
                             <input type="number" id="init-payment-input" value="0" min="0" class="border p-1 w-32 text-right rounded border-blue-300 focus:ring-2 focus:ring-blue-200" onchange="app.updateCalc(this.value, 'payment')">
                         </div>
-                        <div class="flex justify-between items-center text-red-600 font-bold border-t border-gray-200 pt-2">
-                            <span>Balance Due:</span>
-                            <span><span id="create-balance">0</span> Ks</span>
-                        </div>
+                        <div class="flex justify-between items-center text-red-600 font-bold border-t border-gray-200 pt-2"><span>Balance:</span><span><span id="create-balance">0</span> Ks</span></div>
                     </div>
                 </div>
-
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="app.setView('dashboard')" class="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" id="save-btn-text">Save</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
                 </div>
             </form>
         </div>
     </template>
 
+    <template id="tpl-customer-form">
+        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4" id="cust-form-title">Add Customer</h3>
+                <form onsubmit="app.saveCustomer(event)" class="space-y-3">
+                    <input type="hidden" id="cust-id">
+                    <input type="text" id="cust-name" placeholder="Name" required class="w-full border p-2 rounded">
+                    <input type="text" id="cust-phone" placeholder="Phone" class="w-full border p-2 rounded">
+                    <input type="text" id="cust-address" placeholder="Address" class="w-full border p-2 rounded">
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-expense-form">
+        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4" id="exp-form-title">Add Expense</h3>
+                <form onsubmit="app.saveExpense(event)" class="space-y-3">
+                    <input type="hidden" id="exp-id">
+                    <input type="text" id="exp-title" placeholder="Description (e.g. Lunch)" required class="w-full border p-2 rounded">
+                    <div class="flex gap-2">
+                        <input type="number" id="exp-amount" placeholder="Amount" required class="w-full border p-2 rounded">
+                        <select id="exp-method" class="border p-2 rounded bg-white">
+                            <option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option>
+                        </select>
+                    </div>
+                    <input type="date" id="exp-date" required class="w-full border p-2 rounded">
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Save Expense</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
     <template id="tpl-settings">
         <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
-            <h2 class="text-xl font-bold mb-6 border-b pb-2">Admin Settings</h2>
+            <div class="flex justify-between items-center mb-6 border-b pb-2">
+                <h2 class="text-xl font-bold">Admin Settings</h2>
+                <button onclick="app.setView('dashboard')" class="text-gray-500"><i data-lucide="x"></i></button>
+            </div>
             <form onsubmit="app.handleSaveSettings(event)" class="space-y-6">
-                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
                     <div class="flex items-center gap-4">
-                        <div id="logo-preview" class="w-32 h-20 border rounded bg-gray-50 flex items-center justify-center text-gray-400 overflow-hidden relative">
-                            <span id="logo-placeholder">No Logo</span>
-                        </div>
-                        <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium border">
-                            <i data-lucide="upload" class="inline w-4 h-4 mr-1"></i> Change Logo
-                        </button>
+                        <div id="logo-preview" class="w-32 h-20 border rounded bg-gray-50 flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Logo</span></div>
+                        <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 rounded text-sm border">Change Logo</button>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border">
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Auth Person Name</label><input type="text" id="setting-auth-name" class="w-full border p-2 rounded"></div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Authorized Person Name</label>
-                        <input type="text" id="setting-auth-name" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. U Thukha Aung">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Authorized Signature</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Auth Signature</label>
                         <div class="flex items-center gap-4">
-                            <div id="sign-preview" class="w-32 h-20 border rounded bg-white flex items-center justify-center text-gray-400 overflow-hidden relative">
-                                <span>No Sign</span>
-                            </div>
-                            <button type="button" onclick="document.getElementById('setting-sign-input').click()" class="px-4 py-2 bg-white hover:bg-gray-50 rounded text-sm font-medium border shadow-sm">
-                                <i data-lucide="pen-tool" class="inline w-4 h-4 mr-1"></i> Upload
-                            </button>
+                            <div id="sign-preview" class="w-32 h-20 border rounded bg-white flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Sign</span></div>
+                            <button type="button" onclick="document.getElementById('setting-sign-input').click()" class="px-4 py-2 bg-white border rounded text-sm shadow-sm">Upload</button>
                         </div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Accounts (KBZPay, Wave, Bank etc.)</label>
-                    <textarea id="setting-accounts" rows="4" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. KBZPay: 09xxxxxxxxx (Name)"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms / Footer Note</label>
-                    <textarea id="setting-terms" rows="2" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Thank you for your business."></textarea>
-                </div>
-
-                <div class="flex justify-end gap-3 border-t pt-4">
-                    <button type="button" onclick="app.setView('dashboard')" class="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Settings</button>
-                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Payment Accounts</label><textarea id="setting-accounts" rows="3" class="w-full border p-2 rounded"></textarea></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Terms / Note</label><textarea id="setting-terms" rows="2" class="w-full border p-2 rounded"></textarea></div>
+                <div class="flex justify-end gap-3 pt-4"><button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded">Save Settings</button></div>
             </form>
         </div>
     </template>
 
     <template id="tpl-verify">
         <div class="flex flex-col items-center fade-in">
-            <div class="w-full max-w-4xl mb-4 flex justify-between no-print">
-                <button onclick="app.backHome()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <div class="w-full max-w-4xl mb-4 flex justify-between no-print relative z-50">
+                <button onclick="app.backHome()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900 bg-white px-3 py-1 rounded shadow-sm">
                     <i data-lucide="arrow-left"></i> Back
                 </button>
-                <div class="flex gap-2" id="verify-actions">
-                    <button onclick="window.print()" class="bg-white border text-blue-600 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-50">
+                <div class="flex gap-2">
+                    <button onclick="app.printInvoice()" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 cursor-pointer">
                         <i data-lucide="printer"></i> Print
                     </button>
-                    <button onclick="app.downloadPDF()" class="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-900">
-                        <i data-lucide="download"></i> Download PDF
+                    <button onclick="app.downloadPDF()" class="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-900 cursor-pointer">
+                        <i data-lucide="download"></i> PDF
                     </button>
                 </div>
             </div>
-
-            <div id="verify-content" class="w-full flex justify-center">
-                </div>
+            <div id="verify-content" class="w-full flex justify-center"></div>
         </div>
     </template>
 
     <template id="tpl-payment-modal">
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-gray-800" id="payment-modal-title">Add Payment</h3>
-                    <button onclick="app.closeModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
-                </div>
-                
+                <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold" id="payment-modal-title">Add Payment</h3><button onclick="app.closeModal()" class="text-gray-400"><i data-lucide="x"></i></button></div>
                 <div class="bg-gray-50 p-3 rounded-lg mb-4 space-y-1">
-                    <div class="flex justify-between text-sm text-gray-600">
-                        <span>Total Amount:</span>
-                        <span id="modal-total" class="font-medium">0</span>
-                    </div>
-                    <div class="flex justify-between text-sm text-green-600">
-                        <span>Paid So Far:</span>
-                        <span id="modal-paid" class="font-medium">0</span>
-                    </div>
-                    <div class="flex justify-between text-sm font-bold text-red-600 border-t pt-1 mt-1">
-                        <span>Balance (Remaining):</span>
-                        <span id="modal-balance">0</span>
-                    </div>
+                    <div class="flex justify-between text-sm"><span>Total:</span><span id="modal-total" class="font-medium">0</span></div>
+                    <div class="flex justify-between text-sm text-green-600"><span>Paid:</span><span id="modal-paid" class="font-medium">0</span></div>
+                    <div class="flex justify-between text-sm font-bold text-red-600 border-t pt-1"><span>Balance:</span><span id="modal-balance">0</span></div>
                 </div>
-
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Amount to Pay</label>
-                        <input type="number" id="payment-amount" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500 font-bold text-gray-800">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Payment Method</label>
-                        <select id="payment-method-select" class="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="Cash">Cash (ငွေသား)</option>
-                            <option value="KPay">KPay</option>
-                            <option value="Wave Money">Wave Money</option>
-                            <option value="KBZ Banking">KBZ Banking</option>
-                            <option value="Other">Other (အခြား)</option>
-                        </select>
-                    </div>
+                    <input type="number" id="payment-amount" class="w-full border p-2 rounded font-bold">
+                    <select id="payment-method-select" class="w-full border p-2 rounded"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select>
                 </div>
-
-                <div class="flex justify-end gap-2 mt-6">
-                    <button onclick="app.closeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-                    <button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">Confirm Payment</button>
-                </div>
+                <div class="flex justify-end gap-2 mt-6"><button onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button><button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded">Confirm</button></div>
             </div>
         </div>
     </template>
@@ -362,40 +283,16 @@
     <template id="tpl-invoice-option">
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-bold text-gray-800">Create Invoice</h3>
-                    <button onclick="app.closeModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
-                </div>
-                
+                <div class="flex justify-between items-center mb-6"><h3 class="text-lg font-bold">Create Invoice</h3><button onclick="app.closeModal()"><i data-lucide="x"></i></button></div>
                 <div class="space-y-4">
-                    <button onclick="app.createManualInvoice()" class="w-full flex items-center gap-4 p-4 border rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-all group">
-                        <div class="bg-blue-100 p-3 rounded-full text-blue-600 group-hover:bg-blue-200">
-                            <i data-lucide="file-plus" width="24" height="24"></i>
-                        </div>
-                        <div class="text-left">
-                            <div class="font-bold text-gray-800">Manual Invoice</div>
-                            <div class="text-xs text-gray-500">Create a blank invoice from scratch</div>
-                        </div>
+                    <button onclick="app.createManualInvoice()" class="w-full flex items-center gap-4 p-4 border rounded-xl hover:bg-blue-50">
+                        <div class="bg-blue-100 p-3 rounded-full text-blue-600"><i data-lucide="file-plus"></i></div>
+                        <div class="text-left"><div class="font-bold">Manual Invoice</div><div class="text-xs text-gray-500">Blank invoice</div></div>
                     </button>
-
-                    <div class="relative flex py-2 items-center">
-                        <div class="flex-grow border-t border-gray-300"></div>
-                        <span class="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">OR</span>
-                        <div class="flex-grow border-t border-gray-300"></div>
-                    </div>
-
+                    <div class="relative flex py-2 items-center"><div class="flex-grow border-t"></div><span class="flex-shrink-0 mx-4 text-xs uppercase text-gray-400">OR</span><div class="flex-grow border-t"></div></div>
                     <div class="p-4 border rounded-xl bg-gray-50">
-                        <div class="flex items-center gap-2 mb-3">
-                             <div class="bg-purple-100 p-2 rounded-full text-purple-600">
-                                <i data-lucide="file-text" width="16" height="16"></i>
-                            </div>
-                            <div class="font-bold text-gray-800 text-sm">Auto from Quotation</div>
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="qtn-import-input" placeholder="Enter Quotation ID (e.g. QTN-123)" class="flex-1 border text-sm p-2 rounded outline-none focus:ring-2 focus:ring-purple-500 uppercase">
-                            <button onclick="app.importQuotation()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-purple-700">Load</button>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Enter the ID to auto-fill invoice details.</p>
+                        <div class="flex items-center gap-2 mb-3"><div class="bg-purple-100 p-2 rounded-full text-purple-600"><i data-lucide="file-text" width="16"></i></div><div class="font-bold text-sm">From Quotation</div></div>
+                        <div class="flex gap-2"><input type="text" id="qtn-import-input" placeholder="QTN-123" class="flex-1 border text-sm p-2 rounded uppercase"><button onclick="app.importQuotation()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm">Load</button></div>
                     </div>
                 </div>
             </div>
@@ -407,7 +304,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, setDoc, getDoc, onSnapshot, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyBz5Cm-qsKe9pshGLaBkzw0WTOg9OLDwHk",
             authDomain: "invoice-99bdb.firebaseapp.com",
@@ -421,837 +317,566 @@
         const auth = getAuth(appInstance);
         const db = getFirestore(appInstance);
 
-        // --- App Logic ---
         const state = {
-            user: null,
-            isAdmin: false,
-            view: 'home',
-            activeTab: 'invoice', // 'invoice' or 'quotation'
-            mode: 'invoice', // for create form: 'invoice' or 'quotation'
-            invoices: [],
-            quotations: [],
-            currentDoc: null, // Current Invoice or Quotation being viewed
-            items: [{desc: '', price: 0, qty: 1, image: null}],
-            discount: 0,
-            initPayment: 0, 
-            tempInvoice: null, 
-            html5QrCode: null,
-            editingId: null,
-            unlockPassword: '1234',
-            uploadingRowIndex: null,
-            settings: {
-                logo: null,
-                accounts: '',
-                terms: '',
-                authName: '',
-                authSign: null
-            }
+            user: null, isAdmin: false, view: 'home', activeTab: 'invoice', mode: 'invoice',
+            invoices: [], quotations: [], customers: [], expenses: [],
+            currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
+            discount: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
+            unlockPassword: '1234', uploadingRowIndex: null,
+            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null }
         };
 
         const app = {
             init: () => {
                 onAuthStateChanged(auth, async (u) => {
                     if (u) {
-                        state.user = u;
-                        state.isAdmin = !u.isAnonymous;
+                        state.user = u; state.isAdmin = !u.isAnonymous;
                         if(state.isAdmin) {
-                            app.listenInvoices();
-                            app.listenQuotations();
+                            app.listenCollection('invoices');
+                            app.listenCollection('quotations');
+                            app.listenCollection('customers');
+                            app.listenCollection('expenses');
                         }
-                    } else {
-                        try { await signInAnonymously(auth); } catch(e) { console.error("Anon Login Error:", e); }
-                    }
+                    } else { try { await signInAnonymously(auth); } catch(e){} }
                     
                     const params = new URLSearchParams(window.location.search);
-                    if(params.get('id') || params.get('code')) {
-                        app.handleSearch(params.get('code') || params.get('id'));
-                    } else {
-                        app.setView('home');
-                    }
+                    if(params.get('id') || params.get('code')) app.handleSearch(params.get('code') || params.get('id'));
+                    else app.setView('home');
                 });
-                
                 app.listenSettings();
                 lucide.createIcons();
+            },
+
+            listenCollection: (coll) => {
+                onSnapshot(collection(db, coll), (snapshot) => {
+                    state[coll] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data(), type: coll.slice(0,-1)}));
+                    // Sort descending by created/date
+                    state[coll].sort((a,b) => {
+                        const tA = a.createdAt?.seconds || new Date(a.date).getTime()/1000 || 0;
+                        const tB = b.createdAt?.seconds || new Date(b.date).getTime()/1000 || 0;
+                        return tB - tA;
+                    });
+                    if(state.view === 'dashboard' && state.activeTab === coll.slice(0,-1)) app.switchTab(state.activeTab);
+                    if(state.view === 'dashboard' && state.activeTab === 'report') app.renderReports();
+                });
             },
 
             listenSettings: () => {
                 onSnapshot(doc(db, 'invoices', 'config_general'), (doc) => {
                     if (doc.exists()) {
                         state.settings = doc.data();
-                        if (state.view === 'verify' && state.currentDoc) {
-                            app.renderPaper(state.currentDoc);
-                        }
+                        if (state.view === 'verify' && state.currentDoc) app.renderPaper(state.currentDoc);
                     }
                 });
             },
 
-            handleSaveSettings: async (e) => {
-                e.preventDefault();
-                const accounts = document.getElementById('setting-accounts').value;
-                const terms = document.getElementById('setting-terms').value;
-                const authName = document.getElementById('setting-auth-name').value;
-                
-                state.settings.accounts = accounts;
-                state.settings.terms = terms;
-                state.settings.authName = authName;
-
-                try {
-                    await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
-                    alert("Settings saved successfully!");
-                    app.setView('dashboard');
-                } catch (err) {
-                    alert("Error saving settings: " + err.message);
-                }
-            },
-
-            // New function for Click Here Button
-            handleAuthClick: () => {
-                if(state.isAdmin) {
-                    app.setView('dashboard');
-                } else {
-                    app.setView('login');
-                }
-            },
-
-            processImageBase: (input, callback) => {
-                const file = input.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300; 
-                        const scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        callback(canvas.toDataURL('image/png'));
-                        input.value = '';
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            },
-
-            processLogo: (input) => {
-                app.processImageBase(input, (dataUrl) => {
-                    state.settings.logo = dataUrl;
-                    document.getElementById('logo-preview').innerHTML = `<img src="${dataUrl}" class="w-full h-full object-contain">`;
-                });
-            },
-
-            processSign: (input) => {
-                app.processImageBase(input, (dataUrl) => {
-                    state.settings.authSign = dataUrl;
-                    document.getElementById('sign-preview').innerHTML = `<img src="${dataUrl}" class="w-full h-full object-contain">`;
-                });
-            },
-            
-            processItemImage: (input) => {
-                app.processImageBase(input, (dataUrl) => {
-                    state.items[state.uploadingRowIndex].image = dataUrl;
-                    app.renderCreateItems();
-                });
-            },
-
+            // --- Views & Navigation ---
             setView: (viewName) => {
                 state.view = viewName;
                 const main = document.getElementById('main-container');
                 const tpl = document.getElementById(`tpl-${viewName}`);
-                
                 if((viewName === 'dashboard' || viewName === 'settings') && !state.isAdmin) return app.setView('login');
-                
-                main.innerHTML = '';
-                main.appendChild(tpl.content.cloneNode(true));
+                main.innerHTML = ''; main.appendChild(tpl.content.cloneNode(true));
                 lucide.createIcons();
 
-                if(viewName === 'dashboard') {
-                    app.switchTab(state.activeTab); 
-                }
-                if(viewName === 'settings') {
-                    if(state.settings.logo) document.getElementById('logo-preview').innerHTML = `<img src="${state.settings.logo}" class="w-full h-full object-contain">`;
-                    if(state.settings.authSign) document.getElementById('sign-preview').innerHTML = `<img src="${state.settings.authSign}" class="w-full h-full object-contain">`;
-                    document.getElementById('setting-accounts').value = state.settings.accounts || '';
-                    document.getElementById('setting-terms').value = state.settings.terms || '';
-                    document.getElementById('setting-auth-name').value = state.settings.authName || '';
-                }
-                if(viewName === 'create') {
-                   app.initCreateForm();
-                }
+                if(viewName === 'dashboard') app.switchTab(state.activeTab);
+                if(viewName === 'settings') app.fillSettingsForm();
+                if(viewName === 'create') app.initCreateForm();
             },
 
-            // --- Dashboard Logic ---
             switchTab: (tab) => {
                 state.activeTab = tab;
-                const btnInv = document.getElementById('tab-invoice');
-                const btnQuot = document.getElementById('tab-quotation');
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.className = `tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium ${b.id === 'tab-'+tab ? 'bg-white border shadow-sm text-gray-800' : 'text-gray-500 hover:bg-gray-50'}`;
+                });
                 
-                if(!btnInv || !btnQuot) return;
+                const actionBar = document.getElementById('action-bar');
+                if(actionBar) actionBar.style.display = tab === 'report' ? 'none' : 'flex';
+                if(document.getElementById('create-btn-text')) document.getElementById('create-btn-text').innerText = `New ${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
 
-                if (tab === 'invoice') {
-                    btnInv.className = "px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white shadow text-gray-800";
-                    btnQuot.className = "px-4 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors";
-                    app.renderList(state.invoices, 'invoice');
-                } else {
-                    btnQuot.className = "px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white shadow text-gray-800";
-                    btnInv.className = "px-4 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors";
-                    app.renderList(state.quotations, 'quotation');
-                }
+                if(tab === 'report') app.renderReports();
+                else app.renderList(state[tab + 's'], tab);
             },
 
-            listenInvoices: () => {
-                const q = collection(db, 'invoices');
-                onSnapshot(q, (snapshot) => {
-                    state.invoices = snapshot.docs
-                        .map(doc => ({id: doc.id, ...doc.data(), type: 'invoice'}))
-                        .filter(doc => doc.id !== 'config_general')
-                        .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                    if(state.view === 'dashboard' && state.activeTab === 'invoice') app.renderList(state.invoices, 'invoice');
-                });
-            },
-
-            listenQuotations: () => {
-                const q = collection(db, 'quotations');
-                onSnapshot(q, (snapshot) => {
-                    state.quotations = snapshot.docs
-                        .map(doc => ({id: doc.id, ...doc.data(), type: 'quotation'}))
-                        .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-                    if(state.view === 'dashboard' && state.activeTab === 'quotation') app.renderList(state.quotations, 'quotation');
-                });
-            },
-
+            // --- Render Lists ---
             renderList: (data, type) => {
-                const container = document.getElementById('list-container');
+                const container = document.getElementById('dashboard-content');
                 if(!container) return;
                 
-                if(data.length === 0) {
-                    container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">No ${type}s found.</td></tr>`;
+                if(!data || data.length === 0) {
+                    container.innerHTML = `<div class="p-8 text-center text-gray-400">No ${type}s found.</div>`;
                     return;
                 }
 
-                container.innerHTML = data.map(item => {
-                    const isPaid = item.status === 'paid';
-                    const isPartial = item.status === 'partial';
-                    
-                    let statusBadge = '';
-                    if (type === 'invoice') {
-                         if (isPaid) statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">PAID</span>`;
-                         else if (isPartial) statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700">PARTIAL</span>`;
-                         else statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-yellow-100 text-yellow-700">PENDING</span>`;
-                    } else {
-                        // For Quotation
-                        statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-gray-100 text-gray-600">QUOTATION</span>`;
-                    }
-
-                    // Calculation for display
-                    let displayAmount = `<span class="font-medium">${Number(item.totalAmount).toLocaleString()} Ks</span>`;
-                    if (type === 'invoice') {
-                        let paid = 0;
-                        if(item.payments) paid = item.payments.reduce((s,p)=>s+p.amount,0);
-                        const bal = item.totalAmount - paid;
-                        displayAmount = `
-                        <div class="text-sm">
-                            <div>Total: ${Number(item.totalAmount).toLocaleString()}</div>
-                            <div class="text-xs text-gray-500 mt-1">Bal: <span class="text-red-500 font-bold">${bal.toLocaleString()}</span></div>
-                        </div>`;
-                    }
-
-                    // Actions
-                    let actions = `
-                        <button onclick="app.showVerify('${item.id}', '${type}')" class="p-2 text-gray-600 hover:bg-gray-200 rounded" title="Print/View"><i data-lucide="printer" width="16"></i></button>
-                    `;
-
-                    if (type === 'invoice') {
-                         actions += `
-                            <button onclick="app.handleStatusClick('${item.id}')" class="p-2 ${isPaid?'text-green-600': (isPartial ? 'text-blue-600' : 'text-gray-400')} hover:bg-gray-100 rounded" title="Add Payment">
-                                <i data-lucide="credit-card" width="16"></i>
-                            </button>
-                            <div class="w-px h-4 bg-gray-300 mx-1"></div>
-                            <button onclick="app.editDoc('${item.id}', 'invoice')" class="p-2 ${isPaid ? 'text-gray-400 hover:text-red-500' : 'text-blue-600 hover:bg-blue-100'} rounded" title="${isPaid ? 'Locked' : 'Edit'}">
-                                <i data-lucide="${isPaid ? 'lock' : 'pencil'}" width="16"></i>
-                            </button>
-                            <button onclick="app.deleteDoc('${item.id}', 'invoice')" class="p-2 ${isPaid ? 'text-gray-400 hover:text-red-600' : 'text-red-600 hover:bg-red-100'} rounded">
-                                <i data-lucide="trash-2" width="16"></i>
-                            </button>
-                         `;
-                    } else {
-                        // Quotation Actions
-                        actions += `
-                            <button onclick="app.editDoc('${item.id}', 'quotation')" class="p-2 text-blue-600 hover:bg-blue-100 rounded" title="Edit">
-                                <i data-lucide="pencil" width="16"></i>
-                            </button>
-                            <button onclick="app.deleteDoc('${item.id}', 'quotation')" class="p-2 text-red-600 hover:bg-red-100 rounded">
-                                <i data-lucide="trash-2" width="16"></i>
-                            </button>
-                        `;
-                    }
-
-                    return `
-                    <tr class="hover:bg-gray-50 border-b">
-                        <td class="p-4">
-                            <div class="font-medium text-blue-600">${item.invoiceNumber || item.quotationNumber}</div>
-                            <div class="text-xs text-gray-400 font-mono">${item.securityCode}</div>
-                        </td>
-                        <td class="p-4">${item.clientName}</td>
-                        <td class="p-4">${displayAmount}</td>
-                        <td class="p-4">${statusBadge}</td>
-                        <td class="p-4 flex gap-2 items-center">
-                            ${actions}
-                        </td>
-                    </tr>
-                    `;
-                }).join('');
-                lucide.createIcons();
-            },
-
-            // --- CRUD Logic ---
-            handleCreateButtonClick: () => {
-                // If on Invoice tab, show option modal
-                if (state.activeTab === 'invoice') {
-                    app.showInvoiceOptionModal();
+                if (type === 'customer') {
+                    container.innerHTML = `
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Name</th><th class="p-3">Phone</th><th class="p-3">Address</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <tbody class="divide-y">${data.map(c => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3 font-medium">${c.name}</td><td class="p-3">${c.phone || '-'}</td><td class="p-3 truncate max-w-xs">${c.address || '-'}</td>
+                                <td class="p-3 text-right">
+                                    <button onclick="app.editCustomer('${c.id}')" class="text-blue-600 p-1"><i data-lucide="pencil" width="16"></i></button>
+                                    <button onclick="app.deleteDoc('${c.id}', 'customers')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                </td>
+                            </tr>`).join('')}</tbody>
+                    </table>`;
+                } else if (type === 'expense') {
+                    container.innerHTML = `
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Desc</th><th class="p-3">Method</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <tbody class="divide-y">${data.map(e => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3">${new Date(e.date).toLocaleDateString()}</td><td class="p-3 font-medium">${e.title}</td><td class="p-3"><span class="bg-gray-100 px-2 py-0.5 rounded text-xs">${e.method}</span></td>
+                                <td class="p-3 text-right font-medium text-red-600">-${Number(e.amount).toLocaleString()}</td>
+                                <td class="p-3 text-right">
+                                    <button onclick="app.deleteDoc('${e.id}', 'expenses')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                </td>
+                            </tr>`).join('')}</tbody>
+                    </table>`;
                 } else {
-                    // Quotation mode
-                    app.createMode('quotation');
-                }
-            },
+                    // Invoice & Quotation
+                    container.innerHTML = `
+                    <table class="w-full text-left text-sm">
+                         <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">ID</th><th class="p-3">Client</th><th class="p-3 text-right">Amount</th><th class="p-3 text-center">Status</th><th class="p-3 text-right">Actions</th></tr></thead>
+                         <tbody class="divide-y">${data.map(item => {
+                             const isPaid = item.status === 'paid';
+                             const isPartial = item.status === 'partial';
+                             let badge = type==='quotation' ? '<span class="px-2 py-0.5 rounded text-xs bg-gray-100">QTN</span>' : (isPaid ? '<span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">PAID</span>' : (isPartial ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">PARTIAL</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">PENDING</span>'));
+                             let paid = item.payments ? item.payments.reduce((s,p)=>s+p.amount,0) : 0;
+                             let bal = item.totalAmount - paid;
+                             
+                             // 4 Action Buttons Logic
+                             let actionBtns = `
+                                <div class="flex items-center justify-end gap-1">
+                                    <button onclick="app.showVerify('${item.id}', '${type}')" class="p-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200" title="Print/View"><i data-lucide="printer" width="14"></i></button>
+                             `;
+                             
+                             if(type==='invoice') {
+                                actionBtns += `<button onclick="app.handleStatusClick('${item.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="Payment"><i data-lucide="credit-card" width="14"></i></button>`;
+                             } else {
+                                actionBtns += `<button onclick="app.convertQuotation('${item.id}')" class="p-1.5 bg-purple-50 text-purple-600 rounded hover:bg-purple-100" title="Convert"><i data-lucide="arrow-right-circle" width="14"></i></button>`;
+                             }
+                             
+                             actionBtns += `
+                                    <button onclick="app.editDoc('${item.id}', '${type}')" class="p-1.5 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100" title="Edit"><i data-lucide="pencil" width="14"></i></button>
+                                    <button onclick="app.deleteDoc('${item.id}', '${type}s')" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Delete"><i data-lucide="trash-2" width="14"></i></button>
+                                </div>
+                             `;
 
-            showInvoiceOptionModal: () => {
-                const container = document.getElementById('modal-container');
-                const tpl = document.getElementById('tpl-invoice-option');
-                container.innerHTML = '';
-                container.appendChild(tpl.content.cloneNode(true));
+                             return `<tr class="hover:bg-gray-50 border-b">
+                                <td class="p-3 font-medium text-blue-600">${item.invoiceNumber || item.quotationNumber}</td>
+                                <td class="p-3">${item.clientName}</td>
+                                <td class="p-3 text-right"><div>${Number(item.totalAmount).toLocaleString()}</div>${type==='invoice' && bal>0 ? `<div class="text-xs text-red-500">Bal: ${bal.toLocaleString()}</div>` : ''}</td>
+                                <td class="p-3 text-center">${badge}</td>
+                                <td class="p-3 text-right">${actionBtns}</td>
+                             </tr>`;
+                         }).join('')}</tbody>
+                    </table>`;
+                }
                 lucide.createIcons();
             },
 
-            createManualInvoice: () => {
-                app.closeModal();
-                app.createMode('invoice');
-            },
-
-            importQuotation: async () => {
-                const idInput = document.getElementById('qtn-import-input').value.trim().toUpperCase();
-                if(!idInput) return alert("Please enter a Quotation ID");
-
-                // Search for quotation
-                const q = query(collection(db, 'quotations'), where("quotationNumber", "==", idInput));
-                const querySnapshot = await getDocs(q);
-
-                if(querySnapshot.empty) {
-                    alert("Quotation not found!");
-                    return;
-                }
-
-                const quot = querySnapshot.docs[0].data();
+            // --- Reports Logic ---
+            renderReports: () => {
+                const container = document.getElementById('dashboard-content');
+                // Calculate Stats
+                let totalIncome = 0;
+                let totalReceivable = 0;
+                let totalExpense = 0;
                 
-                app.closeModal();
-                state.mode = 'invoice';
-                state.editingId = null; 
-                state.items = JSON.parse(JSON.stringify(quot.items));
-                state.discount = quot.discount || 0;
-                state.initPayment = 0;
+                // Methods Breakdown
+                const methods = { 'Cash': 0, 'KPay': 0, 'Wave': 0, 'Bank': 0 };
+                const expMethods = { 'Cash': 0, 'KPay': 0, 'Wave': 0, 'Bank': 0 };
 
-                app.setView('create');
-                setTimeout(() => {
-                    document.getElementById('client-name').value = quot.clientName;
-                    document.getElementById('discount-input').value = state.discount;
-                    alert(`Loaded details from ${idInput}. Please check and save as new Invoice.`);
-                }, 100);
-            },
-
-            createMode: (mode) => {
-                state.mode = mode || state.activeTab;
-                state.editingId = null;
-                state.items = [{desc: '', price: 0, qty: 1, image: null}];
-                state.discount = 0;
-                state.initPayment = 0;
-                app.setView('create');
-            },
-
-            editDoc: (id, type) => {
-                state.mode = type;
-                state.editingId = id;
-                
-                const collection = type === 'invoice' ? state.invoices : state.quotations;
-                const docData = collection.find(i => i.id === id);
-
-                if (type === 'invoice' && docData && docData.status === 'paid') {
-                    const pass = prompt("Locked. Enter password to edit:");
-                    if (pass !== state.unlockPassword) return alert("Wrong password");
-                }
-                
-                if (docData) {
-                    state.items = JSON.parse(JSON.stringify(docData.items));
-                    state.discount = docData.discount || 0;
-                    app.setView('create');
-                    
-                    setTimeout(() => {
-                        document.getElementById('client-name').value = docData.clientName;
-                        document.getElementById('discount-input').value = state.discount;
-                        if(type === 'invoice') {
-                            document.getElementById('init-payment-input').disabled = true;
-                            document.getElementById('init-payment-method').disabled = true;
-                        }
-                    }, 100);
-                }
-            },
-
-            deleteDoc: async (id, type) => {
-                if (type === 'invoice') {
-                    const docData = state.invoices.find(i => i.id === id);
-                    if (docData && docData.status === 'paid') {
-                        const pass = prompt("Locked. Enter password to delete:");
-                        if (pass !== state.unlockPassword) return alert("Wrong password");
+                // Process Invoices
+                state.invoices.forEach(inv => {
+                    if(inv.payments) {
+                        inv.payments.forEach(p => {
+                            totalIncome += p.amount;
+                            if(methods[p.method] !== undefined) methods[p.method] += p.amount;
+                            else if(p.method.includes('Wave')) methods['Wave'] += p.amount; // fuzzy match
+                        });
                     }
-                }
-
-                if(confirm("Are you sure?")) {
-                    try {
-                        await deleteDoc(doc(db, type + 's', id)); // invoices or quotations
-                    } catch(e) { alert("Error: " + e.message); }
-                }
-            },
-
-            initCreateForm: () => {
-                const title = state.editingId ? `Edit ${state.mode === 'invoice' ? 'Invoice' : 'Quotation'}` : `Create New ${state.mode === 'invoice' ? 'Invoice' : 'Quotation'}`;
-                document.getElementById('form-title').innerText = title;
-                const badge = document.getElementById('form-mode-badge');
-                badge.innerText = state.mode;
-                badge.className = `px-2 py-1 text-xs rounded uppercase font-bold ${state.mode === 'invoice' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`;
-                
-                // Hide Payment section if quotation
-                const paySection = document.getElementById('invoice-payment-section');
-                if(state.mode === 'quotation') paySection.style.display = 'none';
-                else paySection.style.display = 'block';
-
-                app.renderCreateItems();
-            },
-
-            // Create/Edit Helper methods
-            renderCreateItems: () => {
-                const container = document.getElementById('items-container');
-                if(!container) return;
-                container.innerHTML = `<label class="block text-sm font-medium text-gray-700 mb-2">Items</label>`;
-                state.items.forEach((item, idx) => {
-                    const row = document.createElement('div');
-                    row.className = "flex flex-col gap-2 mb-4 border-b pb-4";
-                    const inputs = `
-                    <div class="flex gap-2 items-start">
-                        <input placeholder="Desc" class="flex-grow border p-2 rounded" onchange="app.updateItem(${idx}, 'desc', this.value)" value="${item.desc}">
-                        <input type="number" placeholder="Qty" class="w-16 border p-2 rounded" onchange="app.updateItem(${idx}, 'qty', this.value)" value="${item.qty}">
-                        <input type="number" placeholder="Price" class="w-24 border p-2 rounded" onchange="app.updateItem(${idx}, 'price', this.value)" value="${item.price}">
-                        <button type="button" onclick="app.triggerImageUpload(${idx})" class="p-2 text-gray-500 hover:text-blue-500 border rounded" title="Add Photo"><i data-lucide="camera" width="18"></i></button>
-                        <button type="button" onclick="app.removeItem(${idx})" class="text-red-500 p-2"><i data-lucide="x-circle" width="18"></i></button>
-                    </div>`;
-                    const imgPreview = item.image ? `<div class="relative w-20 h-20 group"><img src="${item.image}" class="w-full h-full object-cover rounded border"><button type="button" onclick="app.removeImage(${idx})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="x" width="12"></i></button></div>` : '';
-                    row.innerHTML = inputs + imgPreview;
-                    container.appendChild(row);
+                    // Receivable
+                    let paid = inv.payments ? inv.payments.reduce((s,p)=>s+p.amount,0) : 0;
+                    if(paid < inv.totalAmount) totalReceivable += (inv.totalAmount - paid);
                 });
-                lucide.createIcons();
-                app.calcTotal();
+
+                // Process Expenses
+                state.expenses.forEach(e => {
+                    totalExpense += Number(e.amount);
+                    let m = e.method;
+                    if(m.includes('Wave')) m = 'Wave';
+                    if(expMethods[m] !== undefined) expMethods[m] += Number(e.amount);
+                });
+
+                const netProfit = totalIncome - totalExpense;
+
+                container.innerHTML = `
+                <div class="p-4 bg-gray-50 min-h-screen">
+                    <h3 class="font-bold text-lg mb-4 text-gray-700">Financial Overview</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+                            <div class="text-xs text-gray-500 uppercase">Total Income</div>
+                            <div class="text-xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+                            <div class="text-xs text-gray-500 uppercase">Total Expenses</div>
+                            <div class="text-xl font-bold text-red-600">${totalExpense.toLocaleString()}</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                            <div class="text-xs text-gray-500 uppercase">Net Profit</div>
+                            <div class="text-xl font-bold text-blue-600">${netProfit.toLocaleString()}</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
+                            <div class="text-xs text-gray-500 uppercase">Receivable (ကြွေးကျန်)</div>
+                            <div class="text-xl font-bold text-yellow-600">${totalReceivable.toLocaleString()}</div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-lg mb-4 text-gray-700">Wallet Balances (Income - Expense)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        ${Object.keys(methods).map(m => {
+                            const bal = methods[m] - expMethods[m];
+                            return `
+                            <div class="bg-white p-3 rounded shadow-sm border">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-gray-700">${m}</span>
+                                    <span class="text-xs px-2 py-0.5 bg-gray-100 rounded">Balance</span>
+                                </div>
+                                <div class="text-lg font-bold ${bal >= 0 ? 'text-gray-800' : 'text-red-500'}">${bal.toLocaleString()} Ks</div>
+                                <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                                    <span>In: ${methods[m].toLocaleString()}</span>
+                                    <span>Out: ${expMethods[m].toLocaleString()}</span>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+
+                    <h3 class="font-bold text-lg mb-4 text-gray-700">Quotation Stats</h3>
+                    <div class="bg-white p-4 rounded-lg shadow max-w-md">
+                        <div class="flex justify-between border-b pb-2 mb-2">
+                            <span>Total Quotations Sent</span>
+                            <span class="font-bold">${state.quotations.length}</span>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            Note: Convert Quotations to Invoices to track Orders.
+                        </div>
+                    </div>
+                </div>`;
             },
-            triggerImageUpload: (idx) => { state.uploadingRowIndex = idx; document.getElementById('item-image-input').click(); },
-            removeImage: (idx) => { state.items[idx].image = null; app.renderCreateItems(); },
-            updateItem: (idx, field, val) => { state.items[idx][field] = field === 'desc' ? val : Number(val); app.calcTotal(); },
-            addItem: () => { state.items.push({desc: '', price: 0, qty: 1, image: null}); app.renderCreateItems(); },
-            removeItem: (idx) => { state.items.splice(idx, 1); app.renderCreateItems(); },
-            updateCalc: (val, type) => {
-                if(type === 'discount') state.discount = Number(val);
-                if(type === 'payment') state.initPayment = Number(val);
-                app.calcTotal();
+
+            // --- Action Handlers ---
+            handleCreateButtonClick: () => {
+                const tab = state.activeTab;
+                if(tab === 'invoice') app.showInvoiceOptionModal();
+                else if(tab === 'quotation') app.createMode('quotation');
+                else if(tab === 'customer') app.openCustomerModal();
+                else if(tab === 'expense') app.openExpenseModal();
             },
-            calcTotal: () => {
-                const subtotal = state.items.reduce((sum, i) => sum + (i.price * i.qty), 0);
-                const total = subtotal - state.discount;
-                const balance = total - state.initPayment;
-                document.getElementById('subtotal-display').innerText = subtotal.toLocaleString();
-                document.getElementById('create-total').innerText = total.toLocaleString();
-                if(document.getElementById('create-balance')) document.getElementById('create-balance').innerText = balance.toLocaleString();
-                return total;
+
+            // --- Customer Handlers ---
+            openCustomerModal: (cust = null) => {
+                const modal = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-customer-form');
+                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                if(cust) {
+                    document.getElementById('cust-form-title').innerText = 'Edit Customer';
+                    document.getElementById('cust-id').value = cust.id;
+                    document.getElementById('cust-name').value = cust.name;
+                    document.getElementById('cust-phone').value = cust.phone;
+                    document.getElementById('cust-address').value = cust.address;
+                }
+            },
+            saveCustomer: async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('cust-id').value;
+                const data = {
+                    name: document.getElementById('cust-name').value,
+                    phone: document.getElementById('cust-phone').value,
+                    address: document.getElementById('cust-address').value
+                };
+                if(id) await updateDoc(doc(db, 'customers', id), data);
+                else await addDoc(collection(db, 'customers'), {...data, createdAt: serverTimestamp()});
+                app.closeModal();
+            },
+            editCustomer: (id) => app.openCustomerModal(state.customers.find(c => c.id === id)),
+            fillCustomerInfo: (val) => {
+                // Find by Name or ID
+                const cust = state.customers.find(c => c.name === val || c.id === val);
+                const details = document.getElementById('client-details');
+                if(cust) {
+                    document.getElementById('client-name').value = cust.name;
+                    document.getElementById('client-id').value = cust.id;
+                    document.getElementById('client-phone').innerText = cust.phone;
+                    document.getElementById('client-address').innerText = cust.address;
+                    details.classList.remove('hidden');
+                } else {
+                    document.getElementById('client-id').value = '';
+                    details.classList.add('hidden');
+                }
+            },
+
+            // --- Expense Handlers ---
+            openExpenseModal: () => {
+                const modal = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-expense-form');
+                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                document.getElementById('exp-date').valueAsDate = new Date();
+            },
+            saveExpense: async (e) => {
+                e.preventDefault();
+                const data = {
+                    title: document.getElementById('exp-title').value,
+                    amount: Number(document.getElementById('exp-amount').value),
+                    method: document.getElementById('exp-method').value,
+                    date: document.getElementById('exp-date').value,
+                    createdAt: serverTimestamp()
+                };
+                await addDoc(collection(db, 'expenses'), data);
+                app.closeModal();
+            },
+
+            // --- Common Create/Edit Logic (Invoice/Quot) ---
+            initCreateForm: () => {
+                const title = state.editingId ? `Edit ${state.mode}` : `New ${state.mode}`;
+                document.getElementById('form-title').innerText = title;
+                document.getElementById('form-mode-badge').innerText = state.mode;
+                
+                // Populate Customer Datalist
+                const dl = document.getElementById('customer-list');
+                dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+
+                const paySection = document.getElementById('invoice-payment-section');
+                paySection.style.display = state.mode === 'quotation' ? 'none' : 'block';
+                app.renderCreateItems();
             },
 
             handleSave: async (e) => {
                 e.preventDefault();
                 const clientName = document.getElementById('client-name').value;
+                const clientId = document.getElementById('client-id').value; 
                 const total = app.calcTotal();
-                const collectionName = state.mode === 'invoice' ? 'invoices' : 'quotations';
-                
+                const col = state.mode + 's'; 
                 try {
-                    // Common Data
                     const docData = {
-                        clientName,
-                        items: state.items,
-                        discount: state.discount,
-                        totalAmount: total,
-                        securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`, // Keep existing if editing
+                        clientName, clientId, items: state.items, discount: state.discount, totalAmount: total,
+                        securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
                         createdBy: state.user.uid
                     };
-
-                    // Clean undefined fields
                     if(docData.securityCode === undefined) delete docData.securityCode;
 
-                    // INVOICE Specific Logic
                     if (state.mode === 'invoice') {
                         if (!state.editingId && state.initPayment > 0) {
-                            const method = document.getElementById('init-payment-method').value;
-                            docData.payments = [{ amount: state.initPayment, method: method, date: new Date().toISOString() }];
-                            docData.paymentMethod = method;
+                            const m = document.getElementById('init-payment-method').value;
+                            docData.payments = [{ amount: state.initPayment, method: m, date: new Date().toISOString() }];
                             docData.status = state.initPayment >= total ? 'paid' : 'partial';
                             if(docData.status === 'paid') docData.paidAt = serverTimestamp();
-                        } else if (!state.editingId) {
-                            docData.payments = [];
-                            docData.status = 'pending';
-                        }
-                    } 
-
-                    if (state.editingId) {
-                        await updateDoc(doc(db, collectionName, state.editingId), docData);
-                    } else {
-                        // Generate ID based on Type
-                        if(state.mode === 'invoice') docData.invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
-                        else docData.quotationNumber = `QTN-${Date.now().toString().slice(-6)}`;
-                        
-                        docData.createdAt = serverTimestamp();
-                        await addDoc(collection(db, collectionName), docData);
+                        } else if (!state.editingId) { docData.payments = []; docData.status = 'pending'; }
                     }
-                    
-                    alert(`${state.mode.toUpperCase()} saved successfully!`);
-                    state.activeTab = state.mode;
-                    app.setView('dashboard');
-                } catch(e) { 
-                    console.error(e);
-                    alert("Error saving: " + e.message); 
-                }
+
+                    if (state.editingId) await updateDoc(doc(db, col, state.editingId), docData);
+                    else {
+                        docData[state.mode === 'invoice' ? 'invoiceNumber' : 'quotationNumber'] = (state.mode === 'invoice' ? 'INV-' : 'QTN-') + Date.now().toString().slice(-6);
+                        docData.createdAt = serverTimestamp();
+                        await addDoc(collection(db, col), docData);
+                    }
+                    alert("Saved!");
+                    state.activeTab = state.mode; app.setView('dashboard');
+                } catch(e) { alert(e.message); }
             },
 
-            // --- Invoice/Paper Render ---
-            showVerify: (id, type = 'invoice') => {
-                let docData;
-                if (!type) {
-                     docData = state.invoices.find(i => i.id === id);
-                     if(docData) type = 'invoice';
-                     else {
-                        docData = state.quotations.find(q => q.id === id);
-                        type = 'quotation';
-                     }
-                } else {
-                    docData = (type === 'invoice' ? state.invoices : state.quotations).find(i => i.id === id);
-                }
+            // --- Standard Helper Functions ---
+            createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.initPayment = 0; app.setView('create'); },
+            createManualInvoice: () => { app.closeModal(); app.createMode('invoice'); },
+            showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); lucide.createIcons(); },
+            closeModal: () => document.getElementById('modal-container').innerHTML = '',
+            
+            // Edit/Delete
+            editDoc: (id, type) => {
+                state.mode = type; state.editingId = id;
+                const d = state[type + 's'].find(i => i.id === id);
+                if(type === 'invoice' && d.status === 'paid' && prompt("Locked. Pass:") !== state.unlockPassword) return;
+                state.items = JSON.parse(JSON.stringify(d.items)); state.discount = d.discount || 0;
+                app.setView('create');
+                setTimeout(() => { document.getElementById('client-name').value = d.clientName; document.getElementById('discount-input').value = state.discount; if(type==='invoice'){ document.getElementById('init-payment-input').disabled = true; } }, 100);
+            },
+            deleteDoc: async (id, coll) => {
+                 if(coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid' && prompt("Pass:") !== state.unlockPassword) return;
+                 if(confirm("Delete?")) await deleteDoc(doc(db, coll, id));
+            },
+            
+            convertQuotation: (id) => {
+                const q = state.quotations.find(i => i.id === id);
+                if(!q || !confirm("Convert to Invoice?")) return;
+                state.mode = 'invoice'; state.editingId = null; state.items = JSON.parse(JSON.stringify(q.items)); state.discount = q.discount || 0; state.initPayment = 0;
+                app.setView('create');
+                setTimeout(() => { document.getElementById('client-name').value = q.clientName; document.getElementById('discount-input').value = state.discount; }, 100);
+            },
+            importQuotation: async () => {
+                const val = document.getElementById('qtn-import-input').value.trim().toUpperCase();
+                const snap = await getDocs(query(collection(db, 'quotations'), where("quotationNumber", "==", val)));
+                if(snap.empty) return alert("Not Found");
+                const q = snap.docs[0].data();
+                app.closeModal(); state.mode = 'invoice'; state.editingId = null; state.items = q.items; state.discount = q.discount || 0; state.initPayment = 0;
+                app.setView('create'); setTimeout(() => { document.getElementById('client-name').value = q.clientName; document.getElementById('discount-input').value = state.discount; }, 100);
+            },
 
-                if(!docData) return;
-                state.view = 'verify'; // override view
+            // Items Logic
+            renderCreateItems: () => {
+                const c = document.getElementById('items-container'); c.innerHTML = '<label class="block text-sm font-medium mb-2">Items</label>';
+                state.items.forEach((item, i) => {
+                    const div = document.createElement('div'); div.className = "flex gap-2 mb-2 items-start";
+                    div.innerHTML = `<input placeholder="Desc" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="Qty" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="Price" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
+                    c.appendChild(div);
+                });
+                lucide.createIcons(); app.calcTotal();
+            },
+            updateItem: (i, f, v) => { state.items[i][f] = f==='desc'?v:Number(v); app.calcTotal(); },
+            addItem: () => { state.items.push({desc:'',price:0,qty:1}); app.renderCreateItems(); },
+            removeItem: (i) => { state.items.splice(i,1); app.renderCreateItems(); },
+            updateCalc: (v, t) => { if(t==='discount') state.discount=Number(v); if(t==='payment') state.initPayment=Number(v); app.calcTotal(); },
+            calcTotal: () => {
+                const sub = state.items.reduce((s,i)=>s+(i.price*i.qty),0); const tot = sub - state.discount;
+                document.getElementById('subtotal-display').innerText = sub.toLocaleString();
+                document.getElementById('create-total').innerText = tot.toLocaleString();
+                if(document.getElementById('create-balance')) document.getElementById('create-balance').innerText = (tot - state.initPayment).toLocaleString();
+                return tot;
+            },
+            triggerImageUpload: (i) => { state.uploadingRowIndex = i; document.getElementById('item-image-input').click(); },
+            processItemImage: (input) => { app.processImageBase(input, (url) => { state.items[state.uploadingRowIndex].image = url; alert("Image Added"); }); },
+
+            // Auth & Settings
+            handleAuthClick: () => state.isAdmin ? app.setView('dashboard') : app.setView('login'),
+            handleEmailAuth: async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); app.setView('dashboard'); } catch(e){ document.getElementById('auth-error').innerText=e.message; document.getElementById('auth-error').classList.remove('hidden'); } },
+            googleLogin: async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); app.setView('dashboard'); } catch(e){alert(e.message);} },
+            logout: async () => { await signOut(auth); state.isAdmin = false; app.setView('home'); try{await signInAnonymously(auth);}catch(e){} },
+            
+            fillSettingsForm: () => {
+                if(state.settings.logo) document.getElementById('logo-preview').innerHTML = `<img src="${state.settings.logo}" class="h-full object-contain">`;
+                if(state.settings.authSign) document.getElementById('sign-preview').innerHTML = `<img src="${state.settings.authSign}" class="h-full object-contain">`;
+                document.getElementById('setting-accounts').value = state.settings.accounts || '';
+                document.getElementById('setting-terms').value = state.settings.terms || '';
+                document.getElementById('setting-auth-name').value = state.settings.authName || '';
+            },
+            handleSaveSettings: async (e) => {
+                e.preventDefault();
+                state.settings.accounts = document.getElementById('setting-accounts').value;
+                state.settings.terms = document.getElementById('setting-terms').value;
+                state.settings.authName = document.getElementById('setting-auth-name').value;
+                await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
+                alert("Saved"); app.setView('dashboard');
+            },
+            processImageBase: (input, cb) => {
+                if(!input.files[0]) return;
+                const r = new FileReader(); r.onload = (e) => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'); const s = 300/i.width; c.width=300; c.height=i.height*s; c.getContext('2d').drawImage(i,0,0,c.width,c.height); cb(c.toDataURL('image/png')); input.value=''; }; i.src=e.target.result; }; r.readAsDataURL(input.files[0]);
+            },
+            processLogo: (i) => app.processImageBase(i, (u) => { state.settings.logo = u; document.getElementById('logo-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
+            processSign: (i) => app.processImageBase(i, (u) => { state.settings.authSign = u; document.getElementById('sign-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
+
+            // Search/Print/Verify
+            handleSearch: async (v) => {
+                const q = (v || document.getElementById('search-input').value).trim();
+                if(!q) return;
                 app.setView('verify');
-                app.renderPaper(docData, type);
+                const search = async (c, f) => { const s = await getDocs(query(collection(db,c), where(f,"==",q))); return !s.empty ? {id:s.docs[0].id, ...s.docs[0].data(), type:c.slice(0,-1)} : null; };
+                let f = await search('invoices','invoiceNumber') || await search('quotations','quotationNumber') || await search('invoices','securityCode') || await search('quotations','securityCode');
+                if(f) app.renderPaper(f, f.type);
+                else document.getElementById('verify-content').innerHTML = '<div class="p-10 text-center text-red-500 font-bold">Not Found</div>';
             },
-
-            handleSearch: async (val) => {
-                const queryVal = (val || document.getElementById('search-input').value).trim();
-                if(!queryVal) return;
-
-                app.setView('verify');
-                const container = document.getElementById('verify-content');
-                container.innerHTML = '<div class="p-10 text-blue-600">Searching...</div>';
-
-                // Helper to search a collection
-                const searchColl = async (collName, idField) => {
-                    const q1 = query(collection(db, collName), where(idField, "==", queryVal));
-                    const s1 = await getDocs(q1);
-                    if(!s1.empty) return {id: s1.docs[0].id, ...s1.docs[0].data(), type: collName.slice(0, -1)}; 
-                    
-                    const q2 = query(collection(db, collName), where("securityCode", "==", queryVal));
-                    const s2 = await getDocs(q2);
-                    if(!s2.empty) return {id: s2.docs[0].id, ...s2.docs[0].data(), type: collName.slice(0, -1)};
-                    return null;
-                }
-
-                let found = await searchColl('invoices', 'invoiceNumber');
-                if(!found) found = await searchColl('quotations', 'quotationNumber');
-
-                if(found) app.renderPaper(found, found.type);
-                else container.innerHTML = `<div class="bg-white p-10 rounded-2xl shadow-lg text-center border-2 border-red-100">
-                      <div class="text-red-500 mb-4 flex justify-center"><i data-lucide="x-circle" width="60" height="60"></i></div>
-                      <h2 class="text-2xl font-bold text-gray-800 mb-2">မတွေ့ရှိပါ (Not Found)</h2>
-                      <p class="text-gray-500 mb-4">Invoice No / Quotation No (or) QR Code ကို ပြန်စစ်ပါ</p>
-                      <button onclick="app.backHome()" class="mt-6 text-blue-600 font-medium hover:underline">Go Back</button>
-                </div>`;
-                lucide.createIcons();
-            },
-
-            renderPaper: (docData, type) => {
-                state.currentDoc = docData;
-                if(!type) type = docData.invoiceNumber ? 'invoice' : 'quotation';
-                
-                const container = document.getElementById('verify-content');
-                const verifyUrl = `${window.location.origin}${window.location.pathname}?code=${docData.securityCode}`;
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
-                
-                const subtotal = docData.items.reduce((s,i)=>s+(i.price*i.qty),0);
-                
-                // Payment Table (Only for Invoice)
-                let paymentsHTML = '';
-                if (type === 'invoice' && docData.payments && docData.payments.length > 0) {
-                    paymentsHTML = `
-                        <div class="mt-4 border-t pt-2">
-                            <p class="font-bold text-gray-700 text-xs uppercase mb-1">Payment History</p>
-                            <table class="w-full text-xs text-gray-600">
-                                <thead class="border-b font-medium text-gray-500 bg-gray-50">
-                                    <tr><th class="py-1 text-left">Date</th><th class="py-1 text-left">Method</th><th class="py-1 text-right">Amount</th></tr>
-                                </thead>
-                                <tbody>
-                                ${docData.payments.map(p => `
-                                    <tr class="border-b border-gray-50 last:border-none">
-                                        <td class="py-1">${new Date(p.date).toLocaleDateString()}</td>
-                                        <td class="py-1">${p.method}</td>
-                                        <td class="py-1 text-right font-medium text-gray-800">${Number(p.amount).toLocaleString()} Ks</td>
-                                    </tr>`).join('')}
-                                </tbody>
-                            </table>
-                        </div>`;
-                }
-
-                // Logo Logic
-                const logoSrc = state.settings.logo || '';
-                const logoHtml = logoSrc 
-                    ? `<img src="${logoSrc}" class="h-24 max-w-[200px] object-contain">` 
-                    : `<div class="h-20 w-32 bg-gray-100 flex items-center justify-center text-gray-400 border rounded">LOGO</div>`;
-
-                // Signature Logic (Center Aligned as requested)
-                const authName = state.settings.authName || 'Manager';
-                const authSign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 object-contain mb-1 mx-auto">` : '<div class="h-16"></div>';
-
-                container.innerHTML = `
-                    <div id="invoice-paper" class="bg-white p-8 md:p-12 shadow-2xl rounded-sm w-full max-w-4xl text-gray-800 relative min-h-[900px] flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-start border-b pb-8 mb-8 z-10 relative">
-                                <div>
-                                    <h1 class="text-4xl font-extrabold text-blue-900 tracking-tight uppercase">${type}</h1>
-                                    <p class="text-gray-500 mt-1"># ${docData.invoiceNumber || docData.quotationNumber}</p>
-                                    <div class="mt-4 text-sm text-gray-600">
-                                        <p class="font-bold">From:</p>
-                                        <p>Freelance Services By Thukha Aung</p>
-                                        <p>Yangon, Myanmar</p>
-                                    </div>
-                                </div>
-                                <div class="text-right flex flex-col items-end">
-                                    ${logoHtml}
-                                    <div class="mt-2 text-xs font-mono bg-gray-100 px-2 py-1 rounded inline-block">SEC: ${docData.securityCode}</div>
-                                </div>
+            renderPaper: (d, t) => {
+                state.currentDoc = d;
+                const qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href.split('?')[0] + '?code=' + d.securityCode)}`;
+                const logo = state.settings.logo ? `<img src="${state.settings.logo}" class="h-20">` : '';
+                const sign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 mx-auto">` : '';
+                let payRows = (d.payments||[]).map(p => `<tr><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.method}</td><td class="text-right">${p.amount.toLocaleString()}</td></tr>`).join('');
+                document.getElementById('verify-content').innerHTML = `
+                <div id="invoice-paper" class="bg-white p-10 shadow-lg w-full max-w-4xl min-h-[900px] text-gray-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between border-b pb-6 mb-6"><div><h1 class="text-3xl font-bold text-blue-900 uppercase">${t}</h1><p>#${d.invoiceNumber||d.quotationNumber}</p></div><div class="text-right">${logo}</div></div>
+                        <div class="flex justify-between mb-8"><div><h3 class="font-bold">Bill To:</h3><p>${d.clientName}</p></div><div class="text-right"><h3 class="font-bold">Date:</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}</div></div>
+                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">Desc</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Price</th><th class="p-2 text-right">Total</th></tr></thead><tbody>${d.items.map(i=>`<tr><td class="p-2 border-b">${i.desc}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-start border-t pt-4">
+                            <div class="w-1/2 text-sm">
+                                <p class="font-bold">Payment Info:</p><pre class="font-sans text-xs">${state.settings.accounts||''}</pre>
+                                <div class="mt-4"><p class="font-bold">Terms & Conditions:</p><p class="whitespace-pre-line text-xs text-gray-600">${state.settings.terms||'-'}</p></div>
+                                <div class="mt-4"><img src="${qr}" class="w-20 border p-1"></div>
                             </div>
-                            
-                            <div class="flex justify-between mb-8">
-                                <div>
-                                    <p class="text-gray-500 text-sm font-bold uppercase">Bill To:</p>
-                                    <h3 class="text-xl font-bold text-gray-800">${docData.clientName}</h3>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-gray-500 text-sm font-bold uppercase">Date:</p>
-                                    <p class="font-medium">${docData.createdAt?.seconds ? new Date(docData.createdAt.seconds*1000).toLocaleDateString() : 'Now'}</p>
-                                    
-                                    ${(type === 'invoice' && docData.status === 'paid') ? `
-                                        <div class="mt-4 text-right">
-                                            <p class="font-bold text-green-700 border-2 border-green-700 px-2 inline-block rounded">PAID</p>
-                                        </div>` : ''}
-                                    ${paymentsHTML}
-                                </div>
+                            <div class="w-1/3 text-right">
+                                <div class="flex justify-between"><span>Subtotal:</span><span>${d.items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</span></div>
+                                ${d.discount?`<div class="flex justify-between text-red-500"><span>Discount:</span><span>-${d.discount.toLocaleString()}</span></div>`:''}
+                                <div class="flex justify-between font-bold text-lg mt-2 border-t pt-2"><span>Total:</span><span>${d.totalAmount.toLocaleString()}</span></div>
+                                ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 border-t pt-2"><p class="font-bold mb-1">Payments:</p><table class="w-full">${payRows}</table></div>`:''}
+                                <div class="mt-10 text-center border-t border-gray-400 w-32 ml-auto pt-2">${sign}<p class="text-xs font-bold uppercase">${state.settings.authName||''}</p></div>
                             </div>
-
-                            <table class="w-full mb-8">
-                                <thead class="bg-gray-100 text-gray-600 text-sm uppercase">
-                                    <tr><th class="py-3 px-4 text-left">Desc</th><th class="py-3 px-4 text-right">Qty</th><th class="py-3 px-4 text-right">Price</th><th class="py-3 px-4 text-right">Total</th></tr>
-                                </thead>
-                                <tbody class="text-gray-700">
-                                    ${docData.items.map(i => `
-                                        <tr class="border-b border-gray-50">
-                                            <td class="py-4 px-4">
-                                                <div>${i.desc}</div>
-                                                ${i.image ? `<img src="${i.image}" class="mt-2 h-16 object-contain border rounded">` : ''}
-                                            </td>
-                                            <td class="py-4 px-4 text-right align-top">${i.qty}</td>
-                                            <td class="py-4 px-4 text-right align-top">${i.price.toLocaleString()}</td>
-                                            <td class="py-4 px-4 text-right font-medium align-top">${(i.price*i.qty).toLocaleString()}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
                         </div>
-
-                        <div class="relative">
-                            <div class="mt-8 pt-8 border-t">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex flex-col gap-4 max-w-sm">
-                                        <div class="flex gap-4">
-                                            <div class="flex-shrink-0 text-center">
-                                                <img src="${qrUrl}" crossOrigin="anonymous" class="w-20 h-20 mb-1 border p-1">
-                                                <p class="text-[10px] text-gray-400">Scan to Verify</p>
-                                            </div>
-                                            <div class="text-sm text-gray-600">
-                                                <p class="font-bold text-gray-700 mb-1">Payment Options:</p>
-                                                <p class="whitespace-pre-line text-xs">${state.settings.accounts || '-'}</p>
-                                            </div>
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-2">
-                                            <p class="font-bold mb-1">Terms & Notes:</p>
-                                            <p class="whitespace-pre-line">${state.settings.terms || '-'}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="w-64 text-right">
-                                        <div class="flex justify-between py-1 text-gray-600">
-                                            <span>Subtotal</span>
-                                            <span>${subtotal.toLocaleString()} Ks</span>
-                                        </div>
-                                        ${docData.discount > 0 ? `
-                                        <div class="flex justify-between py-1 text-red-500">
-                                            <span>Discount</span>
-                                            <span>- ${Number(docData.discount).toLocaleString()} Ks</span>
-                                        </div>` : ''}
-                                        <div class="flex justify-between py-2 text-xl font-bold text-blue-900 border-t mt-2">
-                                            <span>Total</span>
-                                            <span>${Number(docData.totalAmount).toLocaleString()} Ks</span>
-                                        </div>
-
-                                        <div class="mt-12 flex flex-col items-center justify-center">
-                                            <div class="border-b border-gray-400 pb-1 text-center min-w-[150px]">
-                                                ${authSign}
-                                            </div>
-                                            <p class="text-xs font-bold text-gray-600 mt-1 uppercase">${authName}</p>
-                                            <p class="text-[10px] text-gray-400">Authorized Signature</p>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-8 text-center text-sm text-gray-400">
-                                <p>Thank you for your business!</p>
-                            </div>
+                        <div class="mt-8 text-center text-[10px] text-gray-400 border-t pt-2">
+                            This invoice is system generated and is valid without a seal.For Verification you can scan the qrcode
                         </div>
                     </div>
-                `;
+                </div>`;
             },
-
-            // --- Misc ---
-            handleEmailAuth: async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const pass = document.getElementById('password').value;
-                try {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    app.setView('dashboard');
-                } catch (err) {
-                    document.getElementById('auth-error').innerText = err.message;
-                    document.getElementById('auth-error').classList.remove('hidden');
-                }
-            },
-
-            googleLogin: async () => {
-                try {
-                    const provider = new GoogleAuthProvider();
-                    await signInWithPopup(auth, provider);
-                    app.setView('dashboard');
-                } catch (e) { alert("Google Sign in error: " + e.message); }
-            },
-
-            logout: async () => {
-                await signOut(auth);
-                state.isAdmin = false;
-                app.setView('home');
-                try { await signInAnonymously(auth); } catch(e){}
-            },
+            printInvoice: () => window.print(),
             
-            // Payment Status & Modal logic
-            handleStatusClick: (id) => {
-                const inv = state.invoices.find(i => i.id === id);
-                if (!inv) return;
-                
-                let paidAmount = 0;
-                let installmentCount = 0;
-                if(inv.payments && Array.isArray(inv.payments)) {
-                    paidAmount = inv.payments.reduce((sum, p) => sum + p.amount, 0);
-                    installmentCount = inv.payments.length;
-                } else if (inv.status === 'paid') {
-                    paidAmount = inv.totalAmount;
-                    installmentCount = 1;
-                }
-
-                if (inv.status === 'paid') {
-                    if(confirm('Reset payment status to Pending? (Clears payments)')) {
-                        const pass = prompt("Enter Admin Password:");
-                        if(pass === state.unlockPassword) app.resetPayments(id);
-                        else alert("Wrong password");
-                    }
-                    return;
-                }
-
-                state.tempInvoice = { ...inv, paidAmount, balance: inv.totalAmount - paidAmount, nextInstallment: installmentCount + 1 };
-                
-                const container = document.getElementById('modal-container');
-                const tpl = document.getElementById('tpl-payment-modal');
-                container.innerHTML = '';
-                container.appendChild(tpl.content.cloneNode(true));
-                
-                document.getElementById('payment-modal-title').innerText = `Add Payment (#${state.tempInvoice.nextInstallment})`;
-                document.getElementById('modal-total').innerText = state.tempInvoice.totalAmount.toLocaleString() + ' Ks';
-                document.getElementById('modal-paid').innerText = state.tempInvoice.paidAmount.toLocaleString() + ' Ks';
-                document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString() + ' Ks';
-                document.getElementById('payment-amount').value = state.tempInvoice.balance;
-                lucide.createIcons();
-            },
-            closeModal: () => { document.getElementById('modal-container').innerHTML = ''; state.tempInvoice = null; },
-            confirmPayment: async () => {
-                const amt = Number(document.getElementById('payment-amount').value);
-                const method = document.getElementById('payment-method-select').value;
-                if(!amt || amt <= 0) return alert("Invalid amount");
-                const inv = state.tempInvoice;
-                const currentPayments = inv.payments ? [...inv.payments] : [];
-                currentPayments.push({ amount: amt, method: method, date: new Date().toISOString() });
-                const totalPaid = currentPayments.reduce((sum, p) => sum + p.amount, 0);
-                let newStatus = totalPaid >= inv.totalAmount ? 'paid' : 'partial';
-                
-                await updateDoc(doc(db, 'invoices', inv.id), { status: newStatus, payments: currentPayments, paidAt: newStatus === 'paid' ? serverTimestamp() : null });
-                app.closeModal();
-            },
-            resetPayments: async (id) => await updateDoc(doc(db, 'invoices', id), { status: 'pending', payments: [], paidAt: null }),
-            
-            // Scanner / PDF / Nav
-            startScanner: () => {
-                document.getElementById('scanner-modal').classList.remove('hidden');
-                state.html5QrCode = new Html5Qrcode("reader");
-                state.html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                    (decodedText) => {
-                        app.stopScanner();
-                        if(decodedText.includes('?code=')) app.handleSearch(new URL(decodedText).searchParams.get('code'));
-                        else if(decodedText.includes('?id=')) app.handleSearch(new URL(decodedText).searchParams.get('id'));
-                        else app.handleSearch(decodedText);
-                    }
-                ).catch(err => { alert("Camera error"); app.stopScanner(); });
-            },
-            stopScanner: () => {
-                if(state.html5QrCode) {
-                    state.html5QrCode.stop().then(() => {
-                        state.html5QrCode.clear();
-                        document.getElementById('scanner-modal').classList.add('hidden');
-                    });
-                } else document.getElementById('scanner-modal').classList.add('hidden');
-            },
+            // --- UPDATED DOWNLOAD FUNCTION WITH 0.5-INCH MARGINS ---
             downloadPDF: async () => {
                 const element = document.getElementById('invoice-paper');
-                const canvas = await html2canvas(element, { scale: 3, useCORS: true, windowWidth: 1024 });
+                const canvas = await html2canvas(element, { scale: 3, useCORS: true });
                 const imgData = canvas.toDataURL('image/png');
+
                 const { jsPDF } = window.jspdf;
+                // A4 size in mm: 210 x 297
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+                // 0.5 inch = 12.7 mm
+                const margin = 12.7;
+                const pdfWidth = 210;
+                
+                // Calculate content width: 210 - (12.7 * 2) = 184.6mm
+                const contentWidth = pdfWidth - (margin * 2); 
+                const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+                // Add Image with margins (x, y, width, height)
+                pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, contentHeight);
+
                 const name = state.currentDoc ? (state.currentDoc.invoiceNumber || state.currentDoc.quotationNumber) : 'Document';
                 pdf.save(`${name}.pdf`);
             },
-            backHome: () => app.setView(state.isAdmin ? 'dashboard' : 'home')
+            backHome: () => app.setView(state.isAdmin ? 'dashboard' : 'home'),
+            
+            // Scanner / Payment Status
+            startScanner: () => {
+                document.getElementById('scanner-modal').classList.remove('hidden');
+                state.html5QrCode = new Html5Qrcode("reader");
+                state.html5QrCode.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>{ app.stopScanner(); if(t.includes('code=')) app.handleSearch(new URL(t).searchParams.get('code')); else app.handleSearch(t); }).catch(()=>{});
+            },
+            stopScanner: () => { if(state.html5QrCode) state.html5QrCode.stop().then(()=>document.getElementById('scanner-modal').classList.add('hidden')); else document.getElementById('scanner-modal').classList.add('hidden'); },
+            handleStatusClick: (id) => {
+                const i = state.invoices.find(x=>x.id===id);
+                if(i.status==='paid'){ if(prompt("Pass:")!==state.unlockPassword) return; return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); }
+                const paid = i.payments?i.payments.reduce((s,p)=>s+p.amount,0):0;
+                state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
+                const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
+                document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
+                document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
+                document.getElementById('modal-paid').innerText = paid.toLocaleString();
+                document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
+                document.getElementById('payment-amount').value = state.tempInvoice.balance;
+            },
+            confirmPayment: async () => {
+                const amt = Number(document.getElementById('payment-amount').value);
+                const met = document.getElementById('payment-method-select').value;
+                const inv = state.tempInvoice;
+                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:new Date().toISOString()}];
+                const stat = pays.reduce((s,p)=>s+p.amount,0) >= inv.totalAmount ? 'paid' : 'partial';
+                await updateDoc(doc(db,'invoices',inv.id), {status:stat, payments:pays, paidAt: stat==='paid'?serverTimestamp():null});
+                app.closeModal();
+            }
         };
-
-        window.app = app;
-        app.init();
+        window.app = app; app.init();
     </script>
 </body>
 </html>
