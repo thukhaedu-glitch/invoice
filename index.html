@@ -817,7 +817,7 @@
                 const c = document.getElementById('items-container'); c.innerHTML = '<label class="block text-sm font-medium mb-2">Items</label>';
                 state.items.forEach((item, i) => {
                     const div = document.createElement('div'); div.className = "flex gap-2 mb-2 items-start";
-                    div.innerHTML = `<input placeholder="Desc" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="Qty" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="Price" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
+                    div.innerHTML = `<span class="pt-2 text-sm font-bold text-gray-500 w-6">${i+1}.</span><input placeholder="Desc" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="Qty" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="Price" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
                     c.appendChild(div);
                 });
                 lucide.createIcons(); app.calcTotal();
@@ -881,7 +881,6 @@
                 const sign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 mx-auto">` : '';
                 let payRows = (d.payments||[]).map(p => `<tr><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.method}</td><td class="text-right">${p.amount.toLocaleString()}</td></tr>`).join('');
                 
-                // FIX: Added image display in table row
                 document.getElementById('verify-content').innerHTML = `
                 <div id="invoice-paper" class="bg-white p-10 shadow-lg w-full max-w-4xl min-h-[900px] text-gray-800 flex flex-col justify-between">
                     <div>
@@ -891,7 +890,7 @@
                             <h3 class="font-bold">Date:</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}
                             ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">Payment History</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
                         </div></div>
-                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">Desc</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Price</th><th class="p-2 text-right">Total</th></tr></thead><tbody>${d.items.map(i=>`<tr><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">No.</th><th class="p-2 text-left">Desc</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Price</th><th class="p-2 text-right">Total</th></tr></thead><tbody>${d.items.map((i, index)=>`<tr><td class="p-2 border-b text-gray-500">${index + 1}</td><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
                     </div>
                     <div>
                         <div class="flex justify-between items-start border-t pt-4">
