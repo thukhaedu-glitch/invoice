@@ -46,6 +46,12 @@
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col justify-center">
 
+    <div class="fixed top-4 right-4 z-50 flex gap-2 no-print">
+        <button onclick="app.toggleLang()" class="bg-white border shadow-sm px-3 py-1.5 rounded-full text-sm font-bold hover:bg-gray-50 flex items-center gap-1 transition-transform active:scale-95">
+            <span id="lang-icon">🇬🇧</span> <span id="lang-text">EN</span>
+        </button>
+    </div>
+
     <main class="w-full max-w-6xl mx-auto p-2 md:p-4" id="main-container">
         </main>
 
@@ -58,7 +64,7 @@
     <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-[60] flex flex-col items-center justify-center p-4">
         <div class="bg-white p-4 rounded-xl w-full max-w-md relative">
             <button onclick="app.stopScanner()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500"><i data-lucide="x"></i></button>
-            <h3 class="text-center font-bold mb-4">Scan QR Code</h3>
+            <h3 class="text-center font-bold mb-4" data-translate="scan_qr">Scan QR Code</h3>
             <div id="reader" style="width: 100%;"></div>
         </div>
     </div>
@@ -71,13 +77,13 @@
                 </div>
                 <h1 class="font-bold text-xl text-blue-900">Freelance Services By Thukha Aung</h1>
             </div>
-            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">ငွေပေးချေမှု စစ်ဆေးရန်</h2>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900" data-translate="verify_payment_title">Verify Payment</h2>
             <div class="w-full max-w-md space-y-6">
                 <div class="bg-white p-6 rounded-xl shadow border">
-                    <label class="block text-left text-sm font-medium text-gray-700 mb-2">Invoice / Quotation ID</label>
+                    <label class="block text-left text-sm font-medium text-gray-700 mb-2" data-translate="method_1">Method 1 - Enter Number</label>
                     <div class="flex gap-2">
                         <input type="text" id="search-input" placeholder="INV-xxx / QTN-xxx" class="flex-1 border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
-                        <button onclick="app.handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">Search</button>
+                        <button onclick="app.handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm" data-translate="check_btn">Check</button>
                     </div>
                 </div>
                 <div class="relative flex py-2 items-center">
@@ -85,10 +91,10 @@
                 </div>
                 <button onclick="app.startScanner()" class="w-full bg-gray-800 hover:bg-gray-900 text-white p-5 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]">
                     <i data-lucide="qr-code" width="28" height="28"></i>
-                    <div class="text-left"><div class="font-bold text-base">Scan QR Code</div><div class="text-xs text-gray-400">Use Camera</div></div>
+                    <div class="text-left"><div class="font-bold text-base" data-translate="method_2">Method 2 - Scan QR</div><div class="text-xs text-gray-400" data-translate="use_camera">Use Camera</div></div>
                 </button>
                 <div class="text-center pt-2">
-                    <button onclick="app.handleAuthClick()" class="text-[10px] text-gray-300 hover:text-gray-500 underline cursor-pointer transition-colors">Click Here</button>
+                    <button onclick="app.handleAuthClick()" class="text-[10px] text-gray-300 hover:text-gray-500 underline cursor-pointer transition-colors" data-translate="admin_login_link">Admin Click Here</button>
                 </div>
             </div>
         </div>
@@ -97,14 +103,14 @@
     <template id="tpl-login">
         <div class="max-w-md mx-auto mt-4 bg-white p-8 rounded-2xl shadow-xl border fade-in relative">
             <button onclick="app.setView('home')" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600"><i data-lucide="arrow-left" width="20"></i></button>
-            <h2 class="text-2xl font-bold mb-2 text-center text-gray-800">Admin Login</h2>
+            <h2 class="text-2xl font-bold mb-2 text-center text-gray-800" data-translate="admin_login">Admin Login</h2>
             <button onclick="app.googleLogin()" class="w-full mb-6 mt-4 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 font-medium shadow-sm">Sign in with Google</button>
             <div class="relative flex py-2 items-center mb-6"><div class="flex-grow border-t border-gray-300"></div><span class="flex-shrink-0 mx-4 text-gray-400 text-sm">Or with Email</span><div class="flex-grow border-t border-gray-300"></div></div>
             <form onsubmit="app.handleEmailAuth(event)" class="space-y-4">
                 <div id="auth-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200"></div>
                 <input type="email" id="email" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Email" required>
                 <input type="password" id="password" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Password" required>
-                <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium">Login</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium" data-translate="login_btn">Login</button>
             </form>
         </div>
     </template>
@@ -112,27 +118,27 @@
     <template id="tpl-dashboard">
         <div class="fade-in">
             <div class="flex justify-between items-center mb-4 pb-2 border-b">
-                 <button onclick="app.setView('home')" class="text-gray-500 hover:text-gray-800 flex items-center gap-1 text-sm"><i data-lucide="arrow-left" width="16"></i> Home</button>
-                 <h2 class="font-bold text-gray-800">Admin Dashboard</h2>
-                 <button onclick="app.logout()" class="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1"><i data-lucide="log-out" width="14"></i> Logout</button>
+                 <button onclick="app.setView('home')" class="text-gray-500 hover:text-gray-800 flex items-center gap-1 text-sm"><i data-lucide="arrow-left" width="16"></i> <span data-translate="home">Home</span></button>
+                 <h2 class="font-bold text-gray-800" data-translate="dashboard">Dashboard</h2>
+                 <button onclick="app.logout()" class="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1"><i data-lucide="log-out" width="14"></i> <span data-translate="logout">Logout</span></button>
             </div>
 
             <div class="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
-                <button onclick="app.switchTab('invoice')" id="tab-invoice" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium bg-white border shadow-sm">Invoices</button>
-                <button onclick="app.switchTab('quotation')" id="tab-quotation" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Quotations</button>
-                <button onclick="app.switchTab('customer')" id="tab-customer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Customers</button>
-                <button onclick="app.switchTab('expense')" id="tab-expense" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Expenses</button>
-                <button onclick="app.switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Reports</button>
+                <button onclick="app.switchTab('invoice')" id="tab-invoice" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium bg-white border shadow-sm" data-translate="invoices">Invoices</button>
+                <button onclick="app.switchTab('quotation')" id="tab-quotation" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="quotations">Quotations</button>
+                <button onclick="app.switchTab('customer')" id="tab-customer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="customers">Customers</button>
+                <button onclick="app.switchTab('expense')" id="tab-expense" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="expenses">Expenses</button>
+                <button onclick="app.switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="reports">Reports</button>
                 <button onclick="app.setView('settings')" class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50"><i data-lucide="settings" width="16" class="inline"></i></button>
             </div>
 
             <div id="report-filters" class="hidden flex-wrap gap-2 mb-4 items-end bg-gray-100 p-3 rounded-lg border">
                 <div>
-                    <label class="block text-xs font-medium text-gray-500">Year</label>
+                    <label class="block text-xs font-medium text-gray-500" data-translate="year">Year</label>
                     <select id="report-year" class="border p-1.5 rounded text-sm w-24"></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500">Month</label>
+                    <label class="block text-xs font-medium text-gray-500" data-translate="month">Month</label>
                     <select id="report-month" class="border p-1.5 rounded text-sm w-32">
                         <option value="all">All Months</option>
                         <option value="0">January</option><option value="1">February</option><option value="2">March</option>
@@ -142,12 +148,12 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500">Customer</label>
+                    <label class="block text-xs font-medium text-gray-500" data-translate="customer">Customer</label>
                     <select id="report-customer" class="border p-1.5 rounded text-sm w-40">
                         <option value="all">All Customers</option>
                     </select>
                 </div>
-                <button onclick="app.renderReports()" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700">Filter</button>
+                <button onclick="app.renderReports()" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700" data-translate="filter_btn">Filter</button>
             </div>
 
             <div id="action-bar" class="flex justify-end mb-4">
@@ -171,7 +177,7 @@
             </div>
             <form onsubmit="app.handleSave(event)" class="space-y-6">
                 <div class="relative">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Client Name / Customer ID</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-translate="client_name">Client Name</label>
                     <input type="text" id="client-name" list="customer-list" onchange="app.fillCustomerInfo(this.value)" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Type name or select...">
                     <datalist id="customer-list"></datalist>
                     <input type="hidden" id="client-id">
@@ -180,25 +186,25 @@
                     </div>
                 </div>
                 <div id="items-container">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Items</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="items">Items</label>
                 </div>
-                <button type="button" onclick="app.addItem()" class="text-sm text-blue-600 font-medium flex items-center gap-1"><i data-lucide="plus"></i> Add Item</button>
+                <button type="button" onclick="app.addItem()" class="text-sm text-blue-600 font-medium flex items-center gap-1"><i data-lucide="plus"></i> <span data-translate="add_item">Add Item</span></button>
 
                 <div class="border-t pt-4 bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-2"><span class="text-gray-600">Subtotal:</span><span class="font-medium" id="subtotal-display">0</span></div>
-                    <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Discount (Ks):</span><input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')"></div>
-                    <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2"><span>Total:</span><span><span id="create-total">0</span> Ks</span></div>
+                    <div class="flex justify-between items-center mb-2"><span class="text-gray-600" data-translate="subtotal">Subtotal:</span><span class="font-medium" id="subtotal-display">0</span></div>
+                    <div class="flex justify-between items-center mb-4"><span class="text-gray-600" data-translate="discount">Discount (Ks):</span><input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')"></div>
+                    <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2"><span data-translate="total">Total:</span><span><span id="create-total">0</span> Ks</span></div>
                     <div id="invoice-payment-section">
                         <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center gap-2"><span class="text-blue-700 font-medium">Payment / Deposit:</span><select id="init-payment-method" class="text-sm border rounded p-1"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select></div>
+                            <div class="flex items-center gap-2"><span class="text-blue-700 font-medium" data-translate="deposit">Payment / Deposit:</span><select id="init-payment-method" class="text-sm border rounded p-1"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select></div>
                             <input type="number" id="init-payment-input" value="0" min="0" class="border p-1 w-32 text-right rounded border-blue-300 focus:ring-2 focus:ring-blue-200" onchange="app.updateCalc(this.value, 'payment')">
                         </div>
-                        <div class="flex justify-between items-center text-red-600 font-bold border-t border-gray-200 pt-2"><span>Balance:</span><span><span id="create-balance">0</span> Ks</span></div>
+                        <div class="flex justify-between items-center text-red-600 font-bold border-t border-gray-200 pt-2"><span data-translate="balance">Balance:</span><span><span id="create-balance">0</span> Ks</span></div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="app.setView('dashboard')" class="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200">Cancel</button>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                    <button type="button" onclick="app.setView('dashboard')" class="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200" data-translate="cancel">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" data-translate="save">Save</button>
                 </div>
             </form>
         </div>
@@ -207,15 +213,15 @@
     <template id="tpl-customer-form">
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4" id="cust-form-title">Add Customer</h3>
+                <h3 class="text-lg font-bold mb-4" id="cust-form-title" data-translate="add_customer">Add Customer</h3>
                 <form onsubmit="app.saveCustomer(event)" class="space-y-3">
                     <input type="hidden" id="cust-id">
                     <input type="text" id="cust-name" placeholder="Name" required class="w-full border p-2 rounded">
                     <input type="text" id="cust-phone" placeholder="Phone" class="w-full border p-2 rounded">
                     <input type="text" id="cust-address" placeholder="Address" class="w-full border p-2 rounded">
                     <div class="flex justify-end gap-2 mt-4">
-                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded" data-translate="save">Save</button>
                     </div>
                 </form>
             </div>
@@ -225,7 +231,7 @@
     <template id="tpl-expense-form">
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4" id="exp-form-title">Add Expense</h3>
+                <h3 class="text-lg font-bold mb-4" id="exp-form-title" data-translate="add_expense">Add Expense</h3>
                 <form onsubmit="app.saveExpense(event)" class="space-y-3">
                     <input type="hidden" id="exp-id">
                     <input type="text" id="exp-title" placeholder="Description (e.g. Lunch)" required class="w-full border p-2 rounded">
@@ -237,8 +243,8 @@
                     </div>
                     <input type="date" id="exp-date" required class="w-full border p-2 rounded">
                     <div class="flex justify-end gap-2 mt-4">
-                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Save Expense</button>
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded" data-translate="save">Save</button>
                     </div>
                 </form>
             </div>
@@ -248,30 +254,30 @@
     <template id="tpl-settings">
         <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
             <div class="flex justify-between items-center mb-6 border-b pb-2">
-                <h2 class="text-xl font-bold">Admin Settings</h2>
+                <h2 class="text-xl font-bold" data-translate="settings">Admin Settings</h2>
                 <button onclick="app.setView('dashboard')" class="text-gray-500"><i data-lucide="x"></i></button>
             </div>
             <form onsubmit="app.handleSaveSettings(event)" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="logo">Company Logo</label>
                     <div class="flex items-center gap-4">
                         <div id="logo-preview" class="w-32 h-20 border rounded bg-gray-50 flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Logo</span></div>
-                        <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 rounded text-sm border">Change Logo</button>
+                        <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 rounded text-sm border" data-translate="change_logo">Change Logo</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border">
-                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Auth Person Name</label><input type="text" id="setting-auth-name" class="w-full border p-2 rounded"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_name">Auth Person Name</label><input type="text" id="setting-auth-name" class="w-full border p-2 rounded"></div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Auth Signature</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_sign">Auth Signature</label>
                         <div class="flex items-center gap-4">
                             <div id="sign-preview" class="w-32 h-20 border rounded bg-white flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Sign</span></div>
-                            <button type="button" onclick="document.getElementById('setting-sign-input').click()" class="px-4 py-2 bg-white border rounded text-sm shadow-sm">Upload</button>
+                            <button type="button" onclick="document.getElementById('setting-sign-input').click()" class="px-4 py-2 bg-white border rounded text-sm shadow-sm" data-translate="upload">Upload</button>
                         </div>
                     </div>
                 </div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Payment Accounts</label><textarea id="setting-accounts" rows="3" class="w-full border p-2 rounded"></textarea></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Terms / Note</label><textarea id="setting-terms" rows="2" class="w-full border p-2 rounded"></textarea></div>
-                <div class="flex justify-end gap-3 pt-4"><button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded">Save Settings</button></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1" data-translate="payment_accounts">Payment Accounts</label><textarea id="setting-accounts" rows="3" class="w-full border p-2 rounded"></textarea></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1" data-translate="terms">Terms / Note</label><textarea id="setting-terms" rows="2" class="w-full border p-2 rounded"></textarea></div>
+                <div class="flex justify-end gap-3 pt-4"><button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded" data-translate="save_settings">Save Settings</button></div>
             </form>
         </div>
     </template>
@@ -280,11 +286,11 @@
         <div class="flex flex-col items-center fade-in">
             <div class="w-full max-w-4xl mb-4 flex justify-between no-print relative z-[100]">
                 <button onclick="app.backHome()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900 bg-white px-3 py-1 rounded shadow-sm border">
-                    <i data-lucide="arrow-left"></i> Back
+                    <i data-lucide="arrow-left"></i> <span data-translate="back">Back</span>
                 </button>
                 <div class="flex gap-2">
                     <button onclick="app.printInvoice()" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 cursor-pointer relative z-[101]">
-                        <i data-lucide="printer"></i> Print
+                        <i data-lucide="printer"></i> <span data-translate="print">Print</span>
                     </button>
                     <button onclick="app.downloadPDF()" class="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-900 cursor-pointer relative z-[101]">
                         <i data-lucide="download"></i> PDF
@@ -298,17 +304,17 @@
     <template id="tpl-payment-modal">
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm">
-                <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold" id="payment-modal-title">Add Payment</h3><button onclick="app.closeModal()" class="text-gray-400"><i data-lucide="x"></i></button></div>
+                <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold" id="payment-modal-title" data-translate="add_payment">Add Payment</h3><button onclick="app.closeModal()" class="text-gray-400"><i data-lucide="x"></i></button></div>
                 <div class="bg-gray-50 p-3 rounded-lg mb-4 space-y-1">
-                    <div class="flex justify-between text-sm"><span>Total:</span><span id="modal-total" class="font-medium">0</span></div>
-                    <div class="flex justify-between text-sm text-green-600"><span>Paid:</span><span id="modal-paid" class="font-medium">0</span></div>
-                    <div class="flex justify-between text-sm font-bold text-red-600 border-t pt-1"><span>Balance:</span><span id="modal-balance">0</span></div>
+                    <div class="flex justify-between text-sm"><span data-translate="total">Total:</span><span id="modal-total" class="font-medium">0</span></div>
+                    <div class="flex justify-between text-sm text-green-600"><span data-translate="paid">Paid:</span><span id="modal-paid" class="font-medium">0</span></div>
+                    <div class="flex justify-between text-sm font-bold text-red-600 border-t pt-1"><span data-translate="balance">Balance:</span><span id="modal-balance">0</span></div>
                 </div>
                 <div class="space-y-4">
                     <input type="number" id="payment-amount" class="w-full border p-2 rounded font-bold">
                     <select id="payment-method-select" class="w-full border p-2 rounded"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select>
                 </div>
-                <div class="flex justify-end gap-2 mt-6"><button onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button><button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded">Confirm</button></div>
+                <div class="flex justify-end gap-2 mt-6"><button onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button><button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded" data-translate="confirm">Confirm</button></div>
             </div>
         </div>
     </template>
@@ -316,16 +322,16 @@
     <template id="tpl-invoice-option">
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                <div class="flex justify-between items-center mb-6"><h3 class="text-lg font-bold">Create Invoice</h3><button onclick="app.closeModal()"><i data-lucide="x"></i></button></div>
+                <div class="flex justify-between items-center mb-6"><h3 class="text-lg font-bold" data-translate="create_invoice">Create Invoice</h3><button onclick="app.closeModal()"><i data-lucide="x"></i></button></div>
                 <div class="space-y-4">
                     <button onclick="app.createManualInvoice()" class="w-full flex items-center gap-4 p-4 border rounded-xl hover:bg-blue-50">
                         <div class="bg-blue-100 p-3 rounded-full text-blue-600"><i data-lucide="file-plus"></i></div>
-                        <div class="text-left"><div class="font-bold">Manual Invoice</div><div class="text-xs text-gray-500">Blank invoice</div></div>
+                        <div class="text-left"><div class="font-bold" data-translate="manual_invoice">Manual Invoice</div><div class="text-xs text-gray-500">Blank invoice</div></div>
                     </button>
                     <div class="relative flex py-2 items-center"><div class="flex-grow border-t"></div><span class="flex-shrink-0 mx-4 text-xs uppercase text-gray-400">OR</span><div class="flex-grow border-t"></div></div>
                     <div class="p-4 border rounded-xl bg-gray-50">
-                        <div class="flex items-center gap-2 mb-3"><div class="bg-purple-100 p-2 rounded-full text-purple-600"><i data-lucide="file-text" width="16"></i></div><div class="font-bold text-sm">From Quotation</div></div>
-                        <div class="flex gap-2"><input type="text" id="qtn-import-input" placeholder="QTN-123" class="flex-1 border text-sm p-2 rounded uppercase"><button onclick="app.importQuotation()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm">Load</button></div>
+                        <div class="flex items-center gap-2 mb-3"><div class="bg-purple-100 p-2 rounded-full text-purple-600"><i data-lucide="file-text" width="16"></i></div><div class="font-bold text-sm" data-translate="from_quotation">From Quotation</div></div>
+                        <div class="flex gap-2"><input type="text" id="qtn-import-input" placeholder="QTN-123" class="flex-1 border text-sm p-2 rounded uppercase"><button onclick="app.importQuotation()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm" data-translate="load">Load</button></div>
                     </div>
                 </div>
             </div>
@@ -350,17 +356,175 @@
         const auth = getAuth(appInstance);
         const db = getFirestore(appInstance);
 
+        // --- TRANSLATION RESOURCES ---
+        const resources = {
+            en: {
+                verify_payment_title: "Verify Payment",
+                method_1: "Method 1 - Enter Number",
+                method_2: "Method 2 - Scan QR Code",
+                use_camera: "Use Camera to Scan",
+                admin_login_link: "Admin Click Here",
+                check_btn: "Check",
+                scan_qr: "Scan QR Code",
+                admin_login: "Admin Login",
+                login_btn: "Login",
+                home: "Home",
+                dashboard: "Dashboard",
+                logout: "Logout",
+                invoices: "Invoices",
+                quotations: "Quotations",
+                customers: "Customers",
+                expenses: "Expenses",
+                reports: "Reports",
+                settings: "Settings",
+                year: "Year",
+                month: "Month",
+                customer: "Customer",
+                filter_btn: "Filter",
+                create_new: "Create New",
+                client_name: "Client Name",
+                items: "Items",
+                add_item: "Add Item",
+                subtotal: "Subtotal:",
+                discount: "Discount (Ks):",
+                total: "Total:",
+                deposit: "Payment / Deposit:",
+                balance: "Balance:",
+                cancel: "Cancel",
+                save: "Save",
+                add_customer: "Add Customer",
+                add_expense: "Add Expense",
+                logo: "Company Logo",
+                change_logo: "Change Logo",
+                auth_name: "Auth Person Name",
+                auth_sign: "Auth Signature",
+                upload: "Upload",
+                payment_accounts: "Payment Accounts",
+                terms: "Terms / Note",
+                save_settings: "Save Settings",
+                back: "Back",
+                print: "Print",
+                add_payment: "Add Payment",
+                paid: "Paid:",
+                confirm: "Confirm",
+                create_invoice: "Create Invoice",
+                manual_invoice: "Manual Invoice",
+                from_quotation: "From Quotation",
+                load: "Load",
+                
+                // Dynamic strings
+                financial_overview: "Financial Overview",
+                income: "Income",
+                expense_label: "Expenses",
+                net_profit: "Net Profit",
+                receivable: "Receivable",
+                method_breakdown: "Method Breakdown",
+                quotation_stats: "Quotation Stats",
+                total_created: "Total Created",
+                converted: "Converted to Invoices",
+                bill_to: "Bill To:",
+                date: "Date:",
+                payment_history: "Payment History",
+                payment_info: "Payment Info:",
+                terms_conditions: "Terms & Conditions:",
+                system_generated: "This invoice is system generated and is valid without a seal.",
+                authorized_signature: "Authorized Signature",
+                desc: "Description",
+                qty: "Qty",
+                price: "Price",
+                no: "No."
+            },
+            my: {
+                verify_payment_title: "ငွေပေးချေမှု စစ်ဆေးရန်",
+                method_1: "နည်းလမ်း (၁) - နံပါတ်ရိုက်ထည့်ရန်",
+                method_2: "နည်းလမ်း (၂) - QR Code ဖတ်ရန်",
+                use_camera: "ကင်မရာအသုံးပြု၍ စစ်ဆေးပါ",
+                admin_login_link: "Admin ဝင်ရန် နှိပ်ပါ",
+                check_btn: "စစ်ဆေးမည်",
+                scan_qr: "QR Code ဖတ်ရန်",
+                admin_login: "Admin ဝင်ရောက်ရန်",
+                login_btn: "ဝင်ရောက်မည်",
+                home: "မူလစာမျက်နှာ",
+                dashboard: "ဒက်ရှ်ဘုတ်",
+                logout: "ထွက်မည်",
+                invoices: "အင်ဗွိုက်များ",
+                quotations: "ကိုတေးရှင်းများ",
+                customers: "ဖောက်သည်များ",
+                expenses: "ကုန်ကျစရိတ်များ",
+                reports: "စာရင်းချုပ်",
+                settings: "ဆက်တင်များ",
+                year: "ခုနှစ်",
+                month: "လ",
+                customer: "ဖောက်သည်",
+                filter_btn: "ကြည့်မည်",
+                create_new: "အသစ်ဖန်တီးမည်",
+                client_name: "ဖောက်သည် အမည်",
+                items: "ပစ္စည်းစာရင်း",
+                add_item: "ပစ္စည်းထပ်ထည့်မည်",
+                subtotal: "စုစုပေါင်း (လျော့စျေးမပါ):",
+                discount: "လျော့စျေး (ကျပ်):",
+                total: "စုစုပေါင်း:",
+                deposit: "စရန် / ပေးချေငွေ:",
+                balance: "ကျန်ငွေ:",
+                cancel: "မလုပ်တော့ပါ",
+                save: "သိမ်းမည်",
+                add_customer: "ဖောက်သည်အသစ်ထည့်ရန်",
+                add_expense: "စရိတ်စာရင်းသွင်းရန်",
+                logo: "လုပ်ငန်းလိုဂို",
+                change_logo: "လိုဂိုပြောင်းမည်",
+                auth_name: "တာဝန်ခံ အမည်",
+                auth_sign: "လက်မှတ်",
+                upload: "တင်မည်",
+                payment_accounts: "ငွေလွှဲရန် အကောင့်များ",
+                terms: "စည်းကမ်းချက် / မှတ်ချက်",
+                save_settings: "ဆက်တင်သိမ်းမည်",
+                back: "နောက်သို့",
+                print: "ပရင့်ထုတ်မည်",
+                add_payment: "ငွေလက်ခံမည်",
+                paid: "ပေးချေပြီး:",
+                confirm: "အတည်ပြုမည်",
+                create_invoice: "Invoice ဖွင့်မည်",
+                manual_invoice: "Manual Invoice ဖွင့်မည်",
+                from_quotation: "Quotation မှ ပြောင်းမည်",
+                load: "ရှာဖွေမည်",
+
+                // Dynamic strings
+                financial_overview: "ဘဏ္ဍာရေး သုံးသပ်ချက်",
+                income: "ဝင်ငွေ",
+                expense_label: "ထွက်ငွေ (စရိတ်)",
+                net_profit: "အသားတင်အမြတ်",
+                receivable: "ရရန်ရှိ (ကြွေးကျန်)",
+                method_breakdown: "ငွေပေးချေမှုပုံစံ ခွဲခြမ်းစိတ်ဖြာခြင်း",
+                quotation_stats: "Quotation အခြေအနေ",
+                total_created: "စုစုပေါင်း အရေအတွက်",
+                converted: "Invoice ပြောင်းပြီး",
+                bill_to: "ဝယ်ယူသူ အမည်:",
+                date: "ရက်စွဲ:",
+                payment_history: "ပေးချေမှု မှတ်တမ်း",
+                payment_info: "ငွေပေးချေရန်:",
+                terms_conditions: "စည်းကမ်းချက်များ:",
+                system_generated: "ဤဘောက်ချာသည် စနစ်မှ အလိုအလျောက် ထုတ်ထားခြင်းဖြစ်၍ တံဆိပ်တုံးမပါဘဲ အတည်ဖြစ်သည်။",
+                authorized_signature: "တာဝန်ခံ လက်မှတ်",
+                desc: "အမျိုးအမည်",
+                qty: "အရေအတွက်",
+                price: "ဈေးနှုန်း",
+                no: "စဉ်"
+            }
+        };
+
         const state = {
             user: null, isAdmin: false, view: 'home', activeTab: 'invoice', mode: 'invoice',
             invoices: [], quotations: [], customers: [], expenses: [],
             currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
             discount: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
             unlockPassword: '1234', uploadingRowIndex: null,
-            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null }
+            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null },
+            lang: localStorage.getItem('appLang') || 'en' // Language State
         };
 
         const app = {
             init: () => {
+                app.updateLangButton();
                 onAuthStateChanged(auth, async (u) => {
                     if (u) {
                         state.user = u; state.isAdmin = !u.isAnonymous;
@@ -380,6 +544,36 @@
                 lucide.createIcons();
             },
 
+            // --- Translation Logic ---
+            t: (key) => {
+                return resources[state.lang][key] || key;
+            },
+            
+            toggleLang: () => {
+                state.lang = state.lang === 'en' ? 'my' : 'en';
+                localStorage.setItem('appLang', state.lang);
+                app.updateLangButton();
+                // Refresh current view
+                app.setView(state.view);
+            },
+
+            updateLangButton: () => {
+                const icon = document.getElementById('lang-icon');
+                const text = document.getElementById('lang-text');
+                if(icon && text) {
+                    icon.innerText = state.lang === 'en' ? '🇬🇧' : '🇲🇲';
+                    text.innerText = state.lang === 'en' ? 'EN' : 'MY';
+                }
+            },
+
+            translatePage: () => {
+                document.querySelectorAll('[data-translate]').forEach(el => {
+                    const key = el.getAttribute('data-translate');
+                    el.innerText = app.t(key);
+                });
+            },
+
+            // ... Existing Logic ...
             listenCollection: (coll) => {
                 onSnapshot(collection(db, coll), (snapshot) => {
                     state[coll] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data(), type: coll.slice(0,-1)}));
@@ -410,6 +604,9 @@
                 const tpl = document.getElementById(`tpl-${viewName}`);
                 if((viewName === 'dashboard' || viewName === 'settings') && !state.isAdmin) return app.setView('login');
                 main.innerHTML = ''; main.appendChild(tpl.content.cloneNode(true));
+                
+                app.translatePage(); // Translate static elements
+                app.updateLangButton();
                 lucide.createIcons();
 
                 if(viewName === 'dashboard') app.switchTab(state.activeTab);
@@ -444,7 +641,7 @@
                 } else {
                     if(actionBar) actionBar.style.display = 'flex';
                     if(filters) filters.style.display = 'none';
-                    if(document.getElementById('create-btn-text')) document.getElementById('create-btn-text').innerText = `New ${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
+                    if(document.getElementById('create-btn-text')) document.getElementById('create-btn-text').innerText = `${app.t('create_new')}`;
                     app.renderList(state[tab + 's'], tab);
                 }
             },
@@ -599,29 +796,29 @@
 
                 container.innerHTML = `
                 <div class="p-4 bg-gray-50 min-h-screen">
-                    <h3 class="font-bold text-lg mb-4 text-gray-700">Financial Overview (${fYear==='all'?'All':fYear}${fMonth!=='all'?'/'+(parseInt(fMonth)+1):''})</h3>
+                    <h3 class="font-bold text-lg mb-4 text-gray-700">${app.t('financial_overview')} (${fYear==='all'?'All':fYear}${fMonth!=='all'?'/'+(parseInt(fMonth)+1):''})</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-                            <div class="text-xs text-gray-500 uppercase">Income</div>
+                            <div class="text-xs text-gray-500 uppercase">${app.t('income')}</div>
                             <div class="text-xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
-                            <div class="text-xs text-gray-500 uppercase">Expenses</div>
+                            <div class="text-xs text-gray-500 uppercase">${app.t('expense_label')}</div>
                             <div class="text-xl font-bold text-red-600">${totalExpense.toLocaleString()}</div>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                            <div class="text-xs text-gray-500 uppercase">Net Profit</div>
+                            <div class="text-xs text-gray-500 uppercase">${app.t('net_profit')}</div>
                             <div class="text-xl font-bold text-blue-600">${netProfit.toLocaleString()}</div>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
-                            <div class="text-xs text-gray-500 uppercase">Receivable</div>
+                            <div class="text-xs text-gray-500 uppercase">${app.t('receivable')}</div>
                             <div class="text-xl font-bold text-yellow-600">${totalReceivable.toLocaleString()}</div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div>
-                            <h3 class="font-bold text-sm mb-2 text-gray-600">Method Breakdown (Income - Expense)</h3>
+                            <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('method_breakdown')} (In - Out)</h3>
                             <div class="space-y-2">
                                 ${Object.keys(methods).map(m => {
                                     const bal = methods[m] - expMethods[m];
@@ -637,18 +834,15 @@
                             </div>
                         </div>
                         <div>
-                            <h3 class="font-bold text-sm mb-2 text-gray-600">Quotation Stats</h3>
+                            <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('quotation_stats')}</h3>
                             <div class="bg-white p-4 rounded shadow-sm border h-full">
                                 <div class="flex justify-between border-b pb-2 mb-2">
-                                    <span>Total Created</span>
+                                    <span>${app.t('total_created')}</span>
                                     <span class="font-bold">${filteredQuotations.length}</span>
                                 </div>
                                 <div class="flex justify-between border-b pb-2 mb-2">
-                                    <span>Converted to Invoices</span>
+                                    <span>${app.t('converted')}</span>
                                     <span class="font-bold text-purple-600">-</span> 
-                                </div>
-                                <div class="text-xs text-gray-400 mt-2">
-                                    Filter by customer to see specific quotation history.
                                 </div>
                             </div>
                         </div>
@@ -670,6 +864,7 @@
                 const modal = document.getElementById('modal-container');
                 const tpl = document.getElementById('tpl-customer-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                app.translatePage(); // Translate modal
                 if(cust) {
                     document.getElementById('cust-form-title').innerText = 'Edit Customer';
                     document.getElementById('cust-id').value = cust.id;
@@ -692,7 +887,6 @@
             },
             editCustomer: (id) => app.openCustomerModal(state.customers.find(c => c.id === id)),
             fillCustomerInfo: (val) => {
-                // Find by Name or ID
                 const cust = state.customers.find(c => c.name === val || c.id === val);
                 const details = document.getElementById('client-details');
                 if(cust) {
@@ -712,6 +906,7 @@
                 const modal = document.getElementById('modal-container');
                 const tpl = document.getElementById('tpl-expense-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                app.translatePage();
                 document.getElementById('exp-date').valueAsDate = new Date();
             },
             saveExpense: async (e) => {
@@ -733,7 +928,6 @@
                 document.getElementById('form-title').innerText = title;
                 document.getElementById('form-mode-badge').innerText = state.mode;
                 
-                // Populate Customer Datalist
                 const dl = document.getElementById('customer-list');
                 dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
 
@@ -771,7 +965,6 @@
                         docData.createdAt = serverTimestamp();
                         await addDoc(collection(db, col), docData);
                     }
-                    alert("Saved!");
                     state.activeTab = state.mode; app.setView('dashboard');
                 } catch(e) { alert(e.message); }
             },
@@ -779,7 +972,7 @@
             // --- Standard Helper Functions ---
             createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.initPayment = 0; app.setView('create'); },
             createManualInvoice: () => { app.closeModal(); app.createMode('invoice'); },
-            showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); lucide.createIcons(); },
+            showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); app.translatePage(); lucide.createIcons(); },
             closeModal: () => document.getElementById('modal-container').innerHTML = '',
             
             // Edit/Delete
@@ -814,10 +1007,10 @@
 
             // Items Logic
             renderCreateItems: () => {
-                const c = document.getElementById('items-container'); c.innerHTML = '<label class="block text-sm font-medium mb-2">Items</label>';
+                const c = document.getElementById('items-container'); c.innerHTML = `<label class="block text-sm font-medium mb-2">${app.t('items')}</label>`;
                 state.items.forEach((item, i) => {
                     const div = document.createElement('div'); div.className = "flex gap-2 mb-2 items-start";
-                    div.innerHTML = `<span class="pt-2 text-sm font-bold text-gray-500 w-6">${i+1}.</span><input placeholder="Desc" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="Qty" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="Price" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
+                    div.innerHTML = `<span class="pt-2 text-sm font-bold text-gray-500 w-6">${i+1}.</span><input placeholder="${app.t('desc')}" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="${app.t('qty')}" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="${app.t('price')}" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
                     c.appendChild(div);
                 });
                 lucide.createIcons(); app.calcTotal();
@@ -885,35 +1078,35 @@
                 <div id="invoice-paper" class="bg-white p-10 shadow-lg w-full max-w-4xl min-h-[900px] text-gray-800 flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between border-b pb-6 mb-6"><div><h1 class="text-3xl font-bold text-blue-900 uppercase">${t}</h1><p>#${d.invoiceNumber||d.quotationNumber}</p></div><div class="text-right">${logo}</div></div>
-                        <div class="flex justify-between mb-8"><div><h3 class="font-bold">Bill To:</h3><p>${d.clientName}</p></div>
+                        <div class="flex justify-between mb-8"><div><h3 class="font-bold">${app.t('bill_to')}</h3><p>${d.clientName}</p></div>
                         <div class="text-right">
-                            <h3 class="font-bold">Date:</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}
-                            ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">Payment History</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
+                            <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}
+                            ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">${app.t('payment_history')}</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
                         </div></div>
-                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">No.</th><th class="p-2 text-left">Desc</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Price</th><th class="p-2 text-right">Total</th></tr></thead><tbody>${d.items.map((i, index)=>`<tr><td class="p-2 border-b text-gray-500">${index + 1}</td><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">${app.t('no')}</th><th class="p-2 text-left">${app.t('desc')}</th><th class="p-2 text-right">${app.t('qty')}</th><th class="p-2 text-right">${app.t('price')}</th><th class="p-2 text-right">${app.t('total')}</th></tr></thead><tbody>${d.items.map((i, index)=>`<tr><td class="p-2 border-b text-gray-500">${index + 1}</td><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
                     </div>
                     <div>
                         <div class="flex justify-between items-start border-t pt-4">
                             <div class="w-1/2 text-sm">
-                                <p class="font-bold">Payment Info:</p><pre class="font-sans text-xs">${state.settings.accounts||''}</pre>
-                                <div class="mt-4"><p class="font-bold">Terms & Conditions:</p><p class="whitespace-pre-line text-xs text-gray-600">${state.settings.terms||'-'}</p></div>
+                                <p class="font-bold">${app.t('payment_info')}</p><pre class="font-sans text-xs">${state.settings.accounts||''}</pre>
+                                <div class="mt-4"><p class="font-bold">${app.t('terms_conditions')}</p><p class="whitespace-pre-line text-xs text-gray-600">${state.settings.terms||'-'}</p></div>
                                 <div class="mt-4"><img src="${qr}" class="w-20 border p-1"></div>
                             </div>
                             <div class="w-1/3 text-right">
-                                <div class="flex justify-between"><span>Subtotal:</span><span>${d.items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</span></div>
-                                ${d.discount?`<div class="flex justify-between text-red-500"><span>Discount:</span><span>-${d.discount.toLocaleString()}</span></div>`:''}
-                                <div class="flex justify-between font-bold text-lg mt-2 border-t pt-2"><span>Total:</span><span>${d.totalAmount.toLocaleString()}</span></div>
+                                <div class="flex justify-between"><span>${app.t('subtotal')}</span><span>${d.items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</span></div>
+                                ${d.discount?`<div class="flex justify-between text-red-500"><span>${app.t('discount')}</span><span>-${d.discount.toLocaleString()}</span></div>`:''}
+                                <div class="flex justify-between font-bold text-lg mt-2 border-t pt-2"><span>${app.t('total')}</span><span>${d.totalAmount.toLocaleString()}</span></div>
                                 
                                 <div class="mt-10 text-center w-48 ml-auto">
                                     ${sign}
                                     <p class="text-xs font-bold uppercase mt-1">${state.settings.authName||''}</p>
                                     <div class="border-b border-gray-800 mt-1 mb-1"></div>
-                                    <p class="text-[10px] text-gray-500">Authorized Signature</p>
+                                    <p class="text-[10px] text-gray-500">${app.t('authorized_signature')}</p>
                                 </div>
                             </div>
                         </div>
                         <div class="mt-8 text-center text-[10px] text-gray-400 border-t pt-2">
-                            This invoice is system generated and is valid without a seal.
+                            ${app.t('system_generated')}
                         </div>
                     </div>
                 </div>`;
@@ -953,6 +1146,7 @@
                 state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
                 const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
                 document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
+                app.translatePage(); // Translate modal
                 document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
                 document.getElementById('modal-paid').innerText = paid.toLocaleString();
                 document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
