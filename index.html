@@ -21,11 +21,55 @@
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
+        /* Editor Styles */
+        .editor-page {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-height: 800px;
+            background: white;
+            padding: 40px;
+            outline: none;
+        }
+        .editor-toolbar button {
+            padding: 6px;
+            border-radius: 4px;
+            color: #4b5563;
+        }
+        .editor-toolbar button:hover { background-color: #f3f4f6; }
+        .editor-toolbar button.active { background-color: #e5e7eb; color: #000; }
+
+        /* A4 Paper Styles for Mobile Scaling */
+        .paper-container {
+            width: 100%;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            background: #f3f4f6;
+            padding: 20px 0;
+        }
+        .a4-paper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20mm;
+            position: relative;
+            /* Ensure fixed layout regardless of screen size */
+            flex-shrink: 0; 
+            box-sizing: border-box;
+        }
+
+        /* Mobile specific scaling for preview */
+        @media screen and (max-width: 850px) {
+            .paper-scaler {
+                transform-origin: top center;
+            }
+        }
+
         /* Print Styles */
         @media print {
             body * { visibility: hidden; }
-            #invoice-paper, #invoice-paper * { visibility: visible; }
-            #invoice-paper { 
+            .a4-paper, .a4-paper * { visibility: visible; }
+            .a4-paper { 
                 position: absolute; 
                 left: 0; 
                 top: 0; 
@@ -35,8 +79,10 @@
                 box-shadow: none; 
                 border: none; 
             }
-            @page { size: auto; margin: 12.7mm; } /* 0.5 inch margin */
+            @page { size: auto; margin: 12.7mm; } 
             .no-print { display: none !important; }
+            .paper-container { padding: 0; background: white; display: block; }
+            .paper-scaler { transform: none !important; }
         }
         
         /* Hide scrollbar for tabs */
@@ -53,7 +99,7 @@
     </div>
 
     <main class="w-full max-w-6xl mx-auto p-2 md:p-4" id="main-container">
-        </main>
+    </main>
 
     <div id="modal-container"></div>
 
@@ -69,6 +115,7 @@
         </div>
     </div>
 
+    <!-- TEMPLATES -->
     <template id="tpl-home">
         <div class="flex flex-col items-center justify-center py-4 text-center space-y-6 fade-in min-h-[80vh]">
             <div class="mb-4">
@@ -82,7 +129,7 @@
                 <div class="bg-white p-6 rounded-xl shadow border">
                     <label class="block text-left text-sm font-medium text-gray-700 mb-2" data-translate="method_1">Method 1 - Enter Number</label>
                     <div class="flex gap-2">
-                        <input type="text" id="search-input" placeholder="INV-xxx / QTN-xxx" class="flex-1 border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
+                        <input type="text" id="search-input" placeholder="INV-xxx / QTN-xxx / CON-xxx" class="flex-1 border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
                         <button onclick="app.handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm" data-translate="check_btn">Check</button>
                     </div>
                 </div>
@@ -126,6 +173,7 @@
             <div class="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
                 <button onclick="app.switchTab('invoice')" id="tab-invoice" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium bg-white border shadow-sm" data-translate="invoices">Invoices</button>
                 <button onclick="app.switchTab('quotation')" id="tab-quotation" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="quotations">Quotations</button>
+                <button onclick="app.switchTab('contract')" id="tab-contract" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="contracts">Contracts</button>
                 <button onclick="app.switchTab('customer')" id="tab-customer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="customers">Customers</button>
                 <button onclick="app.switchTab('expense')" id="tab-expense" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="expenses">Expenses</button>
                 <button onclick="app.switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="reports">Reports</button>
@@ -164,7 +212,7 @@
 
             <div class="bg-white rounded-xl shadow overflow-hidden border min-h-[400px]">
                 <div id="dashboard-content" class="overflow-x-auto">
-                    </div>
+                </div>
             </div>
         </div>
     </template>
@@ -176,15 +224,35 @@
                 <span id="form-mode-badge" class="px-2 py-1 bg-gray-100 text-xs rounded uppercase font-bold text-gray-500">MODE</span>
             </div>
             <form onsubmit="app.handleSave(event)" class="space-y-6">
-                <div class="relative">
-                    <label class="block text-sm font-medium text-gray-700 mb-1" data-translate="client_name">Client Name</label>
-                    <input type="text" id="client-name" list="customer-list" onchange="app.fillCustomerInfo(this.value)" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Type name or select...">
-                    <datalist id="customer-list"></datalist>
-                    <input type="hidden" id="client-id">
-                    <div id="client-details" class="text-xs text-gray-500 mt-1 hidden">
-                        <span id="client-phone"></span> | <span id="client-address"></span>
-                    </div>
+                <!-- Doc Number Edit -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Document No.</label>
+                    <input type="text" id="doc-number" class="w-full border p-2 rounded bg-gray-50 focus:bg-white font-mono uppercase" required>
                 </div>
+
+                <div class="relative grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-translate="customer">Customer ID</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="client-id-input" list="customer-ids" onchange="app.fillCustomerById(this.value)" class="w-full border p-2 rounded uppercase" placeholder="CUST-XXX">
+                            <datalist id="customer-ids"></datalist>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-translate="client_name">Client Name</label>
+                        <input type="text" id="client-name" list="customer-list" onchange="app.fillCustomerInfo(this.value)" required class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Type name or select...">
+                        <datalist id="customer-list"></datalist>
+                    </div>
+                    
+                    <input type="hidden" id="client-db-id">
+                    <input type="hidden" id="client-email-hidden">
+                    <input type="hidden" id="client-phone-hidden">
+                    <input type="hidden" id="client-address-hidden">
+                </div>
+                <div id="client-details" class="text-xs text-gray-500 mt-1 hidden p-2 bg-gray-50 rounded border">
+                    <span id="client-phone"></span> | <span id="client-address"></span>
+                </div>
+
                 <div id="items-container">
                     <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="items">Items</label>
                 </div>
@@ -192,11 +260,15 @@
 
                 <div class="border-t pt-4 bg-gray-50 p-4 rounded-lg">
                     <div class="flex justify-between items-center mb-2"><span class="text-gray-600" data-translate="subtotal">Subtotal:</span><span class="font-medium" id="subtotal-display">0</span></div>
-                    <div class="flex justify-between items-center mb-4"><span class="text-gray-600" data-translate="discount">Discount (Ks):</span><input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')"></div>
+                    <div class="flex justify-between items-center mb-2"><span class="text-gray-600" data-translate="discount">Discount (Ks):</span><input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')"></div>
+                    <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Tax (%):</span><input type="number" id="tax-input" value="0" min="0" step="0.1" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'tax')"></div>
+                    
                     <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2"><span data-translate="total">Total:</span><span><span id="create-total">0</span> Ks</span></div>
                     <div id="invoice-payment-section">
                         <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center gap-2"><span class="text-blue-700 font-medium" data-translate="deposit">Payment / Deposit:</span><select id="init-payment-method" class="text-sm border rounded p-1"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select></div>
+                            <div class="flex items-center gap-2"><span class="text-blue-700 font-medium" data-translate="deposit">Payment / Deposit:</span>
+                            <select id="init-payment-method" class="text-sm border rounded p-1 payment-method-select"></select>
+                            </div>
                             <input type="number" id="init-payment-input" value="0" min="0" class="border p-1 w-32 text-right rounded border-blue-300 focus:ring-2 focus:ring-blue-200" onchange="app.updateCalc(this.value, 'payment')">
                         </div>
                         <div class="flex justify-between items-center text-red-600 font-bold border-t border-gray-200 pt-2"><span data-translate="balance">Balance:</span><span><span id="create-balance">0</span> Ks</span></div>
@@ -210,14 +282,70 @@
         </div>
     </template>
 
+    <template id="tpl-contract-edit">
+        <div class="max-w-4xl mx-auto bg-gray-100 min-h-screen p-4 fade-in">
+             <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
+                <div class="flex items-center gap-4">
+                    <button onclick="app.setView('dashboard')" class="text-gray-500 hover:text-gray-800"><i data-lucide="arrow-left"></i></button>
+                    <h2 class="font-bold text-lg" data-translate="edit_contract">Contract Editor</h2>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="app.saveContract()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium text-sm" data-translate="save">Save Contract</button>
+                </div>
+             </div>
+
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                 <input type="text" id="contract-title" placeholder="Contract Title" class="border p-2 rounded shadow-sm w-full md:col-span-3" required>
+                 
+                 <!-- Contract Doc ID -->
+                 <input type="text" id="contract-doc-number" placeholder="Contract No." class="border p-2 rounded shadow-sm w-full font-mono uppercase" required>
+
+                 <div class="md:col-span-2 grid grid-cols-2 gap-2">
+                    <input type="text" id="contract-client-id" list="customer-ids" onchange="app.fillCustomerById(this.value)" placeholder="Cust ID" class="border p-2 rounded shadow-sm w-full uppercase">
+                    <input type="text" id="contract-client" list="customer-list" onchange="app.fillCustomerInfo(this.value)" placeholder="Client Name" class="border p-2 rounded shadow-sm w-full" required>
+                 </div>
+                 
+                 <input type="hidden" id="client-db-id">
+                 <input type="hidden" id="client-email-hidden">
+                 <input type="hidden" id="client-phone-hidden">
+                 <input type="hidden" id="client-address-hidden">
+             </div>
+
+             <!-- Rich Text Toolbar -->
+             <div class="bg-white p-2 rounded-t-lg border-b sticky top-0 z-10 editor-toolbar flex flex-wrap gap-1 shadow-sm">
+                 <button onclick="app.execCmd('bold')" title="Bold"><i data-lucide="bold" width="16"></i></button>
+                 <button onclick="app.execCmd('italic')" title="Italic"><i data-lucide="italic" width="16"></i></button>
+                 <button onclick="app.execCmd('underline')" title="Underline"><i data-lucide="underline" width="16"></i></button>
+                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                 <button onclick="app.execCmd('justifyLeft')" title="Left"><i data-lucide="align-left" width="16"></i></button>
+                 <button onclick="app.execCmd('justifyCenter')" title="Center"><i data-lucide="align-center" width="16"></i></button>
+                 <button onclick="app.execCmd('justifyRight')" title="Right"><i data-lucide="align-right" width="16"></i></button>
+                 <button onclick="app.execCmd('justifyFull')" title="Justify"><i data-lucide="align-justify" width="16"></i></button>
+                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                 <button onclick="app.execCmd('insertUnorderedList')" title="Bullet List"><i data-lucide="list" width="16"></i></button>
+                 <button onclick="app.execCmd('insertOrderedList')" title="Number List"><i data-lucide="list-ordered" width="16"></i></button>
+                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                 <button onclick="app.execCmd('formatBlock', 'h2')" title="Heading"><i data-lucide="heading" width="16"></i></button>
+                 <button onclick="app.execCmd('formatBlock', 'p')" title="Paragraph"><i data-lucide="pilcrow" width="16"></i></button>
+             </div>
+
+             <!-- Editor Area -->
+             <div id="contract-editor" contenteditable="true" class="editor-page" placeholder="Type your contract here..."></div>
+        </div>
+    </template>
+
     <template id="tpl-customer-form">
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
                 <h3 class="text-lg font-bold mb-4" id="cust-form-title" data-translate="add_customer">Add Customer</h3>
                 <form onsubmit="app.saveCustomer(event)" class="space-y-3">
                     <input type="hidden" id="cust-id">
-                    <input type="text" id="cust-name" placeholder="Name" required class="w-full border p-2 rounded">
+                    <div class="flex gap-2">
+                        <input type="text" id="cust-display-id" placeholder="ID (Auto)" readonly class="w-1/3 border p-2 rounded bg-gray-100 text-gray-500">
+                        <input type="text" id="cust-name" placeholder="Name" required class="w-2/3 border p-2 rounded">
+                    </div>
                     <input type="text" id="cust-phone" placeholder="Phone" class="w-full border p-2 rounded">
+                    <input type="email" id="cust-email" placeholder="Email" class="w-full border p-2 rounded">
                     <input type="text" id="cust-address" placeholder="Address" class="w-full border p-2 rounded">
                     <div class="flex justify-end gap-2 mt-4">
                         <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button>
@@ -237,8 +365,7 @@
                     <input type="text" id="exp-title" placeholder="Description (e.g. Lunch)" required class="w-full border p-2 rounded">
                     <div class="flex gap-2">
                         <input type="number" id="exp-amount" placeholder="Amount" required class="w-full border p-2 rounded">
-                        <select id="exp-method" class="border p-2 rounded bg-white">
-                            <option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option>
+                        <select id="exp-method" class="border p-2 rounded bg-white payment-method-select">
                         </select>
                     </div>
                     <input type="date" id="exp-date" required class="w-full border p-2 rounded">
@@ -252,30 +379,66 @@
     </template>
 
     <template id="tpl-settings">
-        <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
+        <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
             <div class="flex justify-between items-center mb-6 border-b pb-2">
                 <h2 class="text-xl font-bold" data-translate="settings">Admin Settings</h2>
                 <button onclick="app.setView('dashboard')" class="text-gray-500"><i data-lucide="x"></i></button>
             </div>
+            
             <form onsubmit="app.handleSaveSettings(event)" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="logo">Company Logo</label>
-                    <div class="flex items-center gap-4">
-                        <div id="logo-preview" class="w-32 h-20 border rounded bg-gray-50 flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Logo</span></div>
-                        <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 rounded text-sm border" data-translate="change_logo">Change Logo</button>
+                <!-- Business Info -->
+                <div class="p-4 bg-gray-50 rounded-lg border space-y-4">
+                    <h3 class="font-bold text-gray-700">Business Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-medium mb-1">Address</label><input type="text" id="setting-biz-address" class="w-full border p-2 rounded text-sm"></div>
+                        <div><label class="block text-xs font-medium mb-1">Phone</label><input type="text" id="setting-biz-phone" class="w-full border p-2 rounded text-sm"></div>
+                        <div><label class="block text-xs font-medium mb-1">Website</label><input type="text" id="setting-biz-web" class="w-full border p-2 rounded text-sm"></div>
+                        <div><label class="block text-xs font-medium mb-1">Email</label><input type="text" id="setting-biz-email" class="w-full border p-2 rounded text-sm"></div>
+                        <div><label class="block text-xs font-medium mb-1">Default Tax (%)</label><input type="number" step="0.1" id="setting-tax" class="w-full border p-2 rounded text-sm"></div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border">
-                    <div><label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_name">Auth Person Name</label><input type="text" id="setting-auth-name" class="w-full border p-2 rounded"></div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_sign">Auth Signature</label>
+
+                <!-- Logo & Sign -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="logo">Company Logo</label>
                         <div class="flex items-center gap-4">
+                            <div id="logo-preview" class="w-32 h-20 border rounded bg-gray-50 flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Logo</span></div>
+                            <button type="button" onclick="document.getElementById('setting-logo-input').click()" class="px-4 py-2 bg-gray-100 rounded text-sm border" data-translate="change_logo">Change Logo</button>
+                        </div>
+                    </div>
+                    <div>
+                         <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_sign">Auth Signature</label>
+                         <div class="flex items-center gap-4">
                             <div id="sign-preview" class="w-32 h-20 border rounded bg-white flex items-center justify-center overflow-hidden"><span class="text-xs text-gray-400">No Sign</span></div>
                             <button type="button" onclick="document.getElementById('setting-sign-input').click()" class="px-4 py-2 bg-white border rounded text-sm shadow-sm" data-translate="upload">Upload</button>
                         </div>
                     </div>
                 </div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1" data-translate="payment_accounts">Payment Accounts</label><textarea id="setting-accounts" rows="3" class="w-full border p-2 rounded"></textarea></div>
+
+                <!-- Payment Methods Manager -->
+                <div class="p-4 bg-gray-50 rounded-lg border">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-700">Payment Methods</h3>
+                        <button type="button" onclick="app.addPaymentMethod()" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">+ Add New</button>
+                    </div>
+                    <div id="payment-methods-list" class="space-y-2">
+                        <!-- Methods list injected here -->
+                    </div>
+                    <div id="payment-method-form" class="hidden mt-3 p-3 bg-white border rounded shadow-sm">
+                        <input type="text" id="new-method-name" placeholder="Method Name (e.g. KBZ Pay)" class="w-full border p-2 rounded text-sm mb-2">
+                        <div class="flex justify-end gap-2">
+                            <button type="button" onclick="document.getElementById('payment-method-form').classList.add('hidden')" class="text-xs text-gray-500">Cancel</button>
+                            <button type="button" onclick="app.savePaymentMethod()" class="text-xs bg-green-600 text-white px-3 py-1 rounded">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- General Settings -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_name">Auth Person Name</label><input type="text" id="setting-auth-name" class="w-full border p-2 rounded"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1" data-translate="payment_accounts">General Payment Info (Footer)</label><textarea id="setting-accounts" rows="3" class="w-full border p-2 rounded" placeholder="Bank details to show on invoice footer..."></textarea></div>
+                </div>
                 <div><label class="block text-sm font-medium text-gray-700 mb-1" data-translate="terms">Terms / Note</label><textarea id="setting-terms" rows="2" class="w-full border p-2 rounded"></textarea></div>
                 <div class="flex justify-end gap-3 pt-4"><button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded" data-translate="save_settings">Save Settings</button></div>
             </form>
@@ -283,13 +446,13 @@
     </template>
 
     <template id="tpl-verify">
-        <div class="flex flex-col items-center fade-in">
-            <div class="w-full max-w-4xl mb-4 flex justify-between no-print relative z-[100]">
+        <div class="flex flex-col items-center fade-in bg-gray-100 min-h-screen">
+            <div class="w-full max-w-4xl mb-4 flex justify-between no-print relative z-[100] p-4">
                 <button onclick="app.backHome()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900 bg-white px-3 py-1 rounded shadow-sm border">
                     <i data-lucide="arrow-left"></i> <span data-translate="back">Back</span>
                 </button>
                 <div class="flex gap-2">
-                    <button onclick="app.printInvoice()" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 cursor-pointer relative z-[101]">
+                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 cursor-pointer relative z-[101]">
                         <i data-lucide="printer"></i> <span data-translate="print">Print</span>
                     </button>
                     <button onclick="app.downloadPDF()" class="bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-900 cursor-pointer relative z-[101]">
@@ -297,7 +460,8 @@
                     </button>
                 </div>
             </div>
-            <div id="verify-content" class="w-full flex justify-center"></div>
+            <!-- Scalable A4 Container -->
+            <div id="verify-content" class="paper-container"></div>
         </div>
     </template>
 
@@ -312,7 +476,7 @@
                 </div>
                 <div class="space-y-4">
                     <input type="number" id="payment-amount" class="w-full border p-2 rounded font-bold">
-                    <select id="payment-method-select" class="w-full border p-2 rounded"><option value="Cash">Cash</option><option value="KPay">KPay</option><option value="Wave">Wave</option><option value="Bank">Bank</option></select>
+                    <select id="payment-method-select" class="w-full border p-2 rounded payment-method-select"></select>
                 </div>
                 <div class="flex justify-end gap-2 mt-6"><button onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button><button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded" data-translate="confirm">Confirm</button></div>
             </div>
@@ -373,6 +537,7 @@
                 logout: "Logout",
                 invoices: "Invoices",
                 quotations: "Quotations",
+                contracts: "Contracts",
                 customers: "Customers",
                 expenses: "Expenses",
                 reports: "Reports",
@@ -399,7 +564,7 @@
                 auth_name: "Auth Person Name",
                 auth_sign: "Auth Signature",
                 upload: "Upload",
-                payment_accounts: "Payment Accounts",
+                payment_accounts: "Payment Footer Info",
                 terms: "Terms / Note",
                 save_settings: "Save Settings",
                 back: "Back",
@@ -411,6 +576,7 @@
                 manual_invoice: "Manual Invoice",
                 from_quotation: "From Quotation",
                 load: "Load",
+                edit_contract: "Contract Editor",
                 
                 // Dynamic strings
                 financial_overview: "Financial Overview",
@@ -449,6 +615,7 @@
                 logout: "ထွက်မည်",
                 invoices: "အင်ဗွိုက်များ",
                 quotations: "ကိုတေးရှင်းများ",
+                contracts: "စာချုပ်များ",
                 customers: "ဖောက်သည်များ",
                 expenses: "ကုန်ကျစရိတ်များ",
                 reports: "စာရင်းချုပ်",
@@ -475,7 +642,7 @@
                 auth_name: "တာဝန်ခံ အမည်",
                 auth_sign: "လက်မှတ်",
                 upload: "တင်မည်",
-                payment_accounts: "ငွေလွှဲရန် အကောင့်များ",
+                payment_accounts: "ငွေလွှဲရန် အချက်အလက်များ (အောက်ခြေ)",
                 terms: "စည်းကမ်းချက် / မှတ်ချက်",
                 save_settings: "ဆက်တင်သိမ်းမည်",
                 back: "နောက်သို့",
@@ -487,6 +654,7 @@
                 manual_invoice: "Manual Invoice ဖွင့်မည်",
                 from_quotation: "Quotation မှ ပြောင်းမည်",
                 load: "ရှာဖွေမည်",
+                edit_contract: "စာချုပ်ရေးသားရန်",
 
                 // Dynamic strings
                 financial_overview: "ဘဏ္ဍာရေး သုံးသပ်ချက်",
@@ -514,12 +682,13 @@
 
         const state = {
             user: null, isAdmin: false, view: 'home', activeTab: 'invoice', mode: 'invoice',
-            invoices: [], quotations: [], customers: [], expenses: [],
+            invoices: [], quotations: [], customers: [], expenses: [], contracts: [], payment_methods: [],
             currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
-            discount: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
+            discount: 0, taxRate: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
             unlockPassword: '1234', uploadingRowIndex: null,
-            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null },
-            lang: localStorage.getItem('appLang') || 'en' // Language State
+            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', taxRate: 0 },
+            lang: localStorage.getItem('appLang') || 'en',
+            defaultMethods: [{name: 'Cash'}, {name: 'KPay'}, {name: 'Wave'}, {name: 'Bank'}]
         };
 
         const app = {
@@ -533,6 +702,8 @@
                             app.listenCollection('quotations');
                             app.listenCollection('customers');
                             app.listenCollection('expenses');
+                            app.listenCollection('contracts');
+                            app.listenCollection('payment_methods');
                         }
                     } else { try { await signInAnonymously(auth); } catch(e){} }
                     
@@ -542,21 +713,42 @@
                 });
                 app.listenSettings();
                 lucide.createIcons();
+                // A4 Scaler for mobile
+                window.addEventListener('resize', app.scalePaper);
+            },
+
+            // --- A4 Scaling Logic ---
+            scalePaper: () => {
+                const paper = document.querySelector('.a4-paper');
+                const container = document.querySelector('.paper-container');
+                if (paper && container) {
+                    const margin = 20; // 20px padding
+                    const parentWidth = container.clientWidth - (margin * 2);
+                    const paperWidth = paper.clientWidth; // Should be ~794px (210mm)
+                    
+                    if (parentWidth < paperWidth) {
+                        const scale = parentWidth / paperWidth;
+                        paper.style.transform = `scale(${scale})`;
+                        paper.classList.add('paper-scaler');
+                        // Adjust height of container because scaling doesn't affect flow layout
+                        const scaledHeight = paper.offsetHeight * scale;
+                        container.style.height = (scaledHeight + 50) + 'px'; // + buffer
+                    } else {
+                        paper.style.transform = 'none';
+                        paper.classList.remove('paper-scaler');
+                        container.style.height = 'auto';
+                    }
+                }
             },
 
             // --- Translation Logic ---
-            t: (key) => {
-                return resources[state.lang][key] || key;
-            },
-            
+            t: (key) => resources[state.lang][key] || key,
             toggleLang: () => {
                 state.lang = state.lang === 'en' ? 'my' : 'en';
                 localStorage.setItem('appLang', state.lang);
                 app.updateLangButton();
-                // Refresh current view
                 app.setView(state.view);
             },
-
             updateLangButton: () => {
                 const icon = document.getElementById('lang-icon');
                 const text = document.getElementById('lang-text');
@@ -565,7 +757,6 @@
                     text.innerText = state.lang === 'en' ? 'EN' : 'MY';
                 }
             },
-
             translatePage: () => {
                 document.querySelectorAll('[data-translate]').forEach(el => {
                     const key = el.getAttribute('data-translate');
@@ -573,18 +764,21 @@
                 });
             },
 
-            // ... Existing Logic ...
+            // --- Database Listeners ---
             listenCollection: (coll) => {
                 onSnapshot(collection(db, coll), (snapshot) => {
                     state[coll] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data(), type: coll.slice(0,-1)}));
-                    // Sort descending
-                    state[coll].sort((a,b) => {
-                        const tA = a.createdAt?.seconds || new Date(a.date).getTime()/1000 || 0;
-                        const tB = b.createdAt?.seconds || new Date(b.date).getTime()/1000 || 0;
-                        return tB - tA;
-                    });
+                    // Sort descending by created/date
+                    if (coll !== 'payment_methods') {
+                        state[coll].sort((a,b) => {
+                            const tA = a.createdAt?.seconds || new Date(a.date).getTime()/1000 || 0;
+                            const tB = b.createdAt?.seconds || new Date(b.date).getTime()/1000 || 0;
+                            return tB - tA;
+                        });
+                    }
                     if(state.view === 'dashboard' && state.activeTab === coll.slice(0,-1)) app.switchTab(state.activeTab);
                     if(state.view === 'dashboard' && state.activeTab === 'report') app.renderReports();
+                    if(coll === 'payment_methods' && state.view === 'settings') app.renderPaymentMethods();
                 });
             },
 
@@ -602,20 +796,140 @@
                 state.view = viewName;
                 const main = document.getElementById('main-container');
                 const tpl = document.getElementById(`tpl-${viewName}`);
-                if((viewName === 'dashboard' || viewName === 'settings') && !state.isAdmin) return app.setView('login');
+                if((viewName === 'dashboard' || viewName === 'settings' || viewName === 'contract-edit') && !state.isAdmin) return app.setView('login');
                 main.innerHTML = ''; main.appendChild(tpl.content.cloneNode(true));
                 
-                app.translatePage(); // Translate static elements
+                app.translatePage();
                 app.updateLangButton();
                 lucide.createIcons();
 
                 if(viewName === 'dashboard') app.switchTab(state.activeTab);
-                if(viewName === 'settings') app.fillSettingsForm();
+                if(viewName === 'settings') app.initSettingsView();
                 if(viewName === 'create') app.initCreateForm();
+                if(viewName === 'contract-edit') app.initContractEditor();
+                if(viewName === 'verify') setTimeout(app.scalePaper, 100);
             },
 
+            // --- Contract Feature ---
+            initContractEditor: () => {
+                const titleInput = document.getElementById('contract-title');
+                const docNumInput = document.getElementById('contract-doc-number');
+                const clientInput = document.getElementById('contract-client');
+                const clientIdInput = document.getElementById('contract-client-id');
+                const editor = document.getElementById('contract-editor');
+                
+                const dl = document.getElementById('customer-list');
+                const dlIds = document.getElementById('customer-ids'); // ID datalist
+                dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+                if(dlIds) dlIds.innerHTML = state.customers.map(c => `<option value="${c.customerId}">${c.name}</option>`).join('');
+
+                if(state.editingId) {
+                    const c = state.contracts.find(i => i.id === state.editingId);
+                    if(c) {
+                        titleInput.value = c.title || '';
+                        docNumInput.value = c.quotationNumber || '';
+                        clientInput.value = c.clientName || '';
+                        // Find customer ID based on name if not saved directly
+                        const cust = state.customers.find(x => x.name === c.clientName);
+                        clientIdInput.value = cust ? cust.customerId : '';
+                        
+                        editor.innerHTML = c.content || '';
+                        app.fillCustomerInfo(c.clientName);
+                    }
+                } else {
+                    docNumInput.value = 'CON-' + Date.now().toString().slice(-6);
+                }
+            },
+
+            execCmd: (cmd, arg = null) => {
+                document.execCommand(cmd, false, arg);
+                document.getElementById('contract-editor').focus();
+            },
+
+            saveContract: async () => {
+                const title = document.getElementById('contract-title').value;
+                const docNum = document.getElementById('contract-doc-number').value;
+                const clientName = document.getElementById('contract-client').value;
+                const content = document.getElementById('contract-editor').innerHTML;
+                
+                const clientEmail = document.getElementById('client-email-hidden').value;
+                const clientPhone = document.getElementById('client-phone-hidden').value;
+                const clientAddress = document.getElementById('client-address-hidden').value;
+
+                if(!title) return alert("Please enter a title");
+
+                const data = {
+                    title, clientName, content,
+                    clientEmail, clientPhone, clientAddress,
+                    quotationNumber: docNum, // User editable
+                    securityCode: state.editingId ? undefined : `CON-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
+                    createdBy: state.user.uid
+                };
+                if(data.securityCode === undefined) delete data.securityCode;
+
+                if (state.editingId) await updateDoc(doc(db, 'contracts', state.editingId), data);
+                else {
+                    await addDoc(collection(db, 'contracts'), {...data, createdAt: serverTimestamp()});
+                }
+                state.activeTab = 'contract';
+                app.setView('dashboard');
+            },
+
+            // --- Payment Methods Logic ---
+            initSettingsView: () => {
+                app.fillSettingsForm();
+                app.renderPaymentMethods();
+            },
+
+            renderPaymentMethods: () => {
+                const list = document.getElementById('payment-methods-list');
+                if(!list) return;
+                const methods = state.payment_methods.length > 0 ? state.payment_methods : [];
+                
+                list.innerHTML = methods.map(m => `
+                    <div class="flex justify-between items-center bg-white p-2 border rounded text-sm">
+                        <span class="font-medium">${m.name}</span>
+                        <div>
+                            <button type="button" onclick="app.deletePaymentMethod('${m.id}')" class="text-red-600 hover:text-red-800 px-2">
+                                <i data-lucide="trash-2" width="14"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                if(methods.length === 0) list.innerHTML = `<div class="text-xs text-gray-400 italic">No custom methods. Using defaults (Cash, KPay, etc.)</div>`;
+                lucide.createIcons();
+            },
+
+            addPaymentMethod: () => document.getElementById('payment-method-form').classList.remove('hidden'),
+
+            savePaymentMethod: async () => {
+                const name = document.getElementById('new-method-name').value.trim();
+                if(!name) return;
+                await addDoc(collection(db, 'payment_methods'), { name });
+                document.getElementById('new-method-name').value = '';
+                document.getElementById('payment-method-form').classList.add('hidden');
+            },
+
+            deletePaymentMethod: async (id) => {
+                if(confirm("Delete this method?")) await deleteDoc(doc(db, 'payment_methods', id));
+            },
+
+            populatePaymentSelects: () => {
+                const selects = document.querySelectorAll('.payment-method-select');
+                const methods = state.payment_methods.length > 0 ? state.payment_methods : state.defaultMethods;
+                
+                selects.forEach(sel => {
+                    const currentVal = sel.value; // Keep selection if re-rendering
+                    sel.innerHTML = methods.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+                    if(currentVal && methods.find(m => m.name === currentVal)) sel.value = currentVal;
+                });
+            },
+
+            // --- Existing Functionality Updates ---
+
             showVerify: (id, type) => {
-                const d = state[type + 's'].find(i => i.id === id);
+                const coll = type + 's';
+                const d = state[coll].find(i => i.id === id);
                 if(d) {
                     app.setView('verify');
                     app.renderPaper(d, type);
@@ -646,7 +960,6 @@
                 }
             },
 
-            // --- Render Lists ---
             renderList: (data, type) => {
                 const container = document.getElementById('dashboard-content');
                 if(!container) return;
@@ -656,13 +969,28 @@
                     return;
                 }
 
-                if (type === 'customer') {
+                if (type === 'contract') {
                     container.innerHTML = `
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Name</th><th class="p-3">Phone</th><th class="p-3">Address</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Title</th><th class="p-3">Client</th><th class="p-3">Date</th><th class="p-3 text-right">Actions</th></tr></thead>
                         <tbody class="divide-y">${data.map(c => `
                             <tr class="hover:bg-gray-50">
-                                <td class="p-3 font-medium">${c.name}</td><td class="p-3">${c.phone || '-'}</td><td class="p-3 truncate max-w-xs">${c.address || '-'}</td>
+                                <td class="p-3 font-medium text-blue-600">${c.title}</td><td class="p-3">${c.clientName}</td><td class="p-3">${new Date(c.createdAt?.seconds*1000).toLocaleDateString()}</td>
+                                <td class="p-3 text-right">
+                                    <button onclick="app.showVerify('${c.id}', 'contract')" class="text-gray-600 p-1 mr-2"><i data-lucide="printer" width="16"></i></button>
+                                    <button onclick="app.editContract('${c.id}')" class="text-blue-600 p-1 mr-2"><i data-lucide="pencil" width="16"></i></button>
+                                    <button onclick="app.deleteDoc('${c.id}', 'contracts')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                </td>
+                            </tr>`).join('')}</tbody>
+                    </table>`;
+                } else if (type === 'customer') {
+                    container.innerHTML = `
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">ID</th><th class="p-3">Name</th><th class="p-3">Phone</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <tbody class="divide-y">${data.map(c => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3 font-mono text-gray-500">${c.customerId || '-'}</td>
+                                <td class="p-3 font-medium">${c.name}</td><td class="p-3">${c.phone || '-'}</td>
                                 <td class="p-3 text-right">
                                     <button onclick="app.editCustomer('${c.id}')" class="text-blue-600 p-1"><i data-lucide="pencil" width="16"></i></button>
                                     <button onclick="app.deleteDoc('${c.id}', 'customers')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
@@ -694,7 +1022,6 @@
                              let paid = item.payments ? item.payments.reduce((s,p)=>s+p.amount,0) : 0;
                              let bal = item.totalAmount - paid;
                              
-                             // 4 Action Buttons
                              let actionBtns = `
                                 <div class="flex items-center justify-end gap-1">
                                     <button onclick="app.showVerify('${item.id}', '${type}')" class="p-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200" title="Print/View"><i data-lucide="printer" width="14"></i></button>
@@ -719,38 +1046,522 @@
                                 <td class="p-3 text-center">${badge}</td>
                                 <td class="p-3 text-right">${actionBtns}</td>
                              </tr>`;
-                         }).join('')}</tbody>
+                          }).join('')}</tbody>
                     </table>`;
                 }
                 lucide.createIcons();
             },
 
-            // --- Reports Logic (Advanced) ---
+            // --- Handlers ---
+            handleCreateButtonClick: () => {
+                const tab = state.activeTab;
+                if(tab === 'invoice') app.showInvoiceOptionModal();
+                else if(tab === 'quotation') app.createMode('quotation');
+                else if(tab === 'contract') { state.editingId = null; app.setView('contract-edit'); }
+                else if(tab === 'customer') app.openCustomerModal();
+                else if(tab === 'expense') app.openExpenseModal();
+            },
+
+            // --- Forms/Modals Logic ---
+            openCustomerModal: (cust = null) => {
+                const modal = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-customer-form');
+                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                app.translatePage();
+                
+                // Generate ID for new customer
+                if(!cust) {
+                    document.getElementById('cust-display-id').value = 'CUST-' + Date.now().toString().slice(-6);
+                }
+
+                if(cust) {
+                    document.getElementById('cust-form-title').innerText = 'Edit Customer';
+                    document.getElementById('cust-id').value = cust.id;
+                    document.getElementById('cust-display-id').value = cust.customerId || 'CUST-' + Date.now().toString().slice(-6);
+                    document.getElementById('cust-name').value = cust.name;
+                    document.getElementById('cust-phone').value = cust.phone;
+                    document.getElementById('cust-email').value = cust.email || '';
+                    document.getElementById('cust-address').value = cust.address;
+                }
+            },
+            saveCustomer: async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('cust-id').value;
+                const data = {
+                    customerId: document.getElementById('cust-display-id').value,
+                    name: document.getElementById('cust-name').value,
+                    phone: document.getElementById('cust-phone').value,
+                    email: document.getElementById('cust-email').value,
+                    address: document.getElementById('cust-address').value
+                };
+                if(id) await updateDoc(doc(db, 'customers', id), data);
+                else await addDoc(collection(db, 'customers'), {...data, createdAt: serverTimestamp()});
+                app.closeModal();
+            },
+            editCustomer: (id) => app.openCustomerModal(state.customers.find(c => c.id === id)),
+            fillCustomerInfo: (val) => {
+                const cust = state.customers.find(c => c.name === val || c.id === val);
+                const details = document.getElementById('client-details');
+                
+                if(cust) {
+                    // Fill inputs
+                    if(document.getElementById('client-name')) document.getElementById('client-name').value = cust.name;
+                    if(document.getElementById('client-id')) document.getElementById('client-id').value = cust.id;
+                    
+                    // Fill ID input if exists (in create form)
+                    if(document.getElementById('client-id-input')) document.getElementById('client-id-input').value = cust.customerId || '';
+                    if(document.getElementById('contract-client-id')) document.getElementById('contract-client-id').value = cust.customerId || '';
+
+                    // Display info
+                    if(document.getElementById('client-phone')) document.getElementById('client-phone').innerText = cust.phone || '';
+                    if(document.getElementById('client-address')) document.getElementById('client-address').innerText = cust.address || '';
+                    
+                    // Hidden fields for saving to doc
+                    if(document.getElementById('client-email-hidden')) document.getElementById('client-email-hidden').value = cust.email || '';
+                    if(document.getElementById('client-phone-hidden')) document.getElementById('client-phone-hidden').value = cust.phone || '';
+                    if(document.getElementById('client-address-hidden')) document.getElementById('client-address-hidden').value = cust.address || '';
+
+                    if(details) details.classList.remove('hidden');
+                } else {
+                    if(document.getElementById('client-id')) document.getElementById('client-id').value = '';
+                    if(details) details.classList.add('hidden');
+                }
+            },
+            
+            fillCustomerById: (idVal) => {
+                const cust = state.customers.find(c => c.customerId === idVal);
+                if (cust) {
+                    app.fillCustomerInfo(cust.name);
+                }
+            },
+
+            openExpenseModal: () => {
+                const modal = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-expense-form');
+                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                app.translatePage();
+                app.populatePaymentSelects(); // Populate methods
+                document.getElementById('exp-date').valueAsDate = new Date();
+            },
+            saveExpense: async (e) => {
+                e.preventDefault();
+                const data = {
+                    title: document.getElementById('exp-title').value,
+                    amount: Number(document.getElementById('exp-amount').value),
+                    method: document.getElementById('exp-method').value,
+                    date: document.getElementById('exp-date').value,
+                    createdAt: serverTimestamp()
+                };
+                await addDoc(collection(db, 'expenses'), data);
+                app.closeModal();
+            },
+
+            initCreateForm: () => {
+                const title = state.editingId ? `Edit ${state.mode}` : `New ${state.mode}`;
+                document.getElementById('form-title').innerText = title;
+                document.getElementById('form-mode-badge').innerText = state.mode;
+                
+                const dl = document.getElementById('customer-list');
+                const dlIds = document.getElementById('customer-ids');
+                dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+                dlIds.innerHTML = state.customers.map(c => `<option value="${c.customerId}">${c.name}</option>`).join('');
+
+                const paySection = document.getElementById('invoice-payment-section');
+                paySection.style.display = state.mode === 'quotation' ? 'none' : 'block';
+                
+                app.populatePaymentSelects(); // Populate methods
+                app.renderCreateItems();
+                
+                // Set default doc number
+                const docNumInput = document.getElementById('doc-number');
+                if(!state.editingId) {
+                    state.taxRate = state.settings.taxRate || 0;
+                    document.getElementById('tax-input').value = state.taxRate;
+                    docNumInput.value = (state.mode === 'invoice' ? 'INV-' : 'QTN-') + Date.now().toString().slice(-6);
+                    app.calcTotal();
+                }
+            },
+
+            handleSave: async (e) => {
+                e.preventDefault();
+                const clientName = document.getElementById('client-name').value;
+                const clientId = document.getElementById('client-id').value; 
+                const docNumber = document.getElementById('doc-number').value; // Get editable ID
+                const clientEmail = document.getElementById('client-email-hidden').value;
+                const clientPhone = document.getElementById('client-phone-hidden').value;
+                const clientAddress = document.getElementById('client-address-hidden').value;
+
+                const total = app.calcTotal();
+                const col = state.mode + 's'; 
+                try {
+                    const docData = {
+                        clientName, clientId, items: state.items, discount: state.discount, 
+                        taxRate: state.taxRate, totalAmount: total,
+                        clientEmail, clientPhone, clientAddress,
+                        securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
+                        createdBy: state.user.uid
+                    };
+                    
+                    // Assign editable number
+                    docData[state.mode === 'invoice' ? 'invoiceNumber' : 'quotationNumber'] = docNumber;
+
+                    if(docData.securityCode === undefined) delete docData.securityCode;
+
+                    if (state.mode === 'invoice') {
+                        if (!state.editingId && state.initPayment > 0) {
+                            const m = document.getElementById('init-payment-method').value;
+                            docData.payments = [{ amount: state.initPayment, method: m, date: new Date().toISOString() }];
+                            docData.status = state.initPayment >= total ? 'paid' : 'partial';
+                            if(docData.status === 'paid') docData.paidAt = serverTimestamp();
+                        } else if (!state.editingId) { docData.payments = []; docData.status = 'pending'; }
+                    }
+
+                    if (state.editingId) await updateDoc(doc(db, col, state.editingId), docData);
+                    else {
+                        docData.createdAt = serverTimestamp();
+                        await addDoc(collection(db, col), docData);
+                    }
+                    state.activeTab = state.mode; app.setView('dashboard');
+                } catch(e) { alert(e.message); }
+            },
+
+            createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.taxRate = state.settings.taxRate || 0; state.initPayment = 0; app.setView('create'); },
+            createManualInvoice: () => { app.closeModal(); app.createMode('invoice'); },
+            showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); app.translatePage(); lucide.createIcons(); },
+            closeModal: () => document.getElementById('modal-container').innerHTML = '',
+            
+            editDoc: (id, type) => {
+                state.mode = type; state.editingId = id;
+                const d = state[type + 's'].find(i => i.id === id);
+                if(type === 'invoice' && d.status === 'paid' && prompt("Locked. Pass:") !== state.unlockPassword) return;
+                state.items = JSON.parse(JSON.stringify(d.items)); state.discount = d.discount || 0; state.taxRate = d.taxRate || 0;
+                app.setView('create');
+                setTimeout(() => { 
+                    document.getElementById('client-name').value = d.clientName; 
+                    document.getElementById('discount-input').value = state.discount; 
+                    document.getElementById('tax-input').value = state.taxRate;
+                    document.getElementById('doc-number').value = d.invoiceNumber || d.quotationNumber;
+                    
+                    app.fillCustomerInfo(d.clientName); // Prefill hidden fields
+
+                    if(type==='invoice'){ document.getElementById('init-payment-input').disabled = true; }
+                    app.calcTotal();
+                }, 100);
+            },
+            editContract: (id) => { state.editingId = id; app.setView('contract-edit'); },
+            deleteDoc: async (id, coll) => {
+                 if(coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid' && prompt("Pass:") !== state.unlockPassword) return;
+                 if(confirm("Delete?")) await deleteDoc(doc(db, coll, id));
+            },
+            
+            convertQuotation: (id) => {
+                const q = state.quotations.find(i => i.id === id);
+                if(!q || !confirm("Convert to Invoice?")) return;
+                state.mode = 'invoice'; state.editingId = null; state.items = JSON.parse(JSON.stringify(q.items)); state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
+                app.setView('create');
+                setTimeout(() => { 
+                    document.getElementById('client-name').value = q.clientName; 
+                    document.getElementById('discount-input').value = state.discount; 
+                    document.getElementById('tax-input').value = state.taxRate;
+                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6); // New Inv ID
+                    app.fillCustomerInfo(q.clientName);
+                    app.calcTotal();
+                }, 100);
+            },
+            importQuotation: async () => {
+                const val = document.getElementById('qtn-import-input').value.trim().toUpperCase();
+                const snap = await getDocs(query(collection(db, 'quotations'), where("quotationNumber", "==", val)));
+                if(snap.empty) return alert("Not Found");
+                const q = snap.docs[0].data();
+                app.closeModal(); state.mode = 'invoice'; state.editingId = null; state.items = q.items; state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
+                app.setView('create'); 
+                setTimeout(() => { 
+                    document.getElementById('client-name').value = q.clientName; 
+                    document.getElementById('discount-input').value = state.discount; 
+                    document.getElementById('tax-input').value = state.taxRate;
+                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6);
+                    app.fillCustomerInfo(q.clientName);
+                    app.calcTotal();
+                }, 100);
+            },
+
+            // Items Logic
+            renderCreateItems: () => {
+                const c = document.getElementById('items-container'); c.innerHTML = `<label class="block text-sm font-medium mb-2">${app.t('items')}</label>`;
+                state.items.forEach((item, i) => {
+                    const div = document.createElement('div'); div.className = "flex gap-2 mb-2 items-start";
+                    div.innerHTML = `<span class="pt-2 text-sm font-bold text-gray-500 w-6">${i+1}.</span><input placeholder="${app.t('desc')}" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="${app.t('qty')}" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="${app.t('price')}" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
+                    c.appendChild(div);
+                });
+                lucide.createIcons(); app.calcTotal();
+            },
+            updateItem: (i, f, v) => { state.items[i][f] = f==='desc'?v:Number(v); app.calcTotal(); },
+            addItem: () => { state.items.push({desc:'',price:0,qty:1}); app.renderCreateItems(); },
+            removeItem: (i) => { state.items.splice(i,1); app.renderCreateItems(); },
+            updateCalc: (v, t) => { 
+                if(t==='discount') state.discount=Number(v); 
+                if(t==='tax') state.taxRate=Number(v);
+                if(t==='payment') state.initPayment=Number(v); 
+                app.calcTotal(); 
+            },
+            calcTotal: () => {
+                const sub = state.items.reduce((s,i)=>s+(i.price*i.qty),0); 
+                const taxAmt = sub * (state.taxRate / 100);
+                const tot = sub - state.discount + taxAmt;
+                
+                document.getElementById('subtotal-display').innerText = sub.toLocaleString();
+                document.getElementById('create-total').innerText = tot.toLocaleString();
+                if(document.getElementById('create-balance')) document.getElementById('create-balance').innerText = (tot - state.initPayment).toLocaleString();
+                return tot;
+            },
+            triggerImageUpload: (i) => { state.uploadingRowIndex = i; document.getElementById('item-image-input').click(); },
+            processItemImage: (input) => { app.processImageBase(input, (url) => { state.items[state.uploadingRowIndex].image = url; alert("Image Added"); }); },
+
+            // Auth & Settings
+            handleAuthClick: () => state.isAdmin ? app.setView('dashboard') : app.setView('login'),
+            handleEmailAuth: async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); app.setView('dashboard'); } catch(e){ document.getElementById('auth-error').innerText=e.message; document.getElementById('auth-error').classList.remove('hidden'); } },
+            googleLogin: async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); app.setView('dashboard'); } catch(e){alert(e.message);} },
+            logout: async () => { await signOut(auth); state.isAdmin = false; app.setView('home'); try{await signInAnonymously(auth);}catch(e){} },
+            
+            fillSettingsForm: () => {
+                if(state.settings.logo) document.getElementById('logo-preview').innerHTML = `<img src="${state.settings.logo}" class="h-full object-contain">`;
+                if(state.settings.authSign) document.getElementById('sign-preview').innerHTML = `<img src="${state.settings.authSign}" class="h-full object-contain">`;
+                document.getElementById('setting-accounts').value = state.settings.accounts || '';
+                document.getElementById('setting-terms').value = state.settings.terms || '';
+                document.getElementById('setting-auth-name').value = state.settings.authName || '';
+                
+                // New Fields
+                document.getElementById('setting-biz-address').value = state.settings.bizAddress || '';
+                document.getElementById('setting-biz-phone').value = state.settings.bizPhone || '';
+                document.getElementById('setting-biz-web').value = state.settings.bizWeb || '';
+                document.getElementById('setting-biz-email').value = state.settings.bizEmail || '';
+                document.getElementById('setting-tax').value = state.settings.taxRate || 0;
+            },
+            handleSaveSettings: async (e) => {
+                e.preventDefault();
+                state.settings.accounts = document.getElementById('setting-accounts').value;
+                state.settings.terms = document.getElementById('setting-terms').value;
+                state.settings.authName = document.getElementById('setting-auth-name').value;
+                
+                // Save New Fields
+                state.settings.bizAddress = document.getElementById('setting-biz-address').value;
+                state.settings.bizPhone = document.getElementById('setting-biz-phone').value;
+                state.settings.bizWeb = document.getElementById('setting-biz-web').value;
+                state.settings.bizEmail = document.getElementById('setting-biz-email').value;
+                state.settings.taxRate = Number(document.getElementById('setting-tax').value);
+
+                await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
+                alert("Saved"); app.setView('dashboard');
+            },
+            processImageBase: (input, cb) => {
+                if(!input.files[0]) return;
+                const r = new FileReader(); r.onload = (e) => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'); const s = 300/i.width; c.width=300; c.height=i.height*s; c.getContext('2d').drawImage(i,0,0,c.width,c.height); cb(c.toDataURL('image/png')); input.value=''; }; i.src=e.target.result; }; r.readAsDataURL(input.files[0]);
+            },
+            processLogo: (i) => app.processImageBase(i, (u) => { state.settings.logo = u; document.getElementById('logo-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
+            processSign: (i) => app.processImageBase(i, (u) => { state.settings.authSign = u; document.getElementById('sign-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
+
+            // Search/Print/Verify
+            handleSearch: async (v) => {
+                const q = (v || document.getElementById('search-input').value).trim();
+                if(!q) return;
+                app.setView('verify');
+                const search = async (c, f) => { const s = await getDocs(query(collection(db,c), where(f,"==",q))); return !s.empty ? {id:s.docs[0].id, ...s.docs[0].data(), type:c.slice(0,-1)} : null; };
+                let f = await search('invoices','invoiceNumber') || await search('quotations','quotationNumber') || await search('contracts','quotationNumber') || await search('invoices','securityCode') || await search('quotations','securityCode') || await search('contracts','securityCode');
+                if(f) app.renderPaper(f, f.type);
+                else document.getElementById('verify-content').innerHTML = '<div class="p-10 text-center text-red-500 font-bold">Not Found</div>';
+            },
+            renderPaper: (d, t) => {
+                state.currentDoc = d;
+                // QR Logic Update: Full URL
+                const codeToEncode = d.securityCode || d.invoiceNumber || d.quotationNumber || 'N/A';
+                const fullUrl = window.location.origin + window.location.pathname + '?code=' + codeToEncode;
+                const qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`;
+                
+                const logo = state.settings.logo ? `<img src="${state.settings.logo}" class="h-20">` : '';
+                const sign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 mx-auto">` : '';
+                
+                // Business Info Block
+                const bizInfo = `
+                    <div class="text-xs text-gray-500 mt-2">
+                        ${state.settings.bizAddress ? `<div>${state.settings.bizAddress}</div>` : ''}
+                        ${state.settings.bizPhone ? `<div>${state.settings.bizPhone}</div>` : ''}
+                        ${state.settings.bizEmail ? `<div>${state.settings.bizEmail}</div>` : ''}
+                        ${state.settings.bizWeb ? `<div>${state.settings.bizWeb}</div>` : ''}
+                    </div>
+                `;
+
+                if (t === 'contract') {
+                    document.getElementById('verify-content').innerHTML = `
+                    <div id="contract-paper" class="a4-paper">
+                         <div class="flex justify-between items-start mb-8 border-b pb-4">
+                            <div>${logo}${bizInfo}</div>
+                            <div class="text-right">
+                                <h1 class="text-2xl font-bold uppercase text-gray-800">${d.title}</h1>
+                                <p class="text-sm text-gray-500">Date: ${new Date(d.createdAt?.seconds*1000).toLocaleDateString()}</p>
+                                <div class="mt-2 text-sm">
+                                    <p class="font-bold">Contract With:</p>
+                                    <p>${d.clientName}</p>
+                                    ${d.clientPhone ? `<p>${d.clientPhone}</p>`:''}
+                                    ${d.clientEmail ? `<p>${d.clientEmail}</p>`:''}
+                                </div>
+                            </div>
+                         </div>
+                         <div class="prose max-w-none mb-12">
+                             ${d.content}
+                         </div>
+                         <div class="absolute bottom-12 left-12 right-12 flex justify-between items-end">
+                             <div>
+                                <p class="font-bold border-t pt-2 w-48">Client Signature</p>
+                             </div>
+                             <div class="text-center">
+                                ${sign}
+                                <p class="font-bold border-t pt-2 w-48 mx-auto">${state.settings.authName || 'Authorized Signature'}</p>
+                             </div>
+                             <div>
+                                <img src="${qr}" class="w-16">
+                             </div>
+                         </div>
+                    </div>`;
+                    lucide.createIcons();
+                    app.scalePaper(); // Trigger scale
+                    return;
+                }
+
+                // Invoice/Quotation Render
+                document.getElementById('verify-content').innerHTML = `
+                <div id="invoice-paper" class="a4-paper flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between border-b pb-6 mb-6">
+                            <div>
+                                <h1 class="text-3xl font-bold text-blue-900 uppercase">${t}</h1>
+                                <p class="font-bold text-lg">#${d.invoiceNumber||d.quotationNumber}</p>
+                                ${bizInfo}
+                            </div>
+                            <div class="text-right">${logo}</div>
+                        </div>
+                        <div class="flex justify-between mb-8">
+                            <div>
+                                <h3 class="font-bold text-gray-600 uppercase text-xs mb-1">${app.t('bill_to')}</h3>
+                                <p class="font-bold text-lg">${d.clientName}</p>
+                                <div class="text-sm text-gray-500">
+                                    ${d.clientAddress ? `<div>${d.clientAddress}</div>` : ''}
+                                    ${d.clientPhone ? `<div>${d.clientPhone}</div>` : ''}
+                                    ${d.clientEmail ? `<div>${d.clientEmail}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}
+                                ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">${app.t('payment_history')}</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
+                            </div>
+                        </div>
+                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">${app.t('no')}</th><th class="p-2 text-left">${app.t('desc')}</th><th class="p-2 text-right">${app.t('qty')}</th><th class="p-2 text-right">${app.t('price')}</th><th class="p-2 text-right">${app.t('total')}</th></tr></thead><tbody>${d.items.map((i, index)=>`<tr><td class="p-2 border-b text-gray-500">${index + 1}</td><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-start border-t pt-4">
+                            <div class="w-1/2 text-sm">
+                                <p class="font-bold">${app.t('payment_info')}</p><pre class="font-sans text-xs whitespace-pre-line">${state.settings.accounts||''}</pre>
+                                <div class="mt-4"><p class="font-bold">${app.t('terms_conditions')}</p><p class="whitespace-pre-line text-xs text-gray-600">${state.settings.terms||'-'}</p></div>
+                                <div class="mt-4"><img src="${qr}" class="w-20 border p-1"></div>
+                            </div>
+                            <div class="w-1/3 text-right">
+                                <div class="flex justify-between"><span>${app.t('subtotal')}</span><span>${d.items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</span></div>
+                                ${d.discount?`<div class="flex justify-between text-red-500"><span>${app.t('discount')}</span><span>-${d.discount.toLocaleString()}</span></div>`:''}
+                                ${d.taxRate?`<div class="flex justify-between text-gray-600"><span>Tax (${d.taxRate}%)</span><span>+${(d.items.reduce((s,i)=>s+i.price*i.qty,0) * (d.taxRate/100)).toLocaleString()}</span></div>`:''}
+                                <div class="flex justify-between font-bold text-lg mt-2 border-t pt-2"><span>${app.t('total')}</span><span>${d.totalAmount.toLocaleString()}</span></div>
+                                
+                                <div class="mt-10 text-center w-48 ml-auto">
+                                    ${sign}
+                                    <p class="text-xs font-bold uppercase mt-1">${state.settings.authName||''}</p>
+                                    <div class="border-b border-gray-800 mt-1 mb-1"></div>
+                                    <p class="text-[10px] text-gray-500">${app.t('authorized_signature')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 text-center text-[10px] text-gray-400 border-t pt-2">
+                            ${app.t('system_generated')}
+                        </div>
+                    </div>
+                </div>`;
+                lucide.createIcons();
+                app.scalePaper(); // Trigger scale
+            },
+            
+            // --- UPDATED DOWNLOAD FUNCTION ---
+            downloadPDF: async () => {
+                const element = document.getElementById('invoice-paper') || document.getElementById('contract-paper');
+                // Temporarily remove scale for clear PDF generation
+                const oldTransform = element.style.transform;
+                element.style.transform = 'none';
+                
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+                
+                // Restore scale
+                element.style.transform = oldTransform;
+
+                const imgData = canvas.toDataURL('image/png');
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const margin = 0; // A4 div has padding already
+                const pdfWidth = 210;
+                const contentWidth = pdfWidth; 
+                const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 0, contentWidth, contentHeight);
+                const name = state.currentDoc ? (state.currentDoc.invoiceNumber || state.currentDoc.quotationNumber || 'Document') : 'Document';
+                pdf.save(`${name}.pdf`);
+            },
+            backHome: () => app.setView(state.isAdmin ? 'dashboard' : 'home'),
+            
+            // Scanner / Payment Status
+            startScanner: () => {
+                document.getElementById('scanner-modal').classList.remove('hidden');
+                state.html5QrCode = new Html5Qrcode("reader");
+                state.html5QrCode.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>{ app.stopScanner(); if(t.includes('code=')) app.handleSearch(new URL(t).searchParams.get('code')); else app.handleSearch(t); }).catch(()=>{});
+            },
+            stopScanner: () => { if(state.html5QrCode) state.html5QrCode.stop().then(()=>document.getElementById('scanner-modal').classList.add('hidden')); else document.getElementById('scanner-modal').classList.add('hidden'); },
+            handleStatusClick: (id) => {
+                const i = state.invoices.find(x=>x.id===id);
+                if(i.status==='paid'){ if(prompt("Pass:")!==state.unlockPassword) return; return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); }
+                const paid = i.payments?i.payments.reduce((s,p)=>s+p.amount,0):0;
+                state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
+                const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
+                document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
+                app.translatePage(); // Translate modal
+                app.populatePaymentSelects(); // Populate methods
+                document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
+                document.getElementById('modal-paid').innerText = paid.toLocaleString();
+                document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
+                document.getElementById('payment-amount').value = state.tempInvoice.balance;
+            },
+            confirmPayment: async () => {
+                const amt = Number(document.getElementById('payment-amount').value);
+                const met = document.getElementById('payment-method-select').value;
+                const inv = state.tempInvoice;
+                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:new Date().toISOString()}];
+                const stat = pays.reduce((s,p)=>s+p.amount,0) >= inv.totalAmount ? 'paid' : 'partial';
+                await updateDoc(doc(db,'invoices',inv.id), {status:stat, payments:pays, paidAt: stat==='paid'?serverTimestamp():null});
+                app.closeModal();
+            },
+
+            // --- Reports Logic ---
             initReportFilters: () => {
                 const yearSelect = document.getElementById('report-year');
                 const custSelect = document.getElementById('report-customer');
                 if(yearSelect.options.length > 0) return; // already init
-
-                // Populate Years (Current +/- 2)
                 const currentYear = new Date().getFullYear();
                 yearSelect.innerHTML = `<option value="all">All Years</option>`;
                 for(let i=currentYear-2; i<=currentYear+1; i++) {
                     yearSelect.innerHTML += `<option value="${i}" ${i===currentYear?'selected':''}>${i}</option>`;
                 }
-
-                // Populate Customers
                 custSelect.innerHTML = `<option value="all">All Customers</option>` + state.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             },
-
             renderReports: () => {
                 const container = document.getElementById('dashboard-content');
-                
-                // Get Filters
                 const fYear = document.getElementById('report-year')?.value || 'all';
                 const fMonth = document.getElementById('report-month')?.value || 'all';
                 const fCust = document.getElementById('report-customer')?.value || 'all';
 
-                // Helpers for filtering
                 const checkDate = (timestamp) => {
                     const d = timestamp?.seconds ? new Date(timestamp.seconds*1000) : new Date(timestamp);
                     if(fYear !== 'all' && d.getFullYear() != fYear) return false;
@@ -758,17 +1569,15 @@
                     return true;
                 };
 
-                // Filter Data
                 const filteredInvoices = state.invoices.filter(i => checkDate(i.createdAt) && (fCust === 'all' || i.clientName === fCust));
-                const filteredExpenses = state.expenses.filter(e => checkDate(e.date)); // Expenses usually don't have customer
+                const filteredExpenses = state.expenses.filter(e => checkDate(e.date)); 
                 const filteredQuotations = state.quotations.filter(q => checkDate(q.createdAt) && (fCust === 'all' || q.clientName === fCust));
 
-                // Calculations
                 let totalIncome = 0;
                 let totalReceivable = 0;
                 let totalExpense = 0;
-                const methods = { 'Cash': 0, 'KPay': 0, 'Wave': 0, 'Bank': 0 };
-                const expMethods = { 'Cash': 0, 'KPay': 0, 'Wave': 0, 'Bank': 0 };
+                const methods = {};
+                const expMethods = {};
 
                 filteredInvoices.forEach(inv => {
                     let paid = 0;
@@ -776,10 +1585,9 @@
                         inv.payments.forEach(p => {
                             paid += p.amount;
                             totalIncome += p.amount; 
-                            
                             let m = p.method;
-                            if(m.includes('Wave')) m = 'Wave';
-                            if(methods[m] !== undefined) methods[m] += p.amount;
+                            if(!methods[m]) methods[m] = 0;
+                            methods[m] += p.amount;
                         });
                     }
                     if(paid < inv.totalAmount) totalReceivable += (inv.totalAmount - paid);
@@ -788,8 +1596,8 @@
                 filteredExpenses.forEach(e => {
                     totalExpense += Number(e.amount);
                     let m = e.method;
-                    if(m.includes('Wave')) m = 'Wave';
-                    if(expMethods[m] !== undefined) expMethods[m] += Number(e.amount);
+                    if(!expMethods[m]) expMethods[m] = 0;
+                    expMethods[m] += Number(e.amount);
                 });
 
                 const netProfit = totalIncome - totalExpense;
@@ -820,14 +1628,16 @@
                         <div>
                             <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('method_breakdown')} (In - Out)</h3>
                             <div class="space-y-2">
-                                ${Object.keys(methods).map(m => {
-                                    const bal = methods[m] - expMethods[m];
+                                ${Object.keys({...methods, ...expMethods}).map(m => {
+                                    const inc = methods[m] || 0;
+                                    const out = expMethods[m] || 0;
+                                    const bal = inc - out;
                                     return `
                                     <div class="bg-white p-3 rounded shadow-sm border flex justify-between items-center">
                                         <div class="font-medium text-gray-700">${m}</div>
                                         <div class="text-right">
                                             <div class="font-bold ${bal>=0?'text-green-600':'text-red-600'}">${bal.toLocaleString()}</div>
-                                            <div class="text-[10px] text-gray-400">In: ${methods[m].toLocaleString()} | Out: ${expMethods[m].toLocaleString()}</div>
+                                            <div class="text-[10px] text-gray-400">In: ${inc.toLocaleString()} | Out: ${out.toLocaleString()}</div>
                                         </div>
                                     </div>`;
                                 }).join('')}
@@ -841,325 +1651,13 @@
                                     <span class="font-bold">${filteredQuotations.length}</span>
                                 </div>
                                 <div class="flex justify-between border-b pb-2 mb-2">
-                                    <span>${app.t('converted')}</span>
-                                    <span class="font-bold text-purple-600">-</span> 
+                                    <span>Contracts Created</span>
+                                    <span class="font-bold text-blue-600">${state.contracts.length}</span> 
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>`;
-            },
-
-            // --- Action Handlers ---
-            handleCreateButtonClick: () => {
-                const tab = state.activeTab;
-                if(tab === 'invoice') app.showInvoiceOptionModal();
-                else if(tab === 'quotation') app.createMode('quotation');
-                else if(tab === 'customer') app.openCustomerModal();
-                else if(tab === 'expense') app.openExpenseModal();
-            },
-
-            // --- Customer Handlers ---
-            openCustomerModal: (cust = null) => {
-                const modal = document.getElementById('modal-container');
-                const tpl = document.getElementById('tpl-customer-form');
-                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
-                app.translatePage(); // Translate modal
-                if(cust) {
-                    document.getElementById('cust-form-title').innerText = 'Edit Customer';
-                    document.getElementById('cust-id').value = cust.id;
-                    document.getElementById('cust-name').value = cust.name;
-                    document.getElementById('cust-phone').value = cust.phone;
-                    document.getElementById('cust-address').value = cust.address;
-                }
-            },
-            saveCustomer: async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('cust-id').value;
-                const data = {
-                    name: document.getElementById('cust-name').value,
-                    phone: document.getElementById('cust-phone').value,
-                    address: document.getElementById('cust-address').value
-                };
-                if(id) await updateDoc(doc(db, 'customers', id), data);
-                else await addDoc(collection(db, 'customers'), {...data, createdAt: serverTimestamp()});
-                app.closeModal();
-            },
-            editCustomer: (id) => app.openCustomerModal(state.customers.find(c => c.id === id)),
-            fillCustomerInfo: (val) => {
-                const cust = state.customers.find(c => c.name === val || c.id === val);
-                const details = document.getElementById('client-details');
-                if(cust) {
-                    document.getElementById('client-name').value = cust.name;
-                    document.getElementById('client-id').value = cust.id;
-                    document.getElementById('client-phone').innerText = cust.phone;
-                    document.getElementById('client-address').innerText = cust.address;
-                    details.classList.remove('hidden');
-                } else {
-                    document.getElementById('client-id').value = '';
-                    details.classList.add('hidden');
-                }
-            },
-
-            // --- Expense Handlers ---
-            openExpenseModal: () => {
-                const modal = document.getElementById('modal-container');
-                const tpl = document.getElementById('tpl-expense-form');
-                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
-                app.translatePage();
-                document.getElementById('exp-date').valueAsDate = new Date();
-            },
-            saveExpense: async (e) => {
-                e.preventDefault();
-                const data = {
-                    title: document.getElementById('exp-title').value,
-                    amount: Number(document.getElementById('exp-amount').value),
-                    method: document.getElementById('exp-method').value,
-                    date: document.getElementById('exp-date').value,
-                    createdAt: serverTimestamp()
-                };
-                await addDoc(collection(db, 'expenses'), data);
-                app.closeModal();
-            },
-
-            // --- Common Create/Edit Logic (Invoice/Quot) ---
-            initCreateForm: () => {
-                const title = state.editingId ? `Edit ${state.mode}` : `New ${state.mode}`;
-                document.getElementById('form-title').innerText = title;
-                document.getElementById('form-mode-badge').innerText = state.mode;
-                
-                const dl = document.getElementById('customer-list');
-                dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
-
-                const paySection = document.getElementById('invoice-payment-section');
-                paySection.style.display = state.mode === 'quotation' ? 'none' : 'block';
-                app.renderCreateItems();
-            },
-
-            handleSave: async (e) => {
-                e.preventDefault();
-                const clientName = document.getElementById('client-name').value;
-                const clientId = document.getElementById('client-id').value; 
-                const total = app.calcTotal();
-                const col = state.mode + 's'; 
-                try {
-                    const docData = {
-                        clientName, clientId, items: state.items, discount: state.discount, totalAmount: total,
-                        securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
-                        createdBy: state.user.uid
-                    };
-                    if(docData.securityCode === undefined) delete docData.securityCode;
-
-                    if (state.mode === 'invoice') {
-                        if (!state.editingId && state.initPayment > 0) {
-                            const m = document.getElementById('init-payment-method').value;
-                            docData.payments = [{ amount: state.initPayment, method: m, date: new Date().toISOString() }];
-                            docData.status = state.initPayment >= total ? 'paid' : 'partial';
-                            if(docData.status === 'paid') docData.paidAt = serverTimestamp();
-                        } else if (!state.editingId) { docData.payments = []; docData.status = 'pending'; }
-                    }
-
-                    if (state.editingId) await updateDoc(doc(db, col, state.editingId), docData);
-                    else {
-                        docData[state.mode === 'invoice' ? 'invoiceNumber' : 'quotationNumber'] = (state.mode === 'invoice' ? 'INV-' : 'QTN-') + Date.now().toString().slice(-6);
-                        docData.createdAt = serverTimestamp();
-                        await addDoc(collection(db, col), docData);
-                    }
-                    state.activeTab = state.mode; app.setView('dashboard');
-                } catch(e) { alert(e.message); }
-            },
-
-            // --- Standard Helper Functions ---
-            createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.initPayment = 0; app.setView('create'); },
-            createManualInvoice: () => { app.closeModal(); app.createMode('invoice'); },
-            showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); app.translatePage(); lucide.createIcons(); },
-            closeModal: () => document.getElementById('modal-container').innerHTML = '',
-            
-            // Edit/Delete
-            editDoc: (id, type) => {
-                state.mode = type; state.editingId = id;
-                const d = state[type + 's'].find(i => i.id === id);
-                if(type === 'invoice' && d.status === 'paid' && prompt("Locked. Pass:") !== state.unlockPassword) return;
-                state.items = JSON.parse(JSON.stringify(d.items)); state.discount = d.discount || 0;
-                app.setView('create');
-                setTimeout(() => { document.getElementById('client-name').value = d.clientName; document.getElementById('discount-input').value = state.discount; if(type==='invoice'){ document.getElementById('init-payment-input').disabled = true; } }, 100);
-            },
-            deleteDoc: async (id, coll) => {
-                 if(coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid' && prompt("Pass:") !== state.unlockPassword) return;
-                 if(confirm("Delete?")) await deleteDoc(doc(db, coll, id));
-            },
-            
-            convertQuotation: (id) => {
-                const q = state.quotations.find(i => i.id === id);
-                if(!q || !confirm("Convert to Invoice?")) return;
-                state.mode = 'invoice'; state.editingId = null; state.items = JSON.parse(JSON.stringify(q.items)); state.discount = q.discount || 0; state.initPayment = 0;
-                app.setView('create');
-                setTimeout(() => { document.getElementById('client-name').value = q.clientName; document.getElementById('discount-input').value = state.discount; }, 100);
-            },
-            importQuotation: async () => {
-                const val = document.getElementById('qtn-import-input').value.trim().toUpperCase();
-                const snap = await getDocs(query(collection(db, 'quotations'), where("quotationNumber", "==", val)));
-                if(snap.empty) return alert("Not Found");
-                const q = snap.docs[0].data();
-                app.closeModal(); state.mode = 'invoice'; state.editingId = null; state.items = q.items; state.discount = q.discount || 0; state.initPayment = 0;
-                app.setView('create'); setTimeout(() => { document.getElementById('client-name').value = q.clientName; document.getElementById('discount-input').value = state.discount; }, 100);
-            },
-
-            // Items Logic
-            renderCreateItems: () => {
-                const c = document.getElementById('items-container'); c.innerHTML = `<label class="block text-sm font-medium mb-2">${app.t('items')}</label>`;
-                state.items.forEach((item, i) => {
-                    const div = document.createElement('div'); div.className = "flex gap-2 mb-2 items-start";
-                    div.innerHTML = `<span class="pt-2 text-sm font-bold text-gray-500 w-6">${i+1}.</span><input placeholder="${app.t('desc')}" class="flex-grow border p-2 rounded w-1/3" onchange="app.updateItem(${i}, 'desc', this.value)" value="${item.desc}"><input type="number" placeholder="${app.t('qty')}" class="w-16 border p-2 rounded" onchange="app.updateItem(${i}, 'qty', this.value)" value="${item.qty}"><input type="number" placeholder="${app.t('price')}" class="w-24 border p-2 rounded" onchange="app.updateItem(${i}, 'price', this.value)" value="${item.price}"><button type="button" onclick="app.triggerImageUpload(${i})" class="p-2 border rounded"><i data-lucide="camera" width="16"></i></button><button type="button" onclick="app.removeItem(${i})" class="text-red-500 p-2"><i data-lucide="x-circle" width="16"></i></button>`;
-                    c.appendChild(div);
-                });
-                lucide.createIcons(); app.calcTotal();
-            },
-            updateItem: (i, f, v) => { state.items[i][f] = f==='desc'?v:Number(v); app.calcTotal(); },
-            addItem: () => { state.items.push({desc:'',price:0,qty:1}); app.renderCreateItems(); },
-            removeItem: (i) => { state.items.splice(i,1); app.renderCreateItems(); },
-            updateCalc: (v, t) => { if(t==='discount') state.discount=Number(v); if(t==='payment') state.initPayment=Number(v); app.calcTotal(); },
-            calcTotal: () => {
-                const sub = state.items.reduce((s,i)=>s+(i.price*i.qty),0); const tot = sub - state.discount;
-                document.getElementById('subtotal-display').innerText = sub.toLocaleString();
-                document.getElementById('create-total').innerText = tot.toLocaleString();
-                if(document.getElementById('create-balance')) document.getElementById('create-balance').innerText = (tot - state.initPayment).toLocaleString();
-                return tot;
-            },
-            triggerImageUpload: (i) => { state.uploadingRowIndex = i; document.getElementById('item-image-input').click(); },
-            processItemImage: (input) => { app.processImageBase(input, (url) => { state.items[state.uploadingRowIndex].image = url; alert("Image Added"); }); },
-
-            // Auth & Settings
-            handleAuthClick: () => state.isAdmin ? app.setView('dashboard') : app.setView('login'),
-            handleEmailAuth: async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); app.setView('dashboard'); } catch(e){ document.getElementById('auth-error').innerText=e.message; document.getElementById('auth-error').classList.remove('hidden'); } },
-            googleLogin: async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); app.setView('dashboard'); } catch(e){alert(e.message);} },
-            logout: async () => { await signOut(auth); state.isAdmin = false; app.setView('home'); try{await signInAnonymously(auth);}catch(e){} },
-            
-            fillSettingsForm: () => {
-                if(state.settings.logo) document.getElementById('logo-preview').innerHTML = `<img src="${state.settings.logo}" class="h-full object-contain">`;
-                if(state.settings.authSign) document.getElementById('sign-preview').innerHTML = `<img src="${state.settings.authSign}" class="h-full object-contain">`;
-                document.getElementById('setting-accounts').value = state.settings.accounts || '';
-                document.getElementById('setting-terms').value = state.settings.terms || '';
-                document.getElementById('setting-auth-name').value = state.settings.authName || '';
-            },
-            handleSaveSettings: async (e) => {
-                e.preventDefault();
-                state.settings.accounts = document.getElementById('setting-accounts').value;
-                state.settings.terms = document.getElementById('setting-terms').value;
-                state.settings.authName = document.getElementById('setting-auth-name').value;
-                await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
-                alert("Saved"); app.setView('dashboard');
-            },
-            processImageBase: (input, cb) => {
-                if(!input.files[0]) return;
-                const r = new FileReader(); r.onload = (e) => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'); const s = 300/i.width; c.width=300; c.height=i.height*s; c.getContext('2d').drawImage(i,0,0,c.width,c.height); cb(c.toDataURL('image/png')); input.value=''; }; i.src=e.target.result; }; r.readAsDataURL(input.files[0]);
-            },
-            processLogo: (i) => app.processImageBase(i, (u) => { state.settings.logo = u; document.getElementById('logo-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
-            processSign: (i) => app.processImageBase(i, (u) => { state.settings.authSign = u; document.getElementById('sign-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
-
-            // Search/Print/Verify
-            handleSearch: async (v) => {
-                const q = (v || document.getElementById('search-input').value).trim();
-                if(!q) return;
-                app.setView('verify');
-                const search = async (c, f) => { const s = await getDocs(query(collection(db,c), where(f,"==",q))); return !s.empty ? {id:s.docs[0].id, ...s.docs[0].data(), type:c.slice(0,-1)} : null; };
-                let f = await search('invoices','invoiceNumber') || await search('quotations','quotationNumber') || await search('invoices','securityCode') || await search('quotations','securityCode');
-                if(f) app.renderPaper(f, f.type);
-                else document.getElementById('verify-content').innerHTML = '<div class="p-10 text-center text-red-500 font-bold">Not Found</div>';
-            },
-            renderPaper: (d, t) => {
-                state.currentDoc = d;
-                const qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href.split('?')[0] + '?code=' + d.securityCode)}`;
-                const logo = state.settings.logo ? `<img src="${state.settings.logo}" class="h-20">` : '';
-                const sign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 mx-auto">` : '';
-                let payRows = (d.payments||[]).map(p => `<tr><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.method}</td><td class="text-right">${p.amount.toLocaleString()}</td></tr>`).join('');
-                
-                document.getElementById('verify-content').innerHTML = `
-                <div id="invoice-paper" class="bg-white p-10 shadow-lg w-full max-w-4xl min-h-[900px] text-gray-800 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between border-b pb-6 mb-6"><div><h1 class="text-3xl font-bold text-blue-900 uppercase">${t}</h1><p>#${d.invoiceNumber||d.quotationNumber}</p></div><div class="text-right">${logo}</div></div>
-                        <div class="flex justify-between mb-8"><div><h3 class="font-bold">${app.t('bill_to')}</h3><p>${d.clientName}</p></div>
-                        <div class="text-right">
-                            <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}
-                            ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">${app.t('payment_history')}</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
-                        </div></div>
-                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">${app.t('no')}</th><th class="p-2 text-left">${app.t('desc')}</th><th class="p-2 text-right">${app.t('qty')}</th><th class="p-2 text-right">${app.t('price')}</th><th class="p-2 text-right">${app.t('total')}</th></tr></thead><tbody>${d.items.map((i, index)=>`<tr><td class="p-2 border-b text-gray-500">${index + 1}</td><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-start border-t pt-4">
-                            <div class="w-1/2 text-sm">
-                                <p class="font-bold">${app.t('payment_info')}</p><pre class="font-sans text-xs">${state.settings.accounts||''}</pre>
-                                <div class="mt-4"><p class="font-bold">${app.t('terms_conditions')}</p><p class="whitespace-pre-line text-xs text-gray-600">${state.settings.terms||'-'}</p></div>
-                                <div class="mt-4"><img src="${qr}" class="w-20 border p-1"></div>
-                            </div>
-                            <div class="w-1/3 text-right">
-                                <div class="flex justify-between"><span>${app.t('subtotal')}</span><span>${d.items.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</span></div>
-                                ${d.discount?`<div class="flex justify-between text-red-500"><span>${app.t('discount')}</span><span>-${d.discount.toLocaleString()}</span></div>`:''}
-                                <div class="flex justify-between font-bold text-lg mt-2 border-t pt-2"><span>${app.t('total')}</span><span>${d.totalAmount.toLocaleString()}</span></div>
-                                
-                                <div class="mt-10 text-center w-48 ml-auto">
-                                    ${sign}
-                                    <p class="text-xs font-bold uppercase mt-1">${state.settings.authName||''}</p>
-                                    <div class="border-b border-gray-800 mt-1 mb-1"></div>
-                                    <p class="text-[10px] text-gray-500">${app.t('authorized_signature')}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-8 text-center text-[10px] text-gray-400 border-t pt-2">
-                            ${app.t('system_generated')}
-                        </div>
-                    </div>
-                </div>`;
-            },
-            printInvoice: () => window.print(),
-            
-            // --- UPDATED DOWNLOAD FUNCTION ---
-            downloadPDF: async () => {
-                const element = document.getElementById('invoice-paper');
-                const canvas = await html2canvas(element, { scale: 3, useCORS: true });
-                const imgData = canvas.toDataURL('image/png');
-
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const margin = 12.7;
-                const pdfWidth = 210;
-                const contentWidth = pdfWidth - (margin * 2); 
-                const contentHeight = (canvas.height * contentWidth) / canvas.width;
-
-                pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, contentHeight);
-                const name = state.currentDoc ? (state.currentDoc.invoiceNumber || state.currentDoc.quotationNumber) : 'Document';
-                pdf.save(`${name}.pdf`);
-            },
-            backHome: () => app.setView(state.isAdmin ? 'dashboard' : 'home'),
-            
-            // Scanner / Payment Status
-            startScanner: () => {
-                document.getElementById('scanner-modal').classList.remove('hidden');
-                state.html5QrCode = new Html5Qrcode("reader");
-                state.html5QrCode.start({facingMode:"environment"}, {fps:10, qrbox:250}, (t)=>{ app.stopScanner(); if(t.includes('code=')) app.handleSearch(new URL(t).searchParams.get('code')); else app.handleSearch(t); }).catch(()=>{});
-            },
-            stopScanner: () => { if(state.html5QrCode) state.html5QrCode.stop().then(()=>document.getElementById('scanner-modal').classList.add('hidden')); else document.getElementById('scanner-modal').classList.add('hidden'); },
-            handleStatusClick: (id) => {
-                const i = state.invoices.find(x=>x.id===id);
-                if(i.status==='paid'){ if(prompt("Pass:")!==state.unlockPassword) return; return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); }
-                const paid = i.payments?i.payments.reduce((s,p)=>s+p.amount,0):0;
-                state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
-                const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
-                document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
-                app.translatePage(); // Translate modal
-                document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
-                document.getElementById('modal-paid').innerText = paid.toLocaleString();
-                document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
-                document.getElementById('payment-amount').value = state.tempInvoice.balance;
-            },
-            confirmPayment: async () => {
-                const amt = Number(document.getElementById('payment-amount').value);
-                const met = document.getElementById('payment-method-select').value;
-                const inv = state.tempInvoice;
-                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:new Date().toISOString()}];
-                const stat = pays.reduce((s,p)=>s+p.amount,0) >= inv.totalAmount ? 'paid' : 'partial';
-                await updateDoc(doc(db,'invoices',inv.id), {status:stat, payments:pays, paidAt: stat==='paid'?serverTimestamp():null});
-                app.closeModal();
             }
         };
         window.app = app; app.init();
