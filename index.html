@@ -21,22 +21,51 @@
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* Editor Styles */
-        .editor-page {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            min-height: 800px;
+        /* Editor & Paper Styles - Reset Fixes */
+        .editor-page, .a4-paper {
             background: white;
             padding: 40px;
             outline: none;
+            font-size: 14px;
+            line-height: 1.5;
         }
-        .editor-toolbar button {
+        .editor-page {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-height: 800px;
+        }
+
+        /* Specific Styling for Content */
+        .editor-page h1, .a4-paper h1 { font-size: 24px; font-weight: bold; margin-bottom: 16px; display: block; }
+        .editor-page h2, .a4-paper h2 { font-size: 20px; font-weight: bold; margin-top: 16px; margin-bottom: 12px; display: block; }
+        .editor-page h3, .a4-paper h3 { font-size: 18px; font-weight: bold; margin-bottom: 8px; display: block; }
+        .editor-page p, .a4-paper p { margin-bottom: 12px; }
+        .editor-page ul, .a4-paper ul { list-style-type: disc; padding-left: 24px; margin-bottom: 12px; }
+        .editor-page ol, .a4-paper ol { list-style-type: decimal; padding-left: 24px; margin-bottom: 12px; }
+        .editor-page blockquote, .a4-paper blockquote { border-left: 4px solid #e5e7eb; padding-left: 16px; color: #4b5563; margin-bottom: 12px; }
+        
+        /* Table Styling */
+        .editor-page table, .a4-paper table { width: 100%; border-collapse: collapse; margin-bottom: 16px; table-layout: fixed; }
+        .editor-page td, .editor-page th, .a4-paper td, .a4-paper th { border: 1px solid #d1d5db; padding: 8px; vertical-align: top; word-wrap: break-word; }
+        .editor-page th, .a4-paper th { background-color: #f9fafb; font-weight: bold; text-align: left; }
+        
+        /* Invoice Table Specific (No Borders) */
+        .invoice-table td, .invoice-table th { border: none !important; }
+        .invoice-table thead { border-bottom: 2px solid #000; }
+
+        /* Image Styling */
+        .editor-page img { max-width: 100%; height: auto; margin: 12px 0; border-radius: 4px; }
+        .a4-paper .content-area img { max-width: 100%; height: auto; margin: 12px 0; }
+
+        .editor-toolbar button, .editor-toolbar select {
             padding: 6px;
             border-radius: 4px;
             color: #4b5563;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
         }
-        .editor-toolbar button:hover { background-color: #f3f4f6; }
-        .editor-toolbar button.active { background-color: #e5e7eb; color: #000; }
-
+        .editor-toolbar select { border-color: #d1d5db; padding: 4px 8px; }
+        .editor-toolbar button:hover { background-color: #f3f4f6; border-color: #d1d5db; }
+        
         /* A4 Paper Styles for Mobile Scaling */
         .paper-container {
             width: 100%;
@@ -53,7 +82,6 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             padding: 20mm;
             position: relative;
-            /* Ensure fixed layout regardless of screen size */
             flex-shrink: 0; 
             box-sizing: border-box;
         }
@@ -104,6 +132,8 @@
     <div id="modal-container"></div>
 
     <input type="file" id="item-image-input" hidden accept="image/*" onchange="app.processItemImage(this)">
+    <input type="file" id="contract-image-input" hidden accept="image/*" onchange="app.processContractImage(this)">
+    
     <input type="file" id="setting-logo-input" hidden accept="image/*" onchange="app.processLogo(this)">
     <input type="file" id="setting-sign-input" hidden accept="image/*" onchange="app.processSign(this)">
 
@@ -115,7 +145,6 @@
         </div>
     </div>
 
-    <!-- TEMPLATES -->
     <template id="tpl-home">
         <div class="flex flex-col items-center justify-center py-4 text-center space-y-6 fade-in min-h-[80vh]">
             <div class="mb-4">
@@ -224,7 +253,6 @@
                 <span id="form-mode-badge" class="px-2 py-1 bg-gray-100 text-xs rounded uppercase font-bold text-gray-500">MODE</span>
             </div>
             <form onsubmit="app.handleSave(event)" class="space-y-6">
-                <!-- Doc Number Edit -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Document No.</label>
                     <input type="text" id="doc-number" class="w-full border p-2 rounded bg-gray-50 focus:bg-white font-mono uppercase" required>
@@ -287,7 +315,7 @@
              <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
                 <div class="flex items-center gap-4">
                     <button onclick="app.setView('dashboard')" class="text-gray-500 hover:text-gray-800"><i data-lucide="arrow-left"></i></button>
-                    <h2 class="font-bold text-lg" data-translate="edit_contract">Contract Editor</h2>
+                    <h2 class="font-bold text-lg" id="contract-editor-title" data-translate="edit_contract">Contract Editor</h2>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="app.saveContract()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium text-sm" data-translate="save">Save Contract</button>
@@ -297,7 +325,6 @@
              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                  <input type="text" id="contract-title" placeholder="Contract Title" class="border p-2 rounded shadow-sm w-full md:col-span-3" required>
                  
-                 <!-- Contract Doc ID -->
                  <input type="text" id="contract-doc-number" placeholder="Contract No." class="border p-2 rounded shadow-sm w-full font-mono uppercase" required>
 
                  <div class="md:col-span-2 grid grid-cols-2 gap-2">
@@ -305,31 +332,57 @@
                     <input type="text" id="contract-client" list="customer-list" onchange="app.fillCustomerInfo(this.value)" placeholder="Client Name" class="border p-2 rounded shadow-sm w-full" required>
                  </div>
                  
+                 <input type="text" id="signer-name" placeholder="Client Signer Name" class="border p-2 rounded shadow-sm w-full text-sm">
+                 <input type="text" id="signer-position" placeholder="Client Position" class="border p-2 rounded shadow-sm w-full text-sm">
+                 <input type="text" id="signer-business" placeholder="Client Business Name" class="border p-2 rounded shadow-sm w-full text-sm">
+
                  <input type="hidden" id="client-db-id">
                  <input type="hidden" id="client-email-hidden">
                  <input type="hidden" id="client-phone-hidden">
                  <input type="hidden" id="client-address-hidden">
              </div>
 
-             <!-- Rich Text Toolbar -->
-             <div class="bg-white p-2 rounded-t-lg border-b sticky top-0 z-10 editor-toolbar flex flex-wrap gap-1 shadow-sm">
-                 <button onclick="app.execCmd('bold')" title="Bold"><i data-lucide="bold" width="16"></i></button>
-                 <button onclick="app.execCmd('italic')" title="Italic"><i data-lucide="italic" width="16"></i></button>
-                 <button onclick="app.execCmd('underline')" title="Underline"><i data-lucide="underline" width="16"></i></button>
+             <div class="bg-white p-2 rounded-t-lg border-b sticky top-0 z-10 editor-toolbar flex flex-wrap gap-1 shadow-sm items-center">
+                 <div class="flex items-center mr-2 border rounded px-1">
+                    <span class="text-xs text-gray-500 mr-1">Size</span>
+                    <select onchange="app.execCmd('fontSize', this.value)" class="border-none outline-none text-sm bg-transparent">
+                        <option value="1">1 (Small)</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3 (Normal)</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7 (Huge)</option>
+                    </select>
+                 </div>
                  <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                 <button onclick="app.execCmd('justifyLeft')" title="Left"><i data-lucide="align-left" width="16"></i></button>
-                 <button onclick="app.execCmd('justifyCenter')" title="Center"><i data-lucide="align-center" width="16"></i></button>
-                 <button onclick="app.execCmd('justifyRight')" title="Right"><i data-lucide="align-right" width="16"></i></button>
-                 <button onclick="app.execCmd('justifyFull')" title="Justify"><i data-lucide="align-justify" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('bold')" title="Bold"><i data-lucide="bold" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('italic')" title="Italic"><i data-lucide="italic" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('underline')" title="Underline"><i data-lucide="underline" width="16"></i></button>
                  <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                 <button onclick="app.execCmd('insertUnorderedList')" title="Bullet List"><i data-lucide="list" width="16"></i></button>
-                 <button onclick="app.execCmd('insertOrderedList')" title="Number List"><i data-lucide="list-ordered" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('justifyLeft')" title="Left"><i data-lucide="align-left" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('justifyCenter')" title="Center"><i data-lucide="align-center" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('justifyRight')" title="Right"><i data-lucide="align-right" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('justifyFull')" title="Justify"><i data-lucide="align-justify" width="16"></i></button>
                  <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                 <button onclick="app.execCmd('formatBlock', 'h2')" title="Heading"><i data-lucide="heading" width="16"></i></button>
-                 <button onclick="app.execCmd('formatBlock', 'p')" title="Paragraph"><i data-lucide="pilcrow" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('insertUnorderedList')" title="Bullet List"><i data-lucide="list" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('insertOrderedList')" title="Number List"><i data-lucide="list-ordered" width="16"></i></button>
+                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                 <button onmousedown="event.preventDefault()" onclick="app.triggerContractImage()" title="Insert Image"><i data-lucide="image" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.insertContractTable()" title="Insert Table"><i data-lucide="table" width="16"></i></button>
+                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                 <button onmousedown="event.preventDefault()" onclick="app.tableAction('insertRow')" title="Insert Row"><i data-lucide="arrow-down-to-line" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.tableAction('insertCol')" title="Insert Column"><i data-lucide="arrow-right-to-line" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.tableAction('deleteRow')" title="Delete Row" class="text-red-500"><i data-lucide="delete" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.tableAction('deleteCol')" title="Delete Column" class="text-red-500"><i data-lucide="x-square" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.tableAction('mergeRight')" title="Merge Right"><i data-lucide="merge" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.tableAction('mergeDown')" title="Merge Down"><i data-lucide="arrow-down-square" width="16"></i></button>
+                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('formatBlock', 'h2')" title="Heading 1"><i data-lucide="heading" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('formatBlock', 'h3')" title="Heading 2"><i data-lucide="type" width="16"></i></button>
+                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('formatBlock', 'p')" title="Paragraph"><i data-lucide="pilcrow" width="16"></i></button>
              </div>
 
-             <!-- Editor Area -->
              <div id="contract-editor" contenteditable="true" class="editor-page" placeholder="Type your contract here..."></div>
         </div>
     </template>
@@ -386,10 +439,10 @@
             </div>
             
             <form onsubmit="app.handleSaveSettings(event)" class="space-y-6">
-                <!-- Business Info -->
                 <div class="p-4 bg-gray-50 rounded-lg border space-y-4">
                     <h3 class="font-bold text-gray-700">Business Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-medium mb-1">Business Name</label><input type="text" id="setting-biz-name" class="w-full border p-2 rounded text-sm" placeholder="Your Company Name"></div>
                         <div><label class="block text-xs font-medium mb-1">Address</label><input type="text" id="setting-biz-address" class="w-full border p-2 rounded text-sm"></div>
                         <div><label class="block text-xs font-medium mb-1">Phone</label><input type="text" id="setting-biz-phone" class="w-full border p-2 rounded text-sm"></div>
                         <div><label class="block text-xs font-medium mb-1">Website</label><input type="text" id="setting-biz-web" class="w-full border p-2 rounded text-sm"></div>
@@ -398,7 +451,6 @@
                     </div>
                 </div>
 
-                <!-- Logo & Sign -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="logo">Company Logo</label>
@@ -416,15 +468,13 @@
                     </div>
                 </div>
 
-                <!-- Payment Methods Manager -->
                 <div class="p-4 bg-gray-50 rounded-lg border">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-gray-700">Payment Methods</h3>
                         <button type="button" onclick="app.addPaymentMethod()" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">+ Add New</button>
                     </div>
                     <div id="payment-methods-list" class="space-y-2">
-                        <!-- Methods list injected here -->
-                    </div>
+                        </div>
                     <div id="payment-method-form" class="hidden mt-3 p-3 bg-white border rounded shadow-sm">
                         <input type="text" id="new-method-name" placeholder="Method Name (e.g. KBZ Pay)" class="w-full border p-2 rounded text-sm mb-2">
                         <div class="flex justify-end gap-2">
@@ -434,7 +484,6 @@
                     </div>
                 </div>
 
-                <!-- General Settings -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div><label class="block text-sm font-medium text-gray-700 mb-2" data-translate="auth_name">Auth Person Name</label><input type="text" id="setting-auth-name" class="w-full border p-2 rounded"></div>
                     <div><label class="block text-sm font-medium text-gray-700 mb-1" data-translate="payment_accounts">General Payment Info (Footer)</label><textarea id="setting-accounts" rows="3" class="w-full border p-2 rounded" placeholder="Bank details to show on invoice footer..."></textarea></div>
@@ -460,7 +509,6 @@
                     </button>
                 </div>
             </div>
-            <!-- Scalable A4 Container -->
             <div id="verify-content" class="paper-container"></div>
         </div>
     </template>
@@ -520,7 +568,6 @@
         const auth = getAuth(appInstance);
         const db = getFirestore(appInstance);
 
-        // --- TRANSLATION RESOURCES ---
         const resources = {
             en: {
                 verify_payment_title: "Verify Payment",
@@ -578,12 +625,12 @@
                 load: "Load",
                 edit_contract: "Contract Editor",
                 
-                // Dynamic strings
                 financial_overview: "Financial Overview",
                 income: "Income",
                 expense_label: "Expenses",
                 net_profit: "Net Profit",
                 receivable: "Receivable",
+                refund_total: "Total Refunded",
                 method_breakdown: "Method Breakdown",
                 quotation_stats: "Quotation Stats",
                 total_created: "Total Created",
@@ -598,7 +645,8 @@
                 desc: "Description",
                 qty: "Qty",
                 price: "Price",
-                no: "No."
+                no: "No.",
+                refund_confirm: "Mark this invoice as REFUNDED? This cannot be undone."
             },
             my: {
                 verify_payment_title: "ငွေပေးချေမှု စစ်ဆေးရန်",
@@ -656,12 +704,12 @@
                 load: "ရှာဖွေမည်",
                 edit_contract: "စာချုပ်ရေးသားရန်",
 
-                // Dynamic strings
                 financial_overview: "ဘဏ္ဍာရေး သုံးသပ်ချက်",
                 income: "ဝင်ငွေ",
                 expense_label: "ထွက်ငွေ (စရိတ်)",
                 net_profit: "အသားတင်အမြတ်",
                 receivable: "ရရန်ရှိ (ကြွေးကျန်)",
+                refund_total: "ပြန်အမ်းငွေ စုစုပေါင်း",
                 method_breakdown: "ငွေပေးချေမှုပုံစံ ခွဲခြမ်းစိတ်ဖြာခြင်း",
                 quotation_stats: "Quotation အခြေအနေ",
                 total_created: "စုစုပေါင်း အရေအတွက်",
@@ -676,7 +724,8 @@
                 desc: "အမျိုးအမည်",
                 qty: "အရေအတွက်",
                 price: "ဈေးနှုန်း",
-                no: "စဉ်"
+                no: "စဉ်",
+                refund_confirm: "ဤ Invoice ကို ငွေပြန်အမ်း (Refund) အဖြစ် သတ်မှတ်မည်လား? ပြန်ပြင်၍ မရပါ။"
             }
         };
 
@@ -686,7 +735,7 @@
             currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
             discount: 0, taxRate: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
             unlockPassword: '1234', uploadingRowIndex: null,
-            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', taxRate: 0 },
+            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', bizName: '', taxRate: 0 },
             lang: localStorage.getItem('appLang') || 'en',
             defaultMethods: [{name: 'Cash'}, {name: 'KPay'}, {name: 'Wave'}, {name: 'Bank'}]
         };
@@ -713,26 +762,23 @@
                 });
                 app.listenSettings();
                 lucide.createIcons();
-                // A4 Scaler for mobile
                 window.addEventListener('resize', app.scalePaper);
             },
 
-            // --- A4 Scaling Logic ---
             scalePaper: () => {
                 const paper = document.querySelector('.a4-paper');
                 const container = document.querySelector('.paper-container');
                 if (paper && container) {
-                    const margin = 20; // 20px padding
+                    const margin = 20; 
                     const parentWidth = container.clientWidth - (margin * 2);
-                    const paperWidth = paper.clientWidth; // Should be ~794px (210mm)
+                    const paperWidth = paper.clientWidth; 
                     
                     if (parentWidth < paperWidth) {
                         const scale = parentWidth / paperWidth;
                         paper.style.transform = `scale(${scale})`;
                         paper.classList.add('paper-scaler');
-                        // Adjust height of container because scaling doesn't affect flow layout
                         const scaledHeight = paper.offsetHeight * scale;
-                        container.style.height = (scaledHeight + 50) + 'px'; // + buffer
+                        container.style.height = (scaledHeight + 50) + 'px'; 
                     } else {
                         paper.style.transform = 'none';
                         paper.classList.remove('paper-scaler');
@@ -741,7 +787,6 @@
                 }
             },
 
-            // --- Translation Logic ---
             t: (key) => resources[state.lang][key] || key,
             toggleLang: () => {
                 state.lang = state.lang === 'en' ? 'my' : 'en';
@@ -764,11 +809,9 @@
                 });
             },
 
-            // --- Database Listeners ---
             listenCollection: (coll) => {
                 onSnapshot(collection(db, coll), (snapshot) => {
                     state[coll] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data(), type: coll.slice(0,-1)}));
-                    // Sort descending by created/date
                     if (coll !== 'payment_methods') {
                         state[coll].sort((a,b) => {
                             const tA = a.createdAt?.seconds || new Date(a.date).getTime()/1000 || 0;
@@ -791,7 +834,6 @@
                 });
             },
 
-            // --- Views & Navigation ---
             setView: (viewName) => {
                 state.view = viewName;
                 const main = document.getElementById('main-container');
@@ -810,40 +852,144 @@
                 if(viewName === 'verify') setTimeout(app.scalePaper, 100);
             },
 
-            // --- Contract Feature ---
             initContractEditor: () => {
-                const titleInput = document.getElementById('contract-title');
-                const docNumInput = document.getElementById('contract-doc-number');
-                const clientInput = document.getElementById('contract-client');
-                const clientIdInput = document.getElementById('contract-client-id');
-                const editor = document.getElementById('contract-editor');
-                
-                const dl = document.getElementById('customer-list');
-                const dlIds = document.getElementById('customer-ids'); // ID datalist
-                dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
-                if(dlIds) dlIds.innerHTML = state.customers.map(c => `<option value="${c.customerId}">${c.name}</option>`).join('');
+                setTimeout(() => {
+                    const titleInput = document.getElementById('contract-title');
+                    const docNumInput = document.getElementById('contract-doc-number');
+                    const clientInput = document.getElementById('contract-client');
+                    const clientIdInput = document.getElementById('contract-client-id');
+                    const editor = document.getElementById('contract-editor');
+                    const headerTitle = document.getElementById('contract-editor-title');
+                    
+                    const signerNameInput = document.getElementById('signer-name');
+                    const signerPosInput = document.getElementById('signer-position');
+                    const signerBizInput = document.getElementById('signer-business');
+                    
+                    const dl = document.getElementById('customer-list');
+                    const dlIds = document.getElementById('customer-ids');
+                    
+                    if(dl) dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+                    if(dlIds) dlIds.innerHTML = state.customers.map(c => `<option value="${c.customerId}">${c.name}</option>`).join('');
 
-                if(state.editingId) {
-                    const c = state.contracts.find(i => i.id === state.editingId);
-                    if(c) {
-                        titleInput.value = c.title || '';
-                        docNumInput.value = c.quotationNumber || '';
-                        clientInput.value = c.clientName || '';
-                        // Find customer ID based on name if not saved directly
-                        const cust = state.customers.find(x => x.name === c.clientName);
-                        clientIdInput.value = cust ? cust.customerId : '';
-                        
-                        editor.innerHTML = c.content || '';
-                        app.fillCustomerInfo(c.clientName);
+                    if(state.editingId) {
+                        if(headerTitle) headerTitle.innerText = "Edit Contract";
+                        const c = state.contracts.find(i => i.id === state.editingId);
+                        if(c) {
+                            titleInput.value = c.title || '';
+                            docNumInput.value = c.quotationNumber || '';
+                            clientInput.value = c.clientName || '';
+                            
+                            app.fillCustomerInfo(c.clientName);
+                            const cust = state.customers.find(x => x.name === c.clientName);
+                            if(clientIdInput) clientIdInput.value = cust ? cust.customerId : '';
+                            
+                            editor.innerHTML = c.content || '';
+                            
+                            if(signerNameInput) signerNameInput.value = c.signerName || '';
+                            if(signerPosInput) signerPosInput.value = c.signerPosition || '';
+                            if(signerBizInput) signerBizInput.value = c.signerBusiness || '';
+                        }
+                    } else {
+                        if(headerTitle) headerTitle.innerText = "New Contract";
+                        docNumInput.value = 'CON-' + Date.now().toString().slice(-6);
+                        titleInput.value = '';
+                        clientInput.value = '';
+                        if(clientIdInput) clientIdInput.value = '';
+                        editor.innerHTML = '';
+                        if(signerNameInput) signerNameInput.value = '';
+                        if(signerPosInput) signerPosInput.value = '';
+                        if(signerBizInput) signerBizInput.value = '';
                     }
-                } else {
-                    docNumInput.value = 'CON-' + Date.now().toString().slice(-6);
-                }
+                }, 100);
             },
 
             execCmd: (cmd, arg = null) => {
-                document.execCommand(cmd, false, arg);
                 document.getElementById('contract-editor').focus();
+                document.execCommand(cmd, false, arg);
+            },
+
+            triggerContractImage: () => document.getElementById('contract-image-input').click(),
+            processContractImage: (input) => {
+                app.processImageBase(input, (url) => {
+                    document.getElementById('contract-editor').focus();
+                    document.execCommand('insertImage', false, url);
+                });
+            },
+
+            insertContractTable: () => {
+                const rows = prompt("Rows:", 2);
+                const cols = prompt("Columns:", 2);
+                if(rows && cols) {
+                    let html = '<table style="width:100%; border-collapse: collapse; border: 1px solid #ccc;"><tbody>';
+                    for(let r=0; r<rows; r++) {
+                        html += '<tr>';
+                        for(let c=0; c<cols; c++) {
+                            html += '<td style="border: 1px solid #ccc; padding: 8px;">&nbsp;</td>';
+                        }
+                        html += '</tr>';
+                    }
+                    html += '</tbody></table><p>&nbsp;</p>';
+                    document.getElementById('contract-editor').focus();
+                    document.execCommand('insertHTML', false, html);
+                }
+            },
+
+            tableAction: (action) => {
+                const sel = window.getSelection();
+                if (!sel.rangeCount) return;
+                let node = sel.getRangeAt(0).startContainer;
+                while (node && node.nodeName !== 'TD' && node.nodeName !== 'TH') {
+                    node = node.parentNode;
+                }
+                if (!node) return alert("Please place cursor inside a table cell.");
+                
+                const cell = node;
+                const row = cell.parentNode;
+                const table = row.parentNode.parentNode;
+                const cellIndex = cell.cellIndex;
+                const rowIndex = row.rowIndex;
+
+                if (action === 'insertRow') {
+                    const newRow = table.insertRow(rowIndex + 1);
+                    for (let i = 0; i < row.cells.length; i++) {
+                        const newCell = newRow.insertCell(i);
+                        newCell.innerHTML = '&nbsp;';
+                        newCell.style.border = '1px solid #d1d5db';
+                        newCell.style.padding = '8px';
+                    }
+                } else if (action === 'insertCol') {
+                    for (let i = 0; i < table.rows.length; i++) {
+                        const newCell = table.rows[i].insertCell(cellIndex + 1);
+                        newCell.innerHTML = '&nbsp;';
+                        newCell.style.border = '1px solid #d1d5db';
+                        newCell.style.padding = '8px';
+                    }
+                } else if (action === 'deleteRow') {
+                    table.deleteRow(rowIndex);
+                } else if (action === 'deleteCol') {
+                    for (let i = 0; i < table.rows.length; i++) {
+                        if (table.rows[i].cells.length > cellIndex) {
+                            table.rows[i].deleteCell(cellIndex);
+                        }
+                    }
+                } else if (action === 'mergeRight') {
+                    if (cell.nextElementSibling) {
+                        const nextCell = cell.nextElementSibling;
+                        const content = nextCell.innerHTML;
+                        cell.colSpan = (cell.colSpan || 1) + (nextCell.colSpan || 1);
+                        cell.innerHTML += ' ' + content;
+                        nextCell.remove();
+                    }
+                } else if (action === 'mergeDown') {
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && nextRow.cells[cellIndex]) {
+                        const belowCell = nextRow.cells[cellIndex];
+                        const content = belowCell.innerHTML;
+                        cell.rowSpan = (cell.rowSpan || 1) + (belowCell.rowSpan || 1);
+                        cell.innerHTML += ' ' + content;
+                        belowCell.remove();
+                    }
+                }
             },
 
             saveContract: async () => {
@@ -852,16 +998,22 @@
                 const clientName = document.getElementById('contract-client').value;
                 const content = document.getElementById('contract-editor').innerHTML;
                 
-                const clientEmail = document.getElementById('client-email-hidden').value;
-                const clientPhone = document.getElementById('client-phone-hidden').value;
-                const clientAddress = document.getElementById('client-address-hidden').value;
+                const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+                const clientEmail = getVal('client-email-hidden');
+                const clientPhone = getVal('client-phone-hidden');
+                const clientAddress = getVal('client-address-hidden');
+                
+                const signerName = getVal('signer-name');
+                const signerPosition = getVal('signer-position');
+                const signerBusiness = getVal('signer-business');
 
                 if(!title) return alert("Please enter a title");
 
                 const data = {
                     title, clientName, content,
                     clientEmail, clientPhone, clientAddress,
-                    quotationNumber: docNum, // User editable
+                    signerName, signerPosition, signerBusiness,
+                    quotationNumber: docNum,
                     securityCode: state.editingId ? undefined : `CON-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
                     createdBy: state.user.uid
                 };
@@ -875,7 +1027,6 @@
                 app.setView('dashboard');
             },
 
-            // --- Payment Methods Logic ---
             initSettingsView: () => {
                 app.fillSettingsForm();
                 app.renderPaymentMethods();
@@ -919,13 +1070,11 @@
                 const methods = state.payment_methods.length > 0 ? state.payment_methods : state.defaultMethods;
                 
                 selects.forEach(sel => {
-                    const currentVal = sel.value; // Keep selection if re-rendering
+                    const currentVal = sel.value; 
                     sel.innerHTML = methods.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
                     if(currentVal && methods.find(m => m.name === currentVal)) sel.value = currentVal;
                 });
             },
-
-            // --- Existing Functionality Updates ---
 
             showVerify: (id, type) => {
                 const coll = type + 's';
@@ -1018,7 +1167,13 @@
                          <tbody class="divide-y">${data.map(item => {
                              const isPaid = item.status === 'paid';
                              const isPartial = item.status === 'partial';
-                             let badge = type==='quotation' ? '<span class="px-2 py-0.5 rounded text-xs bg-gray-100">QTN</span>' : (isPaid ? '<span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">PAID</span>' : (isPartial ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">PARTIAL</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">PENDING</span>'));
+                             const isRefunded = item.status === 'refunded';
+                             
+                             let badge = type==='quotation' ? '<span class="px-2 py-0.5 rounded text-xs bg-gray-100">QTN</span>' : (
+                                 isRefunded ? '<span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">REFUNDED</span>' :
+                                 (isPaid ? '<span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">PAID</span>' : (isPartial ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">PARTIAL</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">PENDING</span>'))
+                             );
+                             
                              let paid = item.payments ? item.payments.reduce((s,p)=>s+p.amount,0) : 0;
                              let bal = item.totalAmount - paid;
                              
@@ -1028,7 +1183,8 @@
                              `;
                              
                              if(type==='invoice') {
-                                actionBtns += `<button onclick="app.handleStatusClick('${item.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="Payment"><i data-lucide="credit-card" width="14"></i></button>`;
+                                if(!isRefunded) actionBtns += `<button onclick="app.handleStatusClick('${item.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="Payment"><i data-lucide="credit-card" width="14"></i></button>`;
+                                if(!isRefunded) actionBtns += `<button onclick="app.markRefund('${item.id}')" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Refund"><i data-lucide="rotate-ccw" width="14"></i></button>`;
                              } else {
                                 actionBtns += `<button onclick="app.convertQuotation('${item.id}')" class="p-1.5 bg-purple-50 text-purple-600 rounded hover:bg-purple-100" title="Convert"><i data-lucide="arrow-right-circle" width="14"></i></button>`;
                              }
@@ -1042,7 +1198,7 @@
                              return `<tr class="hover:bg-gray-50 border-b">
                                 <td class="p-3 font-medium text-blue-600">${item.invoiceNumber || item.quotationNumber}</td>
                                 <td class="p-3">${item.clientName}</td>
-                                <td class="p-3 text-right"><div>${Number(item.totalAmount).toLocaleString()}</div>${type==='invoice' && bal>0 ? `<div class="text-xs text-red-500">Bal: ${bal.toLocaleString()}</div>` : ''}</td>
+                                <td class="p-3 text-right"><div>${Number(item.totalAmount).toLocaleString()}</div>${type==='invoice' && bal>0 && !isRefunded ? `<div class="text-xs text-red-500">Bal: ${bal.toLocaleString()}</div>` : ''}</td>
                                 <td class="p-3 text-center">${badge}</td>
                                 <td class="p-3 text-right">${actionBtns}</td>
                              </tr>`;
@@ -1052,7 +1208,12 @@
                 lucide.createIcons();
             },
 
-            // --- Handlers ---
+            markRefund: async (id) => {
+                if(!confirm(app.t('refund_confirm'))) return;
+                if(prompt("Pass:") !== state.unlockPassword) return;
+                await updateDoc(doc(db, 'invoices', id), { status: 'refunded', refundedAt: serverTimestamp() });
+            },
+
             handleCreateButtonClick: () => {
                 const tab = state.activeTab;
                 if(tab === 'invoice') app.showInvoiceOptionModal();
@@ -1062,14 +1223,12 @@
                 else if(tab === 'expense') app.openExpenseModal();
             },
 
-            // --- Forms/Modals Logic ---
             openCustomerModal: (cust = null) => {
                 const modal = document.getElementById('modal-container');
                 const tpl = document.getElementById('tpl-customer-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
                 app.translatePage();
                 
-                // Generate ID for new customer
                 if(!cust) {
                     document.getElementById('cust-display-id').value = 'CUST-' + Date.now().toString().slice(-6);
                 }
@@ -1104,26 +1263,24 @@
                 const details = document.getElementById('client-details');
                 
                 if(cust) {
-                    // Fill inputs
                     if(document.getElementById('client-name')) document.getElementById('client-name').value = cust.name;
-                    if(document.getElementById('client-id')) document.getElementById('client-id').value = cust.id;
+                    if(document.getElementById('contract-client')) document.getElementById('contract-client').value = cust.name;
                     
-                    // Fill ID input if exists (in create form)
+                    if(document.getElementById('client-db-id')) document.getElementById('client-db-id').value = cust.id;
+                    
                     if(document.getElementById('client-id-input')) document.getElementById('client-id-input').value = cust.customerId || '';
                     if(document.getElementById('contract-client-id')) document.getElementById('contract-client-id').value = cust.customerId || '';
 
-                    // Display info
                     if(document.getElementById('client-phone')) document.getElementById('client-phone').innerText = cust.phone || '';
                     if(document.getElementById('client-address')) document.getElementById('client-address').innerText = cust.address || '';
                     
-                    // Hidden fields for saving to doc
                     if(document.getElementById('client-email-hidden')) document.getElementById('client-email-hidden').value = cust.email || '';
                     if(document.getElementById('client-phone-hidden')) document.getElementById('client-phone-hidden').value = cust.phone || '';
                     if(document.getElementById('client-address-hidden')) document.getElementById('client-address-hidden').value = cust.address || '';
 
                     if(details) details.classList.remove('hidden');
                 } else {
-                    if(document.getElementById('client-id')) document.getElementById('client-id').value = '';
+                    if(document.getElementById('client-db-id')) document.getElementById('client-db-id').value = '';
                     if(details) details.classList.add('hidden');
                 }
             },
@@ -1140,7 +1297,7 @@
                 const tpl = document.getElementById('tpl-expense-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
                 app.translatePage();
-                app.populatePaymentSelects(); // Populate methods
+                app.populatePaymentSelects(); 
                 document.getElementById('exp-date').valueAsDate = new Date();
             },
             saveExpense: async (e) => {
@@ -1169,10 +1326,9 @@
                 const paySection = document.getElementById('invoice-payment-section');
                 paySection.style.display = state.mode === 'quotation' ? 'none' : 'block';
                 
-                app.populatePaymentSelects(); // Populate methods
+                app.populatePaymentSelects(); 
                 app.renderCreateItems();
                 
-                // Set default doc number
                 const docNumInput = document.getElementById('doc-number');
                 if(!state.editingId) {
                     state.taxRate = state.settings.taxRate || 0;
@@ -1185,8 +1341,8 @@
             handleSave: async (e) => {
                 e.preventDefault();
                 const clientName = document.getElementById('client-name').value;
-                const clientId = document.getElementById('client-id').value; 
-                const docNumber = document.getElementById('doc-number').value; // Get editable ID
+                const clientId = document.getElementById('client-db-id').value; 
+                const docNumber = document.getElementById('doc-number').value;
                 const clientEmail = document.getElementById('client-email-hidden').value;
                 const clientPhone = document.getElementById('client-phone-hidden').value;
                 const clientAddress = document.getElementById('client-address-hidden').value;
@@ -1202,8 +1358,8 @@
                         createdBy: state.user.uid
                     };
                     
-                    // Assign editable number
-                    docData[state.mode === 'invoice' ? 'invoiceNumber' : 'quotationNumber'] = docNumber;
+                    if(state.mode === 'invoice') docData.invoiceNumber = docNumber;
+                    else docData.quotationNumber = docNumber;
 
                     if(docData.securityCode === undefined) delete docData.securityCode;
 
@@ -1222,7 +1378,7 @@
                         await addDoc(collection(db, col), docData);
                     }
                     state.activeTab = state.mode; app.setView('dashboard');
-                } catch(e) { alert(e.message); }
+                } catch(e) { console.error(e); alert(e.message); }
             },
 
             createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.taxRate = state.settings.taxRate || 0; state.initPayment = 0; app.setView('create'); },
@@ -1242,13 +1398,16 @@
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = d.invoiceNumber || d.quotationNumber;
                     
-                    app.fillCustomerInfo(d.clientName); // Prefill hidden fields
+                    app.fillCustomerInfo(d.clientName); 
 
                     if(type==='invoice'){ document.getElementById('init-payment-input').disabled = true; }
                     app.calcTotal();
                 }, 100);
             },
-            editContract: (id) => { state.editingId = id; app.setView('contract-edit'); },
+            editContract: (id) => { 
+                state.editingId = id; 
+                app.setView('contract-edit'); 
+            },
             deleteDoc: async (id, coll) => {
                  if(coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid' && prompt("Pass:") !== state.unlockPassword) return;
                  if(confirm("Delete?")) await deleteDoc(doc(db, coll, id));
@@ -1263,7 +1422,7 @@
                     document.getElementById('client-name').value = q.clientName; 
                     document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
-                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6); // New Inv ID
+                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6); 
                     app.fillCustomerInfo(q.clientName);
                     app.calcTotal();
                 }, 100);
@@ -1285,7 +1444,6 @@
                 }, 100);
             },
 
-            // Items Logic
             renderCreateItems: () => {
                 const c = document.getElementById('items-container'); c.innerHTML = `<label class="block text-sm font-medium mb-2">${app.t('items')}</label>`;
                 state.items.forEach((item, i) => {
@@ -1317,7 +1475,6 @@
             triggerImageUpload: (i) => { state.uploadingRowIndex = i; document.getElementById('item-image-input').click(); },
             processItemImage: (input) => { app.processImageBase(input, (url) => { state.items[state.uploadingRowIndex].image = url; alert("Image Added"); }); },
 
-            // Auth & Settings
             handleAuthClick: () => state.isAdmin ? app.setView('dashboard') : app.setView('login'),
             handleEmailAuth: async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); app.setView('dashboard'); } catch(e){ document.getElementById('auth-error').innerText=e.message; document.getElementById('auth-error').classList.remove('hidden'); } },
             googleLogin: async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); app.setView('dashboard'); } catch(e){alert(e.message);} },
@@ -1330,7 +1487,7 @@
                 document.getElementById('setting-terms').value = state.settings.terms || '';
                 document.getElementById('setting-auth-name').value = state.settings.authName || '';
                 
-                // New Fields
+                document.getElementById('setting-biz-name').value = state.settings.bizName || '';
                 document.getElementById('setting-biz-address').value = state.settings.bizAddress || '';
                 document.getElementById('setting-biz-phone').value = state.settings.bizPhone || '';
                 document.getElementById('setting-biz-web').value = state.settings.bizWeb || '';
@@ -1343,7 +1500,7 @@
                 state.settings.terms = document.getElementById('setting-terms').value;
                 state.settings.authName = document.getElementById('setting-auth-name').value;
                 
-                // Save New Fields
+                state.settings.bizName = document.getElementById('setting-biz-name').value;
                 state.settings.bizAddress = document.getElementById('setting-biz-address').value;
                 state.settings.bizPhone = document.getElementById('setting-biz-phone').value;
                 state.settings.bizWeb = document.getElementById('setting-biz-web').value;
@@ -1360,7 +1517,6 @@
             processLogo: (i) => app.processImageBase(i, (u) => { state.settings.logo = u; document.getElementById('logo-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
             processSign: (i) => app.processImageBase(i, (u) => { state.settings.authSign = u; document.getElementById('sign-preview').innerHTML = `<img src="${u}" class="h-full">`; }),
 
-            // Search/Print/Verify
             handleSearch: async (v) => {
                 const q = (v || document.getElementById('search-input').value).trim();
                 if(!q) return;
@@ -1372,7 +1528,6 @@
             },
             renderPaper: (d, t) => {
                 state.currentDoc = d;
-                // QR Logic Update: Full URL
                 const codeToEncode = d.securityCode || d.invoiceNumber || d.quotationNumber || 'N/A';
                 const fullUrl = window.location.origin + window.location.pathname + '?code=' + codeToEncode;
                 const qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`;
@@ -1380,13 +1535,12 @@
                 const logo = state.settings.logo ? `<img src="${state.settings.logo}" class="h-20">` : '';
                 const sign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 mx-auto">` : '';
                 
-                // Business Info Block
                 const bizInfo = `
-                    <div class="text-xs text-gray-500 mt-2">
-                        ${state.settings.bizAddress ? `<div>${state.settings.bizAddress}</div>` : ''}
-                        ${state.settings.bizPhone ? `<div>${state.settings.bizPhone}</div>` : ''}
-                        ${state.settings.bizEmail ? `<div>${state.settings.bizEmail}</div>` : ''}
-                        ${state.settings.bizWeb ? `<div>${state.settings.bizWeb}</div>` : ''}
+                    <div class="text-xs text-gray-500 mt-1 leading-none space-y-0">
+                        ${state.settings.bizAddress ? `<div class="mb-0.5">${state.settings.bizAddress}</div>` : ''}
+                        ${state.settings.bizPhone ? `<div class="mb-0.5">${state.settings.bizPhone}</div>` : ''}
+                        ${state.settings.bizEmail ? `<div class="mb-0.5">${state.settings.bizEmail}</div>` : ''}
+                        ${state.settings.bizWeb ? `<div class="mb-0.5">${state.settings.bizWeb}</div>` : ''}
                     </div>
                 `;
 
@@ -1398,11 +1552,11 @@
                             <div class="text-right">
                                 <h1 class="text-2xl font-bold uppercase text-gray-800">${d.title}</h1>
                                 <p class="text-sm text-gray-500">Date: ${new Date(d.createdAt?.seconds*1000).toLocaleDateString()}</p>
-                                <div class="mt-2 text-sm">
-                                    <p class="font-bold">Contract With:</p>
-                                    <p>${d.clientName}</p>
-                                    ${d.clientPhone ? `<p>${d.clientPhone}</p>`:''}
-                                    ${d.clientEmail ? `<p>${d.clientEmail}</p>`:''}
+                                <div class="mt-4 text-sm leading-tight">
+                                    <p class="font-bold mb-1">Contract With:</p>
+                                    <p class="mb-0.5">${d.clientName}</p>
+                                    ${d.clientPhone ? `<p class="mb-0.5">${d.clientPhone}</p>`:''}
+                                    ${d.clientEmail ? `<p class="mb-0.5">${d.clientEmail}</p>`:''}
                                 </div>
                             </div>
                          </div>
@@ -1410,12 +1564,18 @@
                              ${d.content}
                          </div>
                          <div class="absolute bottom-12 left-12 right-12 flex justify-between items-end">
-                             <div>
-                                <p class="font-bold border-t pt-2 w-48">Client Signature</p>
+                             <div class="text-center w-48 leading-tight">
+                                <div class="border-b border-gray-800 mb-1 pb-4"></div>
+                                <p class="font-bold text-sm m-0">${d.signerBusiness || d.clientName || 'Client'}</p>
+                                <p class="text-xs m-0">${d.signerName || ''}</p>
+                                <p class="text-[10px] text-gray-500 m-0">${d.signerPosition || 'Authorized Signature'}</p>
                              </div>
-                             <div class="text-center">
-                                ${sign}
-                                <p class="font-bold border-t pt-2 w-48 mx-auto">${state.settings.authName || 'Authorized Signature'}</p>
+                             <div class="text-center w-48 leading-tight">
+                                <div class="h-16 flex items-end justify-center">${sign}</div>
+                                <div class="border-b border-gray-800 mb-1"></div>
+                                <p class="font-bold text-sm m-0">${state.settings.bizName || 'Service Provider'}</p>
+                                <p class="text-xs m-0">${state.settings.authName || ''}</p>
+                                <p class="text-[10px] text-gray-500 m-0">Authorized Signature</p>
                              </div>
                              <div>
                                 <img src="${qr}" class="w-16">
@@ -1423,11 +1583,11 @@
                          </div>
                     </div>`;
                     lucide.createIcons();
-                    app.scalePaper(); // Trigger scale
+                    app.scalePaper(); 
                     return;
                 }
 
-                // Invoice/Quotation Render
+                // Invoice/Quotation Render (MODIFIED: Removed Table Borders, Added Refund Badge)
                 document.getElementById('verify-content').innerHTML = `
                 <div id="invoice-paper" class="a4-paper flex flex-col justify-between">
                     <div>
@@ -1442,19 +1602,42 @@
                         <div class="flex justify-between mb-8">
                             <div>
                                 <h3 class="font-bold text-gray-600 uppercase text-xs mb-1">${app.t('bill_to')}</h3>
-                                <p class="font-bold text-lg">${d.clientName}</p>
-                                <div class="text-sm text-gray-500">
-                                    ${d.clientAddress ? `<div>${d.clientAddress}</div>` : ''}
-                                    ${d.clientPhone ? `<div>${d.clientPhone}</div>` : ''}
-                                    ${d.clientEmail ? `<div>${d.clientEmail}</div>` : ''}
+                                <p class="font-bold text-lg mb-1">${d.clientName}</p>
+                                <div class="text-sm text-gray-500 leading-tight">
+                                    ${d.clientAddress ? `<div class="mb-0.5">${d.clientAddress}</div>` : ''}
+                                    ${d.clientPhone ? `<div class="mb-0.5">${d.clientPhone}</div>` : ''}
+                                    ${d.clientEmail ? `<div class="mb-0.5">${d.clientEmail}</div>` : ''}
                                 </div>
                             </div>
                             <div class="text-right">
-                                <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>${t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':''}
+                                <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>
+                                ${t==='invoice' && d.status==='refunded' ? '<div class="text-red-600 font-bold border-2 border-red-600 inline-block px-2 mt-2">REFUNDED</div>' : 
+                                  (t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':'')
+                                }
                                 ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">${app.t('payment_history')}</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
                             </div>
                         </div>
-                        <table class="w-full mb-6 text-sm"><thead class="bg-gray-100"><tr><th class="p-2 text-left">${app.t('no')}</th><th class="p-2 text-left">${app.t('desc')}</th><th class="p-2 text-right">${app.t('qty')}</th><th class="p-2 text-right">${app.t('price')}</th><th class="p-2 text-right">${app.t('total')}</th></tr></thead><tbody>${d.items.map((i, index)=>`<tr><td class="p-2 border-b text-gray-500">${index + 1}</td><td class="p-2 border-b"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td><td class="p-2 border-b text-right">${i.qty}</td><td class="p-2 border-b text-right">${i.price.toLocaleString()}</td><td class="p-2 border-b text-right">${(i.price*i.qty).toLocaleString()}</td></tr>`).join('')}</tbody></table>
+                        
+                        <table class="w-full mb-6 text-sm invoice-table">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-2 text-left">${app.t('no')}</th>
+                                    <th class="p-2 text-left">${app.t('desc')}</th>
+                                    <th class="p-2 text-right">${app.t('qty')}</th>
+                                    <th class="p-2 text-right">${app.t('price')}</th>
+                                    <th class="p-2 text-right">${app.t('total')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>${d.items.map((i, index)=>`
+                                <tr>
+                                    <td class="p-2 text-gray-500">${index + 1}</td>
+                                    <td class="p-2"><div>${i.desc}</div>${i.image ? `<img src="${i.image}" class="mt-2 h-16 w-auto object-cover border rounded">` : ''}</td>
+                                    <td class="p-2 text-right">${i.qty}</td>
+                                    <td class="p-2 text-right">${i.price.toLocaleString()}</td>
+                                    <td class="p-2 text-right">${(i.price*i.qty).toLocaleString()}</td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
                     </div>
                     <div>
                         <div class="flex justify-between items-start border-t pt-4">
@@ -1483,26 +1666,23 @@
                     </div>
                 </div>`;
                 lucide.createIcons();
-                app.scalePaper(); // Trigger scale
+                app.scalePaper();
             },
             
-            // --- UPDATED DOWNLOAD FUNCTION ---
             downloadPDF: async () => {
                 const element = document.getElementById('invoice-paper') || document.getElementById('contract-paper');
-                // Temporarily remove scale for clear PDF generation
                 const oldTransform = element.style.transform;
                 element.style.transform = 'none';
                 
                 const canvas = await html2canvas(element, { scale: 2, useCORS: true });
                 
-                // Restore scale
                 element.style.transform = oldTransform;
 
                 const imgData = canvas.toDataURL('image/png');
 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const margin = 0; // A4 div has padding already
+                const margin = 0; 
                 const pdfWidth = 210;
                 const contentWidth = pdfWidth; 
                 const contentHeight = (canvas.height * contentWidth) / canvas.width;
@@ -1513,7 +1693,6 @@
             },
             backHome: () => app.setView(state.isAdmin ? 'dashboard' : 'home'),
             
-            // Scanner / Payment Status
             startScanner: () => {
                 document.getElementById('scanner-modal').classList.remove('hidden');
                 state.html5QrCode = new Html5Qrcode("reader");
@@ -1527,8 +1706,8 @@
                 state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
                 const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
                 document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
-                app.translatePage(); // Translate modal
-                app.populatePaymentSelects(); // Populate methods
+                app.translatePage(); 
+                app.populatePaymentSelects(); 
                 document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
                 document.getElementById('modal-paid').innerText = paid.toLocaleString();
                 document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
@@ -1544,11 +1723,11 @@
                 app.closeModal();
             },
 
-            // --- Reports Logic ---
+            // --- Reports Logic (Updated for Refunds) ---
             initReportFilters: () => {
                 const yearSelect = document.getElementById('report-year');
                 const custSelect = document.getElementById('report-customer');
-                if(yearSelect.options.length > 0) return; // already init
+                if(yearSelect.options.length > 0) return; 
                 const currentYear = new Date().getFullYear();
                 yearSelect.innerHTML = `<option value="all">All Years</option>`;
                 for(let i=currentYear-2; i<=currentYear+1; i++) {
@@ -1576,21 +1755,33 @@
                 let totalIncome = 0;
                 let totalReceivable = 0;
                 let totalExpense = 0;
+                let totalRefunds = 0; // New Metric
                 const methods = {};
                 const expMethods = {};
 
                 filteredInvoices.forEach(inv => {
-                    let paid = 0;
-                    if(inv.payments) {
-                        inv.payments.forEach(p => {
-                            paid += p.amount;
-                            totalIncome += p.amount; 
-                            let m = p.method;
-                            if(!methods[m]) methods[m] = 0;
-                            methods[m] += p.amount;
-                        });
+                    // Logic: If Refunded, we count it separately and NOT in Income.
+                    // Or we count payments but subtract them. 
+                    // Let's treat Refunded status as: Money Returned.
+                    
+                    if (inv.status === 'refunded') {
+                        // Assume full refund of payments made
+                        let paid = inv.payments ? inv.payments.reduce((s,p)=>s+p.amount,0) : 0;
+                        totalRefunds += paid;
+                        // We don't add to totalIncome because it's refunded
+                    } else {
+                        let paid = 0;
+                        if(inv.payments) {
+                            inv.payments.forEach(p => {
+                                paid += p.amount;
+                                totalIncome += p.amount; 
+                                let m = p.method;
+                                if(!methods[m]) methods[m] = 0;
+                                methods[m] += p.amount;
+                            });
+                        }
+                        if(paid < inv.totalAmount) totalReceivable += (inv.totalAmount - paid);
                     }
-                    if(paid < inv.totalAmount) totalReceivable += (inv.totalAmount - paid);
                 });
 
                 filteredExpenses.forEach(e => {
@@ -1600,12 +1791,12 @@
                     expMethods[m] += Number(e.amount);
                 });
 
-                const netProfit = totalIncome - totalExpense;
+                const netProfit = totalIncome - totalExpense; // Already excluded refunds from Income
 
                 container.innerHTML = `
                 <div class="p-4 bg-gray-50 min-h-screen">
                     <h3 class="font-bold text-lg mb-4 text-gray-700">${app.t('financial_overview')} (${fYear==='all'?'All':fYear}${fMonth!=='all'?'/'+(parseInt(fMonth)+1):''})</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('income')}</div>
                             <div class="text-xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
@@ -1613,6 +1804,10 @@
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('expense_label')}</div>
                             <div class="text-xl font-bold text-red-600">${totalExpense.toLocaleString()}</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+                            <div class="text-xs text-gray-500 uppercase">${app.t('refund_total')}</div>
+                            <div class="text-xl font-bold text-orange-600">${totalRefunds.toLocaleString()}</div>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('net_profit')}</div>
