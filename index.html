@@ -21,38 +21,37 @@
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* Editor & Paper Styles - Reset Fixes */
+        /* Editor & Paper Styles */
         .editor-page, .a4-paper {
             background: white;
             padding: 40px;
             outline: none;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
+            color: #333;
         }
         .editor-page {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             min-height: 800px;
         }
 
-        /* Specific Styling for Content */
-        .editor-page h1, .a4-paper h1 { font-size: 24px; font-weight: bold; margin-bottom: 16px; display: block; }
-        .editor-page h2, .a4-paper h2 { font-size: 20px; font-weight: bold; margin-top: 16px; margin-bottom: 12px; display: block; }
-        .editor-page h3, .a4-paper h3 { font-size: 18px; font-weight: bold; margin-bottom: 8px; display: block; }
-        .editor-page p, .a4-paper p { margin-bottom: 12px; }
+        .editor-page h1, .a4-paper h1 { font-size: 24px; font-weight: 800; margin-bottom: 16px; display: block; color: #111; }
+        .editor-page h2, .a4-paper h2 { font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; display: block; color: #111; }
+        .editor-page h3, .a4-paper h3 { font-size: 18px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; display: block; color: #333; }
+        .editor-page p, .a4-paper p { margin-bottom: 12px; text-align: justify; }
         .editor-page ul, .a4-paper ul { list-style-type: disc; padding-left: 24px; margin-bottom: 12px; }
         .editor-page ol, .a4-paper ol { list-style-type: decimal; padding-left: 24px; margin-bottom: 12px; }
-        .editor-page blockquote, .a4-paper blockquote { border-left: 4px solid #e5e7eb; padding-left: 16px; color: #4b5563; margin-bottom: 12px; }
+        .editor-page blockquote, .a4-paper blockquote { border-left: 4px solid #e5e7eb; padding-left: 16px; color: #4b5563; margin-bottom: 12px; font-style: italic; }
         
-        /* Table Styling */
         .editor-page table, .a4-paper table { width: 100%; border-collapse: collapse; margin-bottom: 16px; table-layout: fixed; }
         .editor-page td, .editor-page th, .a4-paper td, .a4-paper th { border: 1px solid #d1d5db; padding: 8px; vertical-align: top; word-wrap: break-word; }
         .editor-page th, .a4-paper th { background-color: #f9fafb; font-weight: bold; text-align: left; }
         
         /* Invoice Table Specific (No Borders) */
-        .invoice-table td, .invoice-table th { border: none !important; }
-        .invoice-table thead { border-bottom: 2px solid #000; }
+        .invoice-table td, .invoice-table th { border: none !important; border-bottom: 1px solid #f3f4f6 !important; }
+        .invoice-table thead th { border-bottom: 2px solid #000 !important; background: transparent !important; }
+        .invoice-table tbody tr:last-child td { border-bottom: none !important; }
 
-        /* Image Styling */
         .editor-page img { max-width: 100%; height: auto; margin: 12px 0; border-radius: 4px; }
         .a4-paper .content-area img { max-width: 100%; height: auto; margin: 12px 0; }
 
@@ -66,54 +65,44 @@
         .editor-toolbar select { border-color: #d1d5db; padding: 4px 8px; }
         .editor-toolbar button:hover { background-color: #f3f4f6; border-color: #d1d5db; }
         
-        /* A4 Paper Styles for Mobile Scaling */
         .paper-container {
             width: 100%;
             overflow: auto;
             display: flex;
             justify-content: center;
-            background: #f3f4f6;
-            padding: 20px 0;
+            background: #525659;
+            padding: 40px 0;
+            min-height: 100vh;
         }
         .a4-paper {
             width: 210mm;
             min-height: 297mm;
+            height: auto; 
             background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
             padding: 20mm;
             position: relative;
             flex-shrink: 0; 
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Mobile specific scaling for preview */
         @media screen and (max-width: 850px) {
-            .paper-scaler {
-                transform-origin: top center;
-            }
+            .paper-scaler { transform-origin: top center; }
+            .paper-container { padding: 20px 0; align-items: flex-start; }
         }
 
-        /* Print Styles */
         @media print {
             body * { visibility: hidden; }
             .a4-paper, .a4-paper * { visibility: visible; }
-            .a4-paper { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-                margin: 0; 
-                padding: 0; 
-                box-shadow: none; 
-                border: none; 
-            }
+            .a4-paper { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; min-height: auto; }
             @page { size: auto; margin: 12.7mm; } 
             .no-print { display: none !important; }
-            .paper-container { padding: 0; background: white; display: block; }
+            .paper-container { padding: 0; background: white; display: block; height: auto !important; }
             .paper-scaler { transform: none !important; }
         }
         
-        /* Hide scrollbar for tabs */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -209,14 +198,14 @@
                 <button onclick="app.setView('settings')" class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50"><i data-lucide="settings" width="16" class="inline"></i></button>
             </div>
 
-            <div id="report-filters" class="hidden flex-wrap gap-2 mb-4 items-end bg-gray-100 p-3 rounded-lg border">
+            <div id="generic-filters" class="hidden flex-wrap gap-2 mb-4 items-end bg-gray-100 p-3 rounded-lg border">
                 <div>
                     <label class="block text-xs font-medium text-gray-500" data-translate="year">Year</label>
-                    <select id="report-year" class="border p-1.5 rounded text-sm w-24"></select>
+                    <select id="filter-year" class="border p-1.5 rounded text-sm w-24"></select>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500" data-translate="month">Month</label>
-                    <select id="report-month" class="border p-1.5 rounded text-sm w-32">
+                    <select id="filter-month" class="border p-1.5 rounded text-sm w-32">
                         <option value="all">All Months</option>
                         <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                         <option value="3">April</option><option value="4">May</option><option value="5">June</option>
@@ -224,13 +213,23 @@
                         <option value="9">October</option><option value="10">November</option><option value="11">December</option>
                     </select>
                 </div>
-                <div>
+                <div id="filter-customer-wrapper">
                     <label class="block text-xs font-medium text-gray-500" data-translate="customer">Customer</label>
-                    <select id="report-customer" class="border p-1.5 rounded text-sm w-40">
+                    <select id="filter-customer" class="border p-1.5 rounded text-sm w-40">
                         <option value="all">All Customers</option>
                     </select>
                 </div>
-                <button onclick="app.renderReports()" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700" data-translate="filter_btn">Filter</button>
+                <div id="filter-status-wrapper" class="hidden">
+                    <label class="block text-xs font-medium text-gray-500" data-translate="status">Status</label>
+                    <select id="filter-status" class="border p-1.5 rounded text-sm w-32">
+                        <option value="all">All Status</option>
+                        <option value="paid">Paid</option>
+                        <option value="pending">Unpaid/Pending</option>
+                        <option value="partial">Partial</option>
+                        <option value="refunded">Refunded</option>
+                    </select>
+                </div>
+                <button onclick="app.applyFilters()" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700" data-translate="filter_btn">Filter</button>
             </div>
 
             <div id="action-bar" class="flex justify-end mb-4">
@@ -646,7 +645,11 @@
                 qty: "Qty",
                 price: "Price",
                 no: "No.",
-                refund_confirm: "Mark this invoice as REFUNDED? This cannot be undone."
+                refund_confirm: "Mark this invoice as REFUNDED? This cannot be undone.",
+                source_breakdown: "Invoice Source Breakdown",
+                manual: "Manual Invoices",
+                from_qtn: "Converted from Quote",
+                status: "Status"
             },
             my: {
                 verify_payment_title: "ငွေပေးချေမှု စစ်ဆေးရန်",
@@ -725,7 +728,11 @@
                 qty: "အရေအတွက်",
                 price: "ဈေးနှုန်း",
                 no: "စဉ်",
-                refund_confirm: "ဤ Invoice ကို ငွေပြန်အမ်း (Refund) အဖြစ် သတ်မှတ်မည်လား? ပြန်ပြင်၍ မရပါ။"
+                refund_confirm: "ဤ Invoice ကို ငွေပြန်အမ်း (Refund) အဖြစ် သတ်မှတ်မည်လား? ပြန်ပြင်၍ မရပါ။",
+                source_breakdown: "Invoice အမျိုးအစား ခွဲခြမ်းစိတ်ဖြာခြင်း",
+                manual: "Manual ဖွင့်သော Invoices",
+                from_qtn: "Quotation မှပြောင်းသော Invoices",
+                status: "အခြေအနေ"
             }
         };
 
@@ -737,7 +744,9 @@
             unlockPassword: '1234', uploadingRowIndex: null,
             settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', bizName: '', taxRate: 0 },
             lang: localStorage.getItem('appLang') || 'en',
-            defaultMethods: [{name: 'Cash'}, {name: 'KPay'}, {name: 'Wave'}, {name: 'Bank'}]
+            defaultMethods: [{name: 'Cash'}, {name: 'KPay'}, {name: 'Wave'}, {name: 'Bank'}],
+            isConverted: false, // Track if creating from quotation
+            filters: { year: 'all', month: 'all', customer: 'all', status: 'all' }
         };
 
         const app = {
@@ -819,7 +828,7 @@
                             return tB - tA;
                         });
                     }
-                    if(state.view === 'dashboard' && state.activeTab === coll.slice(0,-1)) app.switchTab(state.activeTab);
+                    if(state.view === 'dashboard' && state.activeTab === coll.slice(0,-1)) app.applyFilters();
                     if(state.view === 'dashboard' && state.activeTab === 'report') app.renderReports();
                     if(coll === 'payment_methods' && state.view === 'settings') app.renderPaymentMethods();
                 });
@@ -829,7 +838,9 @@
                 onSnapshot(doc(db, 'invoices', 'config_general'), (doc) => {
                     if (doc.exists()) {
                         state.settings = doc.data();
-                        if (state.view === 'verify' && state.currentDoc) app.renderPaper(state.currentDoc);
+                        if (state.view === 'verify' && state.currentDoc) {
+                            app.renderPaper(state.currentDoc, state.currentDoc.type); 
+                        }
                     }
                 });
             },
@@ -1092,21 +1103,115 @@
                 });
                 
                 const actionBar = document.getElementById('action-bar');
-                const filters = document.getElementById('report-filters');
+                const genericFilters = document.getElementById('generic-filters');
                 
+                if (tab === 'customer' || tab === 'settings') {
+                    if(genericFilters) genericFilters.style.display = 'none';
+                } else {
+                    if(genericFilters) {
+                        genericFilters.style.display = 'flex';
+                        app.initGenericFilters();
+                    }
+                }
+
+                if (tab === 'expense') {
+                    document.getElementById('filter-customer-wrapper').style.display = 'none';
+                } else {
+                    if(document.getElementById('filter-customer-wrapper')) document.getElementById('filter-customer-wrapper').style.display = 'block';
+                }
+
+                // Show/Hide Invoice Status Filter
+                if (tab === 'invoice') {
+                    document.getElementById('filter-status-wrapper').classList.remove('hidden');
+                } else {
+                    document.getElementById('filter-status-wrapper').classList.add('hidden');
+                }
+
                 if(tab === 'report') {
                     if(actionBar) actionBar.style.display = 'none';
-                    if(filters) {
-                        filters.style.display = 'flex';
-                        app.initReportFilters();
-                    }
                     app.renderReports();
                 } else {
                     if(actionBar) actionBar.style.display = 'flex';
-                    if(filters) filters.style.display = 'none';
                     if(document.getElementById('create-btn-text')) document.getElementById('create-btn-text').innerText = `${app.t('create_new')}`;
-                    app.renderList(state[tab + 's'], tab);
+                    app.applyFilters();
                 }
+            },
+
+            // --- Generic Filter Logic ---
+            initGenericFilters: () => {
+                const yearSelect = document.getElementById('filter-year');
+                const custSelect = document.getElementById('filter-customer');
+                
+                if(yearSelect.options.length === 0) {
+                    const currentYear = new Date().getFullYear();
+                    yearSelect.innerHTML = `<option value="all">All Years</option>`;
+                    for(let i=currentYear-2; i<=currentYear+1; i++) {
+                        yearSelect.innerHTML += `<option value="${i}" ${i===currentYear?'selected':''}>${i}</option>`;
+                    }
+                }
+                
+                custSelect.innerHTML = `<option value="all">All Customers</option>` + state.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                
+                if(state.filters.year) yearSelect.value = state.filters.year;
+                if(state.filters.month) document.getElementById('filter-month').value = state.filters.month;
+                if(state.filters.customer) custSelect.value = state.filters.customer;
+                if(state.filters.status) document.getElementById('filter-status').value = state.filters.status;
+            },
+
+            applyFilters: () => {
+                state.filters.year = document.getElementById('filter-year').value;
+                state.filters.month = document.getElementById('filter-month').value;
+                state.filters.customer = document.getElementById('filter-customer').value;
+                state.filters.status = document.getElementById('filter-status').value;
+
+                if (state.activeTab === 'report') {
+                    app.renderReports();
+                    return;
+                }
+
+                const allData = state[state.activeTab + 's'] || [];
+                const fYear = state.filters.year;
+                const fMonth = state.filters.month;
+                const fCust = state.filters.customer;
+                const fStatus = state.filters.status;
+
+                const checkDate = (timestamp) => {
+                    if(!timestamp) return false;
+                    const d = timestamp.seconds ? new Date(timestamp.seconds*1000) : new Date(timestamp);
+                    if(fYear !== 'all' && d.getFullYear() != fYear) return false;
+                    if(fMonth !== 'all' && d.getMonth() != fMonth) return false;
+                    return true;
+                };
+
+                const filtered = allData.filter(item => {
+                    const dateField = item.date || item.createdAt;
+                    if (!checkDate(dateField)) return false;
+
+                    if (state.activeTab !== 'expense' && fCust !== 'all') {
+                        if (item.clientName !== fCust) return false;
+                    }
+
+                    // Status Filter Logic for Invoices
+                    if (state.activeTab === 'invoice' && fStatus !== 'all') {
+                        if (item.status !== fStatus) {
+                            // "pending" status check
+                            if (fStatus === 'pending' && item.status !== 'pending') return false;
+                            // "paid" status check
+                            if (fStatus === 'paid' && item.status !== 'paid') return false;
+                            // "partial" status check
+                            if (fStatus === 'partial' && item.status !== 'partial') return false;
+                            // "refunded" status check
+                            if (fStatus === 'refunded' && item.status !== 'refunded') return false;
+                            
+                            // Exact Match for safety if not covered above
+                            if (item.status !== fStatus) return false;
+                        }
+                    }
+
+                    return true;
+                });
+
+                app.renderList(filtered, state.activeTab);
             },
 
             renderList: (data, type) => {
@@ -1121,10 +1226,11 @@
                 if (type === 'contract') {
                     container.innerHTML = `
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Title</th><th class="p-3">Client</th><th class="p-3">Date</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">ID</th><th class="p-3">Title</th><th class="p-3">Client</th><th class="p-3">Date</th><th class="p-3 text-right">Actions</th></tr></thead>
                         <tbody class="divide-y">${data.map(c => `
                             <tr class="hover:bg-gray-50">
-                                <td class="p-3 font-medium text-blue-600">${c.title}</td><td class="p-3">${c.clientName}</td><td class="p-3">${new Date(c.createdAt?.seconds*1000).toLocaleDateString()}</td>
+                                <td class="p-3 font-mono text-blue-600">${c.quotationNumber}</td>
+                                <td class="p-3 font-medium">${c.title}</td><td class="p-3">${c.clientName}</td><td class="p-3">${new Date(c.createdAt?.seconds*1000).toLocaleDateString()}</td>
                                 <td class="p-3 text-right">
                                     <button onclick="app.showVerify('${c.id}', 'contract')" class="text-gray-600 p-1 mr-2"><i data-lucide="printer" width="16"></i></button>
                                     <button onclick="app.editContract('${c.id}')" class="text-blue-600 p-1 mr-2"><i data-lucide="pencil" width="16"></i></button>
@@ -1358,8 +1464,14 @@
                         createdBy: state.user.uid
                     };
                     
-                    if(state.mode === 'invoice') docData.invoiceNumber = docNumber;
-                    else docData.quotationNumber = docNumber;
+                    if(state.mode === 'invoice') {
+                        docData.invoiceNumber = docNumber;
+                        if (!state.editingId) {
+                            docData.source = state.isConverted ? 'converted' : 'manual';
+                        }
+                    } else {
+                        docData.quotationNumber = docNumber;
+                    }
 
                     if(docData.securityCode === undefined) delete docData.securityCode;
 
@@ -1382,7 +1494,11 @@
             },
 
             createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.taxRate = state.settings.taxRate || 0; state.initPayment = 0; app.setView('create'); },
-            createManualInvoice: () => { app.closeModal(); app.createMode('invoice'); },
+            createManualInvoice: () => { 
+                app.closeModal(); 
+                state.isConverted = false; 
+                app.createMode('invoice'); 
+            },
             showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); app.translatePage(); lucide.createIcons(); },
             closeModal: () => document.getElementById('modal-container').innerHTML = '',
             
@@ -1417,6 +1533,9 @@
                 const q = state.quotations.find(i => i.id === id);
                 if(!q || !confirm("Convert to Invoice?")) return;
                 state.mode = 'invoice'; state.editingId = null; state.items = JSON.parse(JSON.stringify(q.items)); state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
+                
+                state.isConverted = true; 
+
                 app.setView('create');
                 setTimeout(() => { 
                     document.getElementById('client-name').value = q.clientName; 
@@ -1433,6 +1552,9 @@
                 if(snap.empty) return alert("Not Found");
                 const q = snap.docs[0].data();
                 app.closeModal(); state.mode = 'invoice'; state.editingId = null; state.items = q.items; state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
+                
+                state.isConverted = true; 
+
                 app.setView('create'); 
                 setTimeout(() => { 
                     document.getElementById('client-name').value = q.clientName; 
@@ -1532,7 +1654,7 @@
                 const fullUrl = window.location.origin + window.location.pathname + '?code=' + codeToEncode;
                 const qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`;
                 
-                const logo = state.settings.logo ? `<img src="${state.settings.logo}" class="h-20">` : '';
+                const logo = state.settings.logo ? `<img src="${state.settings.logo}" class="h-24 w-auto object-contain">` : '';
                 const sign = state.settings.authSign ? `<img src="${state.settings.authSign}" class="h-16 mx-auto">` : '';
                 
                 const bizInfo = `
@@ -1547,38 +1669,51 @@
                 if (t === 'contract') {
                     document.getElementById('verify-content').innerHTML = `
                     <div id="contract-paper" class="a4-paper">
-                         <div class="flex justify-between items-start mb-8 border-b pb-4">
-                            <div>${logo}${bizInfo}</div>
-                            <div class="text-right">
-                                <h1 class="text-2xl font-bold uppercase text-gray-800">${d.title}</h1>
-                                <p class="text-sm text-gray-500">Date: ${new Date(d.createdAt?.seconds*1000).toLocaleDateString()}</p>
-                                <div class="mt-4 text-sm leading-tight">
-                                    <p class="font-bold mb-1">Contract With:</p>
-                                    <p class="mb-0.5">${d.clientName}</p>
-                                    ${d.clientPhone ? `<p class="mb-0.5">${d.clientPhone}</p>`:''}
-                                    ${d.clientEmail ? `<p class="mb-0.5">${d.clientEmail}</p>`:''}
+                         <div>
+                             <div class="flex justify-between items-start mb-8 border-b pb-6">
+                                <div class="flex flex-col items-start">
+                                    ${logo}
+                                    <div class="mt-3">${bizInfo}</div>
                                 </div>
-                            </div>
-                         </div>
-                         <div class="prose max-w-none mb-12">
-                             ${d.content}
-                         </div>
-                         <div class="absolute bottom-12 left-12 right-12 flex justify-between items-end">
-                             <div class="text-center w-48 leading-tight">
-                                <div class="border-b border-gray-800 mb-1 pb-4"></div>
-                                <p class="font-bold text-sm m-0">${d.signerBusiness || d.clientName || 'Client'}</p>
-                                <p class="text-xs m-0">${d.signerName || ''}</p>
-                                <p class="text-[10px] text-gray-500 m-0">${d.signerPosition || 'Authorized Signature'}</p>
+                                <div class="text-right">
+                                    <div class="mb-4">
+                                        <span class="block text-xs text-gray-500 uppercase">Contract No.</span>
+                                        <span class="block font-bold text-xl text-blue-900">${d.quotationNumber}</span>
+                                        <span class="text-sm text-gray-500">Date: ${new Date(d.createdAt?.seconds*1000).toLocaleDateString()}</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-600 uppercase text-xs mb-1">Contract With:</h3>
+                                        <p class="font-bold text-lg mb-1">${d.clientName}</p>
+                                        <div class="text-sm text-gray-500 leading-tight">
+                                            ${d.clientPhone ? `<div>${d.clientPhone}</div>` : ''}
+                                            ${d.clientEmail ? `<div>${d.clientEmail}</div>` : ''}
+                                            ${d.clientAddress ? `<div>${d.clientAddress}</div>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
                              </div>
-                             <div class="text-center w-48 leading-tight">
-                                <div class="h-16 flex items-end justify-center">${sign}</div>
-                                <div class="border-b border-gray-800 mb-1"></div>
-                                <p class="font-bold text-sm m-0">${state.settings.bizName || 'Service Provider'}</p>
-                                <p class="text-xs m-0">${state.settings.authName || ''}</p>
-                                <p class="text-[10px] text-gray-500 m-0">Authorized Signature</p>
+                             <div class="prose max-w-none mb-12">
+                                 ${d.content}
                              </div>
-                             <div>
-                                <img src="${qr}" class="w-16">
+                         </div>
+                         <div class="mt-8 pt-4 border-t-2 border-gray-100">
+                             <div class="flex justify-between items-end">
+                                 <div class="text-center w-48 leading-tight">
+                                    <div class="border-b border-gray-800 mb-1 pb-4"></div>
+                                    <p class="font-bold text-sm m-0">${d.signerBusiness || d.clientName || 'Client'}</p>
+                                    <p class="text-xs m-0">${d.signerName || ''}</p>
+                                    <p class="text-[10px] text-gray-500 m-0">${d.signerPosition || 'Authorized Signature'}</p>
+                                 </div>
+                                 <div class="text-center w-48 leading-tight">
+                                    <div class="h-16 flex items-end justify-center">${sign}</div>
+                                    <div class="border-b border-gray-800 mb-1"></div>
+                                    <p class="font-bold text-sm m-0">${state.settings.bizName || 'Service Provider'}</p>
+                                    <p class="text-xs m-0">${state.settings.authName || ''}</p>
+                                    <p class="text-[10px] text-gray-500 m-0">Authorized Signature</p>
+                                 </div>
+                                 <div>
+                                    <img src="${qr}" class="w-16">
+                                 </div>
                              </div>
                          </div>
                     </div>`;
@@ -1587,9 +1722,9 @@
                     return;
                 }
 
-                // Invoice/Quotation Render (MODIFIED: Removed Table Borders, Added Refund Badge)
+                // Invoice/Quotation Render
                 document.getElementById('verify-content').innerHTML = `
-                <div id="invoice-paper" class="a4-paper flex flex-col justify-between">
+                <div id="invoice-paper" class="a4-paper">
                     <div>
                         <div class="flex justify-between border-b pb-6 mb-6">
                             <div>
@@ -1639,7 +1774,8 @@
                             </tbody>
                         </table>
                     </div>
-                    <div>
+                    
+                    <div class="mt-auto">
                         <div class="flex justify-between items-start border-t pt-4">
                             <div class="w-1/2 text-sm">
                                 <p class="font-bold">${app.t('payment_info')}</p><pre class="font-sans text-xs whitespace-pre-line">${state.settings.accounts||''}</pre>
@@ -1737,12 +1873,13 @@
             },
             renderReports: () => {
                 const container = document.getElementById('dashboard-content');
-                const fYear = document.getElementById('report-year')?.value || 'all';
-                const fMonth = document.getElementById('report-month')?.value || 'all';
-                const fCust = document.getElementById('report-customer')?.value || 'all';
+                const fYear = document.getElementById('filter-year').value;
+                const fMonth = document.getElementById('filter-month').value;
+                const fCust = document.getElementById('filter-customer').value;
 
                 const checkDate = (timestamp) => {
-                    const d = timestamp?.seconds ? new Date(timestamp.seconds*1000) : new Date(timestamp);
+                    if(!timestamp) return false;
+                    const d = timestamp.seconds ? new Date(timestamp.seconds*1000) : new Date(timestamp);
                     if(fYear !== 'all' && d.getFullYear() != fYear) return false;
                     if(fMonth !== 'all' && d.getMonth() != fMonth) return false;
                     return true;
@@ -1755,21 +1892,26 @@
                 let totalIncome = 0;
                 let totalReceivable = 0;
                 let totalExpense = 0;
-                let totalRefunds = 0; // New Metric
+                let totalRefunds = 0;
+                
+                // New Breakdown Vars
+                let manualInvCount = 0, manualInvTotal = 0;
+                let convertedInvCount = 0, convertedInvTotal = 0;
+
                 const methods = {};
                 const expMethods = {};
 
                 filteredInvoices.forEach(inv => {
-                    // Logic: If Refunded, we count it separately and NOT in Income.
-                    // Or we count payments but subtract them. 
-                    // Let's treat Refunded status as: Money Returned.
+                    const isManual = inv.source !== 'converted'; // Default to manual if undefined
                     
                     if (inv.status === 'refunded') {
-                        // Assume full refund of payments made
                         let paid = inv.payments ? inv.payments.reduce((s,p)=>s+p.amount,0) : 0;
                         totalRefunds += paid;
-                        // We don't add to totalIncome because it's refunded
                     } else {
+                        // Breakdown Stats
+                        if(isManual) { manualInvCount++; manualInvTotal += inv.totalAmount; }
+                        else { convertedInvCount++; convertedInvTotal += inv.totalAmount; }
+
                         let paid = 0;
                         if(inv.payments) {
                             inv.payments.forEach(p => {
@@ -1791,7 +1933,7 @@
                     expMethods[m] += Number(e.amount);
                 });
 
-                const netProfit = totalIncome - totalExpense; // Already excluded refunds from Income
+                const netProfit = totalIncome - totalExpense; 
 
                 container.innerHTML = `
                 <div class="p-4 bg-gray-50 min-h-screen">
@@ -1821,6 +1963,33 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div>
+                            <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('source_breakdown')}</h3>
+                            <div class="bg-white p-0 rounded shadow-sm border overflow-hidden">
+                                <table class="w-full text-sm">
+                                    <tr class="border-b bg-gray-50 text-gray-500">
+                                        <th class="p-3 text-left">Type</th>
+                                        <th class="p-3 text-center">Count</th>
+                                        <th class="p-3 text-right">Amount</th>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="p-3">${app.t('manual')}</td>
+                                        <td class="p-3 text-center font-bold">${manualInvCount}</td>
+                                        <td class="p-3 text-right">${manualInvTotal.toLocaleString()}</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="p-3">${app.t('from_qtn')}</td>
+                                        <td class="p-3 text-center font-bold">${convertedInvCount}</td>
+                                        <td class="p-3 text-right">${convertedInvTotal.toLocaleString()}</td>
+                                    </tr>
+                                    <tr class="bg-blue-50 font-bold">
+                                        <td class="p-3">Total Invoices</td>
+                                        <td class="p-3 text-center">${manualInvCount + convertedInvCount}</td>
+                                        <td class="p-3 text-right">${(manualInvTotal + convertedInvTotal).toLocaleString()}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
                             <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('method_breakdown')} (In - Out)</h3>
                             <div class="space-y-2">
                                 ${Object.keys({...methods, ...expMethods}).map(m => {
@@ -1836,19 +2005,6 @@
                                         </div>
                                     </div>`;
                                 }).join('')}
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('quotation_stats')}</h3>
-                            <div class="bg-white p-4 rounded shadow-sm border h-full">
-                                <div class="flex justify-between border-b pb-2 mb-2">
-                                    <span>${app.t('total_created')}</span>
-                                    <span class="font-bold">${filteredQuotations.length}</span>
-                                </div>
-                                <div class="flex justify-between border-b pb-2 mb-2">
-                                    <span>Contracts Created</span>
-                                    <span class="font-bold text-blue-600">${state.contracts.length}</span> 
-                                </div>
                             </div>
                         </div>
                     </div>
