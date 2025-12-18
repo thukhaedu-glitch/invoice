@@ -1682,8 +1682,8 @@
                                         <span class="text-sm text-gray-500">Date: ${new Date(d.createdAt?.seconds*1000).toLocaleDateString()}</span>
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-gray-600 uppercase text-xs mb-1">Contract With:</h3>
-                                        <p class="font-bold text-lg mb-1">${d.clientName}</p>
+                                        <h3 class="font-bold text-gray-600 uppercase text-xs mb-1 text-center">Contract With:</h3>
+                                        <p class="font-bold text-lg mb-1 text-center">${d.clientName}</p>
                                         <div class="text-sm text-gray-500 leading-tight">
                                             ${d.clientPhone ? `<div>${d.clientPhone}</div>` : ''}
                                             ${d.clientEmail ? `<div>${d.clientEmail}</div>` : ''}
@@ -2015,3 +2015,4 @@
     </script>
 </body>
 </html>
+
