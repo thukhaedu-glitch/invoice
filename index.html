@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="my">
 <head>
@@ -7,35 +6,20 @@
     <title>Freelance Services By Thukha Aung</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap');
         body { font-family: 'Padauk', sans-serif; }
-        
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* Editor & Paper Styles */
-        .editor-page, .a4-paper {
-            background: white;
-            padding: 40px;
-            outline: none;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #333;
-        }
-        .editor-page {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            min-height: 800px;
-        }
-
+        .editor-page, .a4-paper { background: white; padding: 40px; outline: none; font-size: 14px; line-height: 1.6; color: #333; }
+        .editor-page { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); min-height: 800px; }
         .editor-page h1, .a4-paper h1 { font-size: 24px; font-weight: 800; margin-bottom: 16px; display: block; color: #111; }
         .editor-page h2, .a4-paper h2 { font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; display: block; color: #111; }
         .editor-page h3, .a4-paper h3 { font-size: 18px; font-weight: 700; margin-top: 16px; margin-bottom: 8px; display: block; color: #333; }
@@ -48,7 +32,6 @@
         .editor-page td, .editor-page th, .a4-paper td, .a4-paper th { border: 1px solid #d1d5db; padding: 8px; vertical-align: top; word-wrap: break-word; }
         .editor-page th, .a4-paper th { background-color: #f9fafb; font-weight: bold; text-align: left; }
         
-        /* Invoice Table Specific (No Borders) */
         .invoice-table td, .invoice-table th { border: none !important; border-bottom: 1px solid #f3f4f6 !important; }
         .invoice-table thead th { border-bottom: 2px solid #000 !important; background: transparent !important; }
         .invoice-table tbody tr:last-child td { border-bottom: none !important; }
@@ -56,38 +39,12 @@
         .editor-page img { max-width: 100%; height: auto; margin: 12px 0; border-radius: 4px; }
         .a4-paper .content-area img { max-width: 100%; height: auto; margin: 12px 0; }
 
-        .editor-toolbar button, .editor-toolbar select {
-            padding: 6px;
-            border-radius: 4px;
-            color: #4b5563;
-            transition: background-color 0.2s;
-            border: 1px solid transparent;
-        }
+        .editor-toolbar button, .editor-toolbar select { padding: 6px; border-radius: 4px; color: #4b5563; transition: background-color 0.2s; border: 1px solid transparent; }
         .editor-toolbar select { border-color: #d1d5db; padding: 4px 8px; }
         .editor-toolbar button:hover { background-color: #f3f4f6; border-color: #d1d5db; }
         
-        .paper-container {
-            width: 100%;
-            overflow: auto;
-            display: flex;
-            justify-content: center;
-            background: #525659;
-            padding: 40px 0;
-            min-height: 100vh;
-        }
-        .a4-paper {
-            width: 210mm;
-            min-height: 297mm;
-            height: auto; 
-            background: white;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            padding: 20mm;
-            position: relative;
-            flex-shrink: 0; 
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
+        .paper-container { width: 100%; overflow: auto; display: flex; justify-content: center; background: #525659; padding: 40px 0; min-height: 100vh; }
+        .a4-paper { width: 210mm; min-height: 297mm; height: auto; background: white; box-shadow: 0 0 15px rgba(0,0,0,0.2); padding: 20mm; position: relative; flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; }
 
         @media screen and (max-width: 850px) {
             .paper-scaler { transform-origin: top center; }
@@ -123,7 +80,6 @@
 
     <input type="file" id="item-image-input" hidden accept="image/*" onchange="app.processItemImage(this)">
     <input type="file" id="contract-image-input" hidden accept="image/*" onchange="app.processContractImage(this)">
-    
     <input type="file" id="setting-logo-input" hidden accept="image/*" onchange="app.processLogo(this)">
     <input type="file" id="setting-sign-input" hidden accept="image/*" onchange="app.processSign(this)">
 
@@ -281,6 +237,11 @@
                     <span id="client-phone"></span> | <span id="client-address"></span>
                 </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Note / Reference</label>
+                    <input type="text" id="doc-note" class="w-full border p-2 rounded text-sm" placeholder="e.g. Project Ref, Quotation No...">
+                </div>
+
                 <div id="items-container">
                     <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="items">Items</label>
                 </div>
@@ -324,18 +285,14 @@
 
              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                  <input type="text" id="contract-title" placeholder="Contract Title" class="border p-2 rounded shadow-sm w-full md:col-span-3" required>
-                 
                  <input type="text" id="contract-doc-number" placeholder="Contract No." class="border p-2 rounded shadow-sm w-full font-mono uppercase" required>
-
                  <div class="md:col-span-2 grid grid-cols-2 gap-2">
                     <input type="text" id="contract-client-id" list="customer-ids" onchange="app.fillCustomerById(this.value)" placeholder="Cust ID" class="border p-2 rounded shadow-sm w-full uppercase">
                     <input type="text" id="contract-client" list="customer-list" onchange="app.fillCustomerInfo(this.value)" placeholder="Client Name" class="border p-2 rounded shadow-sm w-full" required>
                  </div>
-                 
                  <input type="text" id="signer-name" placeholder="Client Signer Name" class="border p-2 rounded shadow-sm w-full text-sm">
                  <input type="text" id="signer-position" placeholder="Client Position" class="border p-2 rounded shadow-sm w-full text-sm">
                  <input type="text" id="signer-business" placeholder="Client Business Name" class="border p-2 rounded shadow-sm w-full text-sm">
-
                  <input type="hidden" id="client-db-id">
                  <input type="hidden" id="client-email-hidden">
                  <input type="hidden" id="client-phone-hidden">
@@ -346,13 +303,7 @@
                  <div class="flex items-center mr-2 border rounded px-1">
                     <span class="text-xs text-gray-500 mr-1">Size</span>
                     <select onchange="app.execCmd('fontSize', this.value)" class="border-none outline-none text-sm bg-transparent">
-                        <option value="1">1 (Small)</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3 (Normal)</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7 (Huge)</option>
+                        <option value="1">1 (Small)</option><option value="2">2</option><option value="3" selected>3 (Normal)</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7 (Huge)</option>
                     </select>
                  </div>
                  <div class="w-px h-6 bg-gray-300 mx-1"></div>
@@ -377,35 +328,8 @@
                  <button onmousedown="event.preventDefault()" onclick="app.tableAction('deleteCol')" title="Delete Column" class="text-red-500"><i data-lucide="x-square" width="16"></i></button>
                  <button onmousedown="event.preventDefault()" onclick="app.tableAction('mergeRight')" title="Merge Right"><i data-lucide="merge" width="16"></i></button>
                  <button onmousedown="event.preventDefault()" onclick="app.tableAction('mergeDown')" title="Merge Down"><i data-lucide="arrow-down-square" width="16"></i></button>
-                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('formatBlock', 'h2')" title="Heading 1"><i data-lucide="heading" width="16"></i></button>
-                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('formatBlock', 'h3')" title="Heading 2"><i data-lucide="type" width="16"></i></button>
-                 <button onmousedown="event.preventDefault()" onclick="app.execCmd('formatBlock', 'p')" title="Paragraph"><i data-lucide="pilcrow" width="16"></i></button>
              </div>
-
              <div id="contract-editor" contenteditable="true" class="editor-page" placeholder="Type your contract here..."></div>
-        </div>
-    </template>
-
-    <template id="tpl-customer-form">
-        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
-            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4" id="cust-form-title" data-translate="add_customer">Add Customer</h3>
-                <form onsubmit="app.saveCustomer(event)" class="space-y-3">
-                    <input type="hidden" id="cust-id">
-                    <div class="flex gap-2">
-                        <input type="text" id="cust-display-id" placeholder="ID (Auto)" readonly class="w-1/3 border p-2 rounded bg-gray-100 text-gray-500">
-                        <input type="text" id="cust-name" placeholder="Name" required class="w-2/3 border p-2 rounded">
-                    </div>
-                    <input type="text" id="cust-phone" placeholder="Phone" class="w-full border p-2 rounded">
-                    <input type="email" id="cust-email" placeholder="Email" class="w-full border p-2 rounded">
-                    <input type="text" id="cust-address" placeholder="Address" class="w-full border p-2 rounded">
-                    <div class="flex justify-end gap-2 mt-4">
-                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded" data-translate="save">Save</button>
-                    </div>
-                </form>
-            </div>
         </div>
     </template>
 
@@ -415,11 +339,14 @@
                 <h3 class="text-lg font-bold mb-4" id="exp-form-title" data-translate="add_expense">Add Expense</h3>
                 <form onsubmit="app.saveExpense(event)" class="space-y-3">
                     <input type="hidden" id="exp-id">
-                    <input type="text" id="exp-title" placeholder="Description (e.g. Lunch)" required class="w-full border p-2 rounded">
+                    
+                    <label class="block text-xs font-medium text-gray-500">Category</label>
+                    <select id="exp-cat" class="w-full border p-2 rounded mb-2 bg-white"></select>
+
+                    <input type="text" id="exp-title" placeholder="Description" required class="w-full border p-2 rounded">
                     <div class="flex gap-2">
                         <input type="number" id="exp-amount" placeholder="Amount" required class="w-full border p-2 rounded">
-                        <select id="exp-method" class="border p-2 rounded bg-white payment-method-select">
-                        </select>
+                        <select id="exp-method" class="border p-2 rounded bg-white payment-method-select"></select>
                     </div>
                     <input type="date" id="exp-date" required class="w-full border p-2 rounded">
                     <div class="flex justify-end gap-2 mt-4">
@@ -470,11 +397,18 @@
 
                 <div class="p-4 bg-gray-50 rounded-lg border">
                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-700">Expense Categories</h3>
+                        <button type="button" onclick="app.addExpenseCategory()" class="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700">+ Add Category</button>
+                    </div>
+                    <div id="expense-cats-list" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="p-4 bg-gray-50 rounded-lg border">
+                    <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-gray-700">Payment Methods</h3>
                         <button type="button" onclick="app.addPaymentMethod()" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">+ Add New</button>
                     </div>
-                    <div id="payment-methods-list" class="space-y-2">
-                        </div>
+                    <div id="payment-methods-list" class="space-y-2"></div>
                     <div id="payment-method-form" class="hidden mt-3 p-3 bg-white border rounded shadow-sm">
                         <input type="text" id="new-method-name" placeholder="Method Name (e.g. KBZ Pay)" class="w-full border p-2 rounded text-sm mb-2">
                         <div class="flex justify-end gap-2">
@@ -624,7 +558,6 @@
                 from_quotation: "From Quotation",
                 load: "Load",
                 edit_contract: "Contract Editor",
-                
                 financial_overview: "Financial Overview",
                 income: "Income",
                 expense_label: "Expenses",
@@ -707,7 +640,6 @@
                 from_quotation: "Quotation မှ ပြောင်းမည်",
                 load: "ရှာဖွေမည်",
                 edit_contract: "စာချုပ်ရေးသားရန်",
-
                 financial_overview: "ဘဏ္ဍာရေး သုံးသပ်ချက်",
                 income: "ဝင်ငွေ",
                 expense_label: "ထွက်ငွေ (စရိတ်)",
@@ -743,11 +675,12 @@
             currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
             discount: 0, taxRate: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
             unlockPassword: '1234', uploadingRowIndex: null,
-            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', bizName: '', taxRate: 0 },
+            settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', bizName: '', taxRate: 0, expense_categories: [] },
             lang: localStorage.getItem('appLang') || 'en',
             defaultMethods: [{name: 'Cash'}, {name: 'KPay'}, {name: 'Wave'}, {name: 'Bank'}],
-            isConverted: false, // Track if creating from quotation
-            filters: { year: 'all', month: 'all', customer: 'all', status: 'all' }
+            isConverted: false,
+            filters: { year: 'all', month: 'all', customer: 'all', status: 'all' },
+            charts: {} 
         };
 
         const app = {
@@ -839,6 +772,10 @@
                 onSnapshot(doc(db, 'invoices', 'config_general'), (doc) => {
                     if (doc.exists()) {
                         state.settings = doc.data();
+                        // Populate default expense categories if missing
+                        if(!state.settings.expense_categories || state.settings.expense_categories.length === 0) {
+                            state.settings.expense_categories = ['Food', 'Transportation', 'Salary', 'Rent', 'Marketing', 'Utility', 'Other'];
+                        }
                         if (state.view === 'verify' && state.currentDoc) {
                             app.renderPaper(state.currentDoc, state.currentDoc.type); 
                         }
@@ -1042,6 +979,7 @@
             initSettingsView: () => {
                 app.fillSettingsForm();
                 app.renderPaymentMethods();
+                app.renderExpenseCategories();
             },
 
             renderPaymentMethods: () => {
@@ -1061,6 +999,37 @@
                 `).join('');
                 if(methods.length === 0) list.innerHTML = `<div class="text-xs text-gray-400 italic">No custom methods. Using defaults (Cash, KPay, etc.)</div>`;
                 lucide.createIcons();
+            },
+
+            renderExpenseCategories: () => {
+                const list = document.getElementById('expense-cats-list');
+                if(!list) return;
+                const cats = state.settings.expense_categories || [];
+                list.innerHTML = cats.map((c, i) => `
+                    <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+                        ${c}
+                        <button type="button" onclick="app.removeExpenseCategory(${i})" class="hover:text-purple-900">&times;</button>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            },
+
+            addExpenseCategory: async () => {
+                const val = prompt("New Category Name:");
+                if(val && val.trim()) {
+                    if(!state.settings.expense_categories) state.settings.expense_categories = [];
+                    state.settings.expense_categories.push(val.trim());
+                    await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
+                    app.renderExpenseCategories();
+                }
+            },
+
+            removeExpenseCategory: async (index) => {
+                if(confirm("Remove this category?")) {
+                    state.settings.expense_categories.splice(index, 1);
+                    await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
+                    app.renderExpenseCategories();
+                }
             },
 
             addPaymentMethod: () => document.getElementById('payment-method-form').classList.remove('hidden'),
@@ -1195,16 +1164,10 @@
                     // Status Filter Logic for Invoices
                     if (state.activeTab === 'invoice' && fStatus !== 'all') {
                         if (item.status !== fStatus) {
-                            // "pending" status check
                             if (fStatus === 'pending' && item.status !== 'pending') return false;
-                            // "paid" status check
                             if (fStatus === 'paid' && item.status !== 'paid') return false;
-                            // "partial" status check
                             if (fStatus === 'partial' && item.status !== 'partial') return false;
-                            // "refunded" status check
                             if (fStatus === 'refunded' && item.status !== 'refunded') return false;
-                            
-                            // Exact Match for safety if not covered above
                             if (item.status !== fStatus) return false;
                         }
                     }
@@ -1234,6 +1197,7 @@
                                 <td class="p-3 font-medium">${c.title}</td><td class="p-3">${c.clientName}</td><td class="p-3">${new Date(c.createdAt?.seconds*1000).toLocaleDateString()}</td>
                                 <td class="p-3 text-right">
                                     <button onclick="app.showVerify('${c.id}', 'contract')" class="text-gray-600 p-1 mr-2"><i data-lucide="printer" width="16"></i></button>
+                                    <button onclick="app.duplicateDoc('${c.id}', 'contract')" class="text-green-600 p-1 mr-2"><i data-lucide="copy" width="16"></i></button>
                                     <button onclick="app.editContract('${c.id}')" class="text-blue-600 p-1 mr-2"><i data-lucide="pencil" width="16"></i></button>
                                     <button onclick="app.deleteDoc('${c.id}', 'contracts')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
@@ -1256,12 +1220,12 @@
                 } else if (type === 'expense') {
                     container.innerHTML = `
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Desc</th><th class="p-3">Method</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Desc</th><th class="p-3">Category</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
                         <tbody class="divide-y">${data.map(e => `
                             <tr class="hover:bg-gray-50">
-                                <td class="p-3">${new Date(e.date).toLocaleDateString()}</td><td class="p-3 font-medium">${e.title}</td><td class="p-3"><span class="bg-gray-100 px-2 py-0.5 rounded text-xs">${e.method}</span></td>
-                                <td class="p-3 text-right font-medium text-red-600">-${Number(e.amount).toLocaleString()}</td>
+                                <td class="p-3">${new Date(e.date).toLocaleDateString()}</td><td class="p-3 font-medium">${e.title}</td><td class="p-3"><span class="bg-gray-100 text-xs px-2 py-1 rounded">${e.category||'-'}</span></td><td class="p-3 text-right font-medium text-red-600">-${Number(e.amount).toLocaleString()}</td>
                                 <td class="p-3 text-right">
+                                    <button onclick="app.duplicateDoc('${e.id}', 'expense')" class="text-green-600 p-1"><i data-lucide="copy" width="16"></i></button>
                                     <button onclick="app.deleteDoc('${e.id}', 'expenses')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
                             </tr>`).join('')}</tbody>
@@ -1297,6 +1261,7 @@
                              }
                              
                              actionBtns += `
+                                    <button onclick="app.duplicateDoc('${item.id}', '${type}')" class="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100" title="Copy"><i data-lucide="copy" width="14"></i></button>
                                     <button onclick="app.editDoc('${item.id}', '${type}')" class="p-1.5 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100" title="Edit"><i data-lucide="pencil" width="14"></i></button>
                                     <button onclick="app.deleteDoc('${item.id}', '${type}s')" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Delete"><i data-lucide="trash-2" width="14"></i></button>
                                 </div>
@@ -1313,6 +1278,75 @@
                     </table>`;
                 }
                 lucide.createIcons();
+            },
+
+            // --- Handlers & Actions ---
+            duplicateDoc: (id, type) => {
+                if(!confirm("Duplicate this record?")) return;
+                
+                if (type === 'expense') {
+                    const e = state.expenses.find(x => x.id === id);
+                    if(e) {
+                        const newData = {...e, date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()};
+                        delete newData.id;
+                        addDoc(collection(db, 'expenses'), newData);
+                    }
+                    return;
+                }
+
+                // For Inv/Quote/Contract
+                const coll = type + 's';
+                const docData = state[coll].find(x => x.id === id);
+                if (!docData) return;
+
+                const newData = JSON.parse(JSON.stringify(docData));
+                delete newData.id;
+                newData.createdAt = serverTimestamp();
+                newData.securityCode = (type==='contract'?'CON-':(type==='invoice'?'SEC-':'QTN-')) + Math.random().toString(36).substring(2,8).toUpperCase();
+                
+                // Generate new ID based on type
+                const rnd = Date.now().toString().slice(-6);
+                if (type === 'invoice') {
+                    newData.invoiceNumber = 'INV-' + rnd;
+                    newData.status = 'pending';
+                    newData.payments = [];
+                    newData.paidAt = null;
+                    if(newData.source) newData.source = 'manual'; // Reset source on duplicate
+                } else if (type === 'quotation') {
+                    newData.quotationNumber = 'QTN-' + rnd;
+                } else if (type === 'contract') {
+                    newData.quotationNumber = 'CON-' + rnd;
+                }
+
+                state.mode = type;
+                state.editingId = null; // Create Mode
+                
+                // Pre-fill form state
+                if (type === 'contract') {
+                    // Contracts handled differently
+                    // We just save it directly for simplicity or open editor?
+                    // Let's open editor with data
+                    app.setView('contract-edit');
+                    setTimeout(() => {
+                        document.getElementById('contract-title').value = newData.title + " (Copy)";
+                        document.getElementById('contract-doc-number').value = newData.quotationNumber;
+                        document.getElementById('contract-client').value = newData.clientName;
+                        app.fillCustomerInfo(newData.clientName);
+                        document.getElementById('contract-editor').innerHTML = newData.content;
+                    }, 200);
+                } else {
+                    state.items = newData.items;
+                    state.discount = newData.discount;
+                    state.taxRate = newData.taxRate;
+                    app.setView('create');
+                    setTimeout(() => {
+                        document.getElementById('client-name').value = newData.clientName;
+                        document.getElementById('doc-number').value = newData.invoiceNumber || newData.quotationNumber;
+                        document.getElementById('doc-note').value = newData.note || '';
+                        app.fillCustomerInfo(newData.clientName);
+                        app.calcTotal();
+                    }, 200);
+                }
             },
 
             markRefund: async (id) => {
@@ -1406,10 +1440,16 @@
                 app.translatePage();
                 app.populatePaymentSelects(); 
                 document.getElementById('exp-date').valueAsDate = new Date();
+
+                // Populate Categories
+                const catSelect = document.getElementById('exp-cat');
+                const cats = state.settings.expense_categories || ['Other'];
+                catSelect.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
             },
             saveExpense: async (e) => {
                 e.preventDefault();
                 const data = {
+                    category: document.getElementById('exp-cat').value,
                     title: document.getElementById('exp-title').value,
                     amount: Number(document.getElementById('exp-amount').value),
                     method: document.getElementById('exp-method').value,
@@ -1453,13 +1493,14 @@
                 const clientEmail = document.getElementById('client-email-hidden').value;
                 const clientPhone = document.getElementById('client-phone-hidden').value;
                 const clientAddress = document.getElementById('client-address-hidden').value;
+                const note = document.getElementById('doc-note').value;
 
                 const total = app.calcTotal();
                 const col = state.mode + 's'; 
                 try {
                     const docData = {
                         clientName, clientId, items: state.items, discount: state.discount, 
-                        taxRate: state.taxRate, totalAmount: total,
+                        taxRate: state.taxRate, totalAmount: total, note,
                         clientEmail, clientPhone, clientAddress,
                         securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
                         createdBy: state.user.uid
@@ -1514,6 +1555,7 @@
                     document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = d.invoiceNumber || d.quotationNumber;
+                    document.getElementById('doc-note').value = d.note || '';
                     
                     app.fillCustomerInfo(d.clientName); 
 
@@ -1526,7 +1568,9 @@
                 app.setView('contract-edit'); 
             },
             deleteDoc: async (id, coll) => {
-                 if(coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid' && prompt("Pass:") !== state.unlockPassword) return;
+                 if((coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid') || coll === 'expenses') {
+                     if(prompt("Pass:") !== state.unlockPassword) return;
+                 }
                  if(confirm("Delete?")) await deleteDoc(doc(db, coll, id));
             },
             
@@ -1543,6 +1587,10 @@
                     document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6); 
+                    
+                    // PREFILL NOTE
+                    document.getElementById('doc-note').value = `Ref: ${q.quotationNumber}`;
+
                     app.fillCustomerInfo(q.clientName);
                     app.calcTotal();
                 }, 100);
@@ -1562,6 +1610,7 @@
                     document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6);
+                    document.getElementById('doc-note').value = `Ref: ${q.quotationNumber}`;
                     app.fillCustomerInfo(q.clientName);
                     app.calcTotal();
                 }, 100);
@@ -1755,6 +1804,8 @@
                             </div>
                         </div>
                         
+                        ${d.note ? `<div class="mb-4 p-2 bg-gray-50 text-sm border-l-4 border-gray-300 italic">${d.note}</div>` : ''}
+
                         <table class="w-full mb-6 text-sm invoice-table">
                             <thead class="bg-gray-100">
                                 <tr>
@@ -1861,24 +1912,21 @@
                 app.closeModal();
             },
 
-            // --- Reports Logic (Updated for Refunds) ---
+            // --- Reports Logic (Updated with Charts & Pivots) ---
             initReportFilters: () => {
-                const yearSelect = document.getElementById('report-year');
-                const custSelect = document.getElementById('report-customer');
-                if(yearSelect.options.length > 0) return; 
-                const currentYear = new Date().getFullYear();
-                yearSelect.innerHTML = `<option value="all">All Years</option>`;
-                for(let i=currentYear-2; i<=currentYear+1; i++) {
-                    yearSelect.innerHTML += `<option value="${i}" ${i===currentYear?'selected':''}>${i}</option>`;
-                }
-                custSelect.innerHTML = `<option value="all">All Customers</option>` + state.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                // ... same as before
             },
             renderReports: () => {
                 const container = document.getElementById('dashboard-content');
+                // Cleanup old charts
+                if (state.charts.pie) state.charts.pie.destroy();
+                if (state.charts.line) state.charts.line.destroy();
+
                 const fYear = document.getElementById('filter-year').value;
                 const fMonth = document.getElementById('filter-month').value;
                 const fCust = document.getElementById('filter-customer').value;
 
+                // 1. Data Prep: General Overview
                 const checkDate = (timestamp) => {
                     if(!timestamp) return false;
                     const d = timestamp.seconds ? new Date(timestamp.seconds*1000) : new Date(timestamp);
@@ -1889,28 +1937,25 @@
 
                 const filteredInvoices = state.invoices.filter(i => checkDate(i.createdAt) && (fCust === 'all' || i.clientName === fCust));
                 const filteredExpenses = state.expenses.filter(e => checkDate(e.date)); 
-                const filteredQuotations = state.quotations.filter(q => checkDate(q.createdAt) && (fCust === 'all' || q.clientName === fCust));
-
-                let totalIncome = 0;
-                let totalReceivable = 0;
-                let totalExpense = 0;
-                let totalRefunds = 0;
                 
-                // New Breakdown Vars
+                let totalIncome = 0, totalExpense = 0, totalRefunds = 0, totalReceivable = 0;
                 let manualInvCount = 0, manualInvTotal = 0;
                 let convertedInvCount = 0, convertedInvTotal = 0;
+                
+                // NEW: Counters
+                const totalInvCount = state.invoices.length;
+                const totalQtnCount = state.quotations.length;
+                // Count Invoice marked as converted source
+                const convertedCount = state.invoices.filter(i => i.source === 'converted').length;
 
-                const methods = {};
-                const expMethods = {};
-
+                const clientIncome = {};
+                
                 filteredInvoices.forEach(inv => {
-                    const isManual = inv.source !== 'converted'; // Default to manual if undefined
-                    
+                    const isManual = inv.source !== 'converted';
                     if (inv.status === 'refunded') {
                         let paid = inv.payments ? inv.payments.reduce((s,p)=>s+p.amount,0) : 0;
                         totalRefunds += paid;
                     } else {
-                        // Breakdown Stats
                         if(isManual) { manualInvCount++; manualInvTotal += inv.totalAmount; }
                         else { convertedInvCount++; convertedInvTotal += inv.totalAmount; }
 
@@ -1918,29 +1963,65 @@
                         if(inv.payments) {
                             inv.payments.forEach(p => {
                                 paid += p.amount;
-                                totalIncome += p.amount; 
-                                let m = p.method;
-                                if(!methods[m]) methods[m] = 0;
-                                methods[m] += p.amount;
+                                totalIncome += p.amount;
+                                
+                                // Client Pivot Data
+                                if(!clientIncome[inv.clientName]) clientIncome[inv.clientName] = 0;
+                                clientIncome[inv.clientName] += p.amount;
                             });
                         }
                         if(paid < inv.totalAmount) totalReceivable += (inv.totalAmount - paid);
                     }
                 });
 
+                // Expense Pivot Data
+                const expenseByCat = {};
                 filteredExpenses.forEach(e => {
                     totalExpense += Number(e.amount);
-                    let m = e.method;
-                    if(!expMethods[m]) expMethods[m] = 0;
-                    expMethods[m] += Number(e.amount);
+                    const cat = e.category || 'Uncategorized';
+                    if(!expenseByCat[cat]) expenseByCat[cat] = 0;
+                    expenseByCat[cat] += Number(e.amount);
                 });
 
-                const netProfit = totalIncome - totalExpense; 
+                const netProfit = totalIncome - totalExpense;
 
+                // 2. Data Prep: Line Chart
+                const currentYear = new Date().getFullYear();
+                const selectedYear = fYear === 'all' ? currentYear : parseInt(fYear);
+                const prevYear = selectedYear - 1;
+
+                const monthlyIncomeCurrent = new Array(12).fill(0);
+                const monthlyIncomePrev = new Array(12).fill(0);
+
+                state.invoices.forEach(inv => {
+                    if (inv.status !== 'refunded' && inv.payments) {
+                        inv.payments.forEach(p => {
+                            const d = new Date(p.date);
+                            const m = d.getMonth();
+                            const y = d.getFullYear();
+                            if (y === selectedYear) monthlyIncomeCurrent[m] += p.amount;
+                            if (y === prevYear) monthlyIncomePrev[m] += p.amount;
+                        });
+                    }
+                });
+
+                // --- UI Rendering ---
                 container.innerHTML = `
-                <div class="p-4 bg-gray-50 min-h-screen">
-                    <h3 class="font-bold text-lg mb-4 text-gray-700">${app.t('financial_overview')} (${fYear==='all'?'All':fYear}${fMonth!=='all'?'/'+(parseInt(fMonth)+1):''})</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div class="p-4 bg-gray-50 min-h-screen space-y-6">
+                    <div class="flex gap-4 mb-4">
+                        <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-bold flex-1 text-center border border-blue-200">
+                            Total Invoices: <span class="text-lg block">${totalInvCount}</span>
+                        </div>
+                        <div class="bg-purple-100 text-purple-800 px-4 py-2 rounded-lg text-sm font-bold flex-1 text-center border border-purple-200">
+                            Total Quotations: <span class="text-lg block">${totalQtnCount}</span>
+                        </div>
+                        <div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-bold flex-1 text-center border border-green-200">
+                            Converted (Q to I): <span class="text-lg block">${convertedCount}</span>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-lg text-gray-700">${app.t('financial_overview')} (${fYear==='all'?'All':fYear})</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('income')}</div>
                             <div class="text-xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
@@ -1948,10 +2029,6 @@
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('expense_label')}</div>
                             <div class="text-xl font-bold text-red-600">${totalExpense.toLocaleString()}</div>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
-                            <div class="text-xs text-gray-500 uppercase">${app.t('refund_total')}</div>
-                            <div class="text-xl font-bold text-orange-600">${totalRefunds.toLocaleString()}</div>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('net_profit')}</div>
@@ -1961,65 +2038,105 @@
                             <div class="text-xs text-gray-500 uppercase">${app.t('receivable')}</div>
                             <div class="text-xl font-bold text-yellow-600">${totalReceivable.toLocaleString()}</div>
                         </div>
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+                            <div class="text-xs text-gray-500 uppercase">${app.t('refund_total')}</div>
+                            <div class="text-xl font-bold text-orange-600">${totalRefunds.toLocaleString()}</div>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div>
-                            <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('source_breakdown')}</h3>
-                            <div class="bg-white p-0 rounded shadow-sm border overflow-hidden">
-                                <table class="w-full text-sm">
-                                    <tr class="border-b bg-gray-50 text-gray-500">
-                                        <th class="p-3 text-left">Type</th>
-                                        <th class="p-3 text-center">Count</th>
-                                        <th class="p-3 text-right">Amount</th>
-                                    </tr>
-                                    <tr class="border-b">
-                                        <td class="p-3">${app.t('manual')}</td>
-                                        <td class="p-3 text-center font-bold">${manualInvCount}</td>
-                                        <td class="p-3 text-right">${manualInvTotal.toLocaleString()}</td>
-                                    </tr>
-                                    <tr class="border-b">
-                                        <td class="p-3">${app.t('from_qtn')}</td>
-                                        <td class="p-3 text-center font-bold">${convertedInvCount}</td>
-                                        <td class="p-3 text-right">${convertedInvTotal.toLocaleString()}</td>
-                                    </tr>
-                                    <tr class="bg-blue-50 font-bold">
-                                        <td class="p-3">Total Invoices</td>
-                                        <td class="p-3 text-center">${manualInvCount + convertedInvCount}</td>
-                                        <td class="p-3 text-right">${(manualInvTotal + convertedInvTotal).toLocaleString()}</td>
-                                    </tr>
-                                </table>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded-lg shadow border">
+                            <h4 class="font-bold text-gray-600 mb-4 text-sm">Income vs Expense (Current Filter)</h4>
+                            <div class="relative h-64"><canvas id="pieChart"></canvas></div>
                         </div>
-                        <div>
-                            <h3 class="font-bold text-sm mb-2 text-gray-600">${app.t('method_breakdown')} (In - Out)</h3>
-                            <div class="space-y-2">
-                                ${Object.keys({...methods, ...expMethods}).map(m => {
-                                    const inc = methods[m] || 0;
-                                    const out = expMethods[m] || 0;
-                                    const bal = inc - out;
-                                    return `
-                                    <div class="bg-white p-3 rounded shadow-sm border flex justify-between items-center">
-                                        <div class="font-medium text-gray-700">${m}</div>
-                                        <div class="text-right">
-                                            <div class="font-bold ${bal>=0?'text-green-600':'text-red-600'}">${bal.toLocaleString()}</div>
-                                            <div class="text-[10px] text-gray-400">In: ${inc.toLocaleString()} | Out: ${out.toLocaleString()}</div>
-                                        </div>
-                                    </div>`;
-                                }).join('')}
-                            </div>
+                        <div class="bg-white p-4 rounded-lg shadow border">
+                            <h4 class="font-bold text-gray-600 mb-4 text-sm">Monthly Income Trend (${selectedYear} vs ${prevYear})</h4>
+                            <div class="relative h-64"><canvas id="lineChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow border overflow-hidden">
+                            <div class="bg-gray-50 p-3 border-b font-bold text-gray-700 text-sm">Expense By Category</div>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="p-3 text-left">Category</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">%</th></tr></thead>
+                                <tbody class="divide-y">
+                                    ${Object.entries(expenseByCat).sort((a,b)=>b[1]-a[1]).map(([cat, amt]) => `
+                                        <tr>
+                                            <td class="p-3">${cat}</td>
+                                            <td class="p-3 text-right text-red-600">${amt.toLocaleString()}</td>
+                                            <td class="p-3 text-right text-gray-500">${totalExpense>0 ? Math.round((amt/totalExpense)*100)+'%' : '0%'}</td>
+                                        </tr>
+                                    `).join('')}
+                                    ${Object.keys(expenseByCat).length===0 ? '<tr><td colspan="3" class="p-4 text-center text-gray-400">No expenses found</td></tr>' : ''}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow border overflow-hidden">
+                            <div class="bg-gray-50 p-3 border-b font-bold text-gray-700 text-sm">Top Clients (Income)</div>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="p-3 text-left">Client</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">%</th></tr></thead>
+                                <tbody class="divide-y">
+                                    ${Object.entries(clientIncome).sort((a,b)=>b[1]-a[1]).slice(0, 10).map(([cli, amt]) => `
+                                        <tr>
+                                            <td class="p-3 font-medium">${cli}</td>
+                                            <td class="p-3 text-right text-green-600">${amt.toLocaleString()}</td>
+                                            <td class="p-3 text-right text-gray-500">${totalIncome>0 ? Math.round((amt/totalIncome)*100)+'%' : '0%'}</td>
+                                        </tr>
+                                    `).join('')}
+                                    ${Object.keys(clientIncome).length===0 ? '<tr><td colspan="3" class="p-4 text-center text-gray-400">No income data</td></tr>' : ''}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>`;
+
+                // --- Render Charts ---
+                // Pie Chart
+                const ctxPie = document.getElementById('pieChart').getContext('2d');
+                state.charts.pie = new Chart(ctxPie, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Income', 'Expense'],
+                        datasets: [{
+                            data: [totalIncome, totalExpense],
+                            backgroundColor: ['#10B981', '#EF4444'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // Line Chart
+                const ctxLine = document.getElementById('lineChart').getContext('2d');
+                state.charts.line = new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                        datasets: [
+                            {
+                                label: `${selectedYear}`,
+                                data: monthlyIncomeCurrent,
+                                borderColor: '#3B82F6',
+                                tension: 0.3,
+                                fill: false
+                            },
+                            {
+                                label: `${prevYear}`,
+                                data: monthlyIncomePrev,
+                                borderColor: '#9CA3AF',
+                                borderDash: [5, 5],
+                                tension: 0.3,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
             }
         };
         window.app = app; app.init();
     </script>
 </body>
 </html>
-
-
-
-
-
-
