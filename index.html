@@ -1685,6 +1685,7 @@
                                         <h5 class="text-right font-bold text-gray-600 uppercase text-xs mb-1 ">Contract With:</h5>
                                         <h5 class="text-right font-bold text-gray-600 uppercase text-xs mb-1 ">${d.clientName}</h5>
                                         <div class="text-sm text-gray-500 leading-tight">
+                                         ${d.clientPhone ? `<div>${d.clientPhone}</div>` : ''}
                                             ${d.clientPhone ? `<div>${d.clientPhone}</div>` : ''}
                                             ${d.clientEmail ? `<div>${d.clientEmail}</div>` : ''}
                                             ${d.clientAddress ? `<div>${d.clientAddress}</div>` : ''}
@@ -2015,6 +2016,7 @@
     </script>
 </body>
 </html>
+
 
 
 
