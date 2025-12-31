@@ -151,6 +151,7 @@
                 <button onclick="app.switchTab('contract')" id="tab-contract" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="contracts">Contracts</button>
                 <button onclick="app.switchTab('customer')" id="tab-customer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="customers">Customers</button>
                 <button onclick="app.switchTab('expense')" id="tab-expense" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="expenses">Expenses</button>
+                <button onclick="app.switchTab('adjustment')" id="tab-adjustment" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Adjustment</button>
                 <button onclick="app.switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="reports">Reports</button>
                 <button onclick="app.setView('settings')" class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50"><i data-lucide="settings" width="16" class="inline"></i></button>
             </div>
@@ -250,7 +251,9 @@
                 <div class="border-t pt-4 bg-gray-50 p-4 rounded-lg">
                     <div class="flex justify-between items-center mb-2"><span class="text-gray-600" data-translate="subtotal">Subtotal:</span><span class="font-medium" id="subtotal-display">0</span></div>
                     <div class="flex justify-between items-center mb-2"><span class="text-gray-600" data-translate="discount">Discount (Ks):</span><input type="number" id="discount-input" value="0" min="0" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'discount')"></div>
-                    <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Tax (%):</span><input type="number" id="tax-input" value="0" min="0" step="0.1" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'tax')"></div>
+                        <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Tax (%):</span><input type="number" id="tax-input" value="0" min="0" step="0.1" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'tax')"></div>
+                        <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Service / Delivery (Ks):</span><input type="number" id="service-fee" value="0" min="0" step="0.01" class="border p-1 w-32 text-right rounded" onchange="app.updateCalc(this.value, 'service')"></div>
+                        <div class="flex justify-between items-center mb-4"><span class="text-gray-600">Service / Delivery Note:</span><input type="text" id="service-desc" value="" class="border p-1 w-full rounded" placeholder="e.g. Delivery fee, Support charge..."></div>
                     
                     <div class="flex justify-between items-center text-lg font-bold text-gray-800 mb-4 border-t border-gray-200 pt-2"><span data-translate="total">Total:</span><span><span id="create-total">0</span> Ks</span></div>
                     <div id="invoice-payment-section">
@@ -358,6 +361,74 @@
         </div>
     </template>
 
+    <template id="tpl-customer-form">
+        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4" id="cust-form-title">Add Customer</h3>
+                <form onsubmit="app.saveCustomer(event)" class="space-y-3">
+                    <input type="hidden" id="cust-id">
+                    <label class="block text-xs font-medium text-gray-500">Customer ID</label>
+                    <input type="text" id="cust-display-id" class="w-full border p-2 rounded mb-2 uppercase">
+
+                    <label class="block text-xs font-medium text-gray-500">Name</label>
+                    <input type="text" id="cust-name" required class="w-full border p-2 rounded mb-2">
+
+                    <label class="block text-xs font-medium text-gray-500">Phone</label>
+                    <input type="text" id="cust-phone" class="w-full border p-2 rounded mb-2">
+
+                    <label class="block text-xs font-medium text-gray-500">Email</label>
+                    <input type="email" id="cust-email" class="w-full border p-2 rounded mb-2">
+
+                    <label class="block text-xs font-medium text-gray-500">Address</label>
+                    <input type="text" id="cust-address" class="w-full border p-2 rounded mb-2">
+
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-adjustment-form">
+        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4">Add Adjustment</h3>
+                <form onsubmit="app.saveAdjustment(event)" class="space-y-3">
+                    <input type="hidden" id="adj-id">
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-500">Type</label>
+                            <select id="adj-type" class="w-full border p-2 rounded mb-2 bg-white">
+                                <option value="adjustment">Adjustment</option>
+                                <option value="refund">Refund</option>
+                            </select>
+                        </div>
+                        <div class="w-24">
+                            <label class="block text-xs font-medium text-gray-500">Sign</label>
+                            <select id="adj-sign" class="w-full border p-2 rounded mb-2 bg-white">
+                                <option value="-">-</option>
+                                <option value="+">+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="text" id="adj-title" placeholder="Description" required class="w-full border p-2 rounded">
+                    <div class="flex gap-2">
+                        <input type="number" id="adj-amount" placeholder="Amount" required class="w-full border p-2 rounded">
+                        <select id="adj-method" class="border p-2 rounded bg-white payment-method-select"></select>
+                    </div>
+                    <input type="date" id="adj-date" required class="w-full border p-2 rounded">
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
     <template id="tpl-settings">
         <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-lg border fade-in">
             <div class="flex justify-between items-center mb-6 border-b pb-2">
@@ -375,6 +446,16 @@
                         <div><label class="block text-xs font-medium mb-1">Website</label><input type="text" id="setting-biz-web" class="w-full border p-2 rounded text-sm"></div>
                         <div><label class="block text-xs font-medium mb-1">Email</label><input type="text" id="setting-biz-email" class="w-full border p-2 rounded text-sm"></div>
                         <div><label class="block text-xs font-medium mb-1">Default Tax (%)</label><input type="number" step="0.1" id="setting-tax" class="w-full border p-2 rounded text-sm"></div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white rounded-lg border">
+                    <h3 class="font-bold text-gray-700">Security</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Unlock Password</label>
+                            <input type="text" id="setting-unlock-pass" class="w-full border p-2 rounded text-sm" placeholder="Security password for protected actions">
+                        </div>
                     </div>
                 </div>
 
@@ -671,10 +752,10 @@
 
         const state = {
             user: null, isAdmin: false, view: 'home', activeTab: 'invoice', mode: 'invoice',
-            invoices: [], quotations: [], customers: [], expenses: [], contracts: [], payment_methods: [],
+            invoices: [], quotations: [], customers: [], expenses: [], contracts: [], payment_methods: [], adjustments: [],
             currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
-            discount: 0, taxRate: 0, initPayment: 0, tempInvoice: null, html5QrCode: null, editingId: null,
-            unlockPassword: '1234', uploadingRowIndex: null,
+            discount: 0, taxRate: 0, initPayment: 0, serviceFee: 0, tempInvoice: null, html5QrCode: null, editingId: null,
+            unlockPassword: null, uploadingRowIndex: null,
             settings: { logo: null, accounts: '', terms: '', authName: '', authSign: null, bizAddress: '', bizPhone: '', bizWeb: '', bizEmail: '', bizName: '', taxRate: 0, expense_categories: [] },
             lang: localStorage.getItem('appLang') || 'en',
             defaultMethods: [{name: 'Cash'}, {name: 'KPay'}, {name: 'Wave'}, {name: 'Bank'}],
@@ -694,6 +775,7 @@
                             app.listenCollection('quotations');
                             app.listenCollection('customers');
                             app.listenCollection('expenses');
+                            app.listenCollection('adjustments');
                             app.listenCollection('contracts');
                             app.listenCollection('payment_methods');
                         }
@@ -776,6 +858,8 @@
                         if(!state.settings.expense_categories || state.settings.expense_categories.length === 0) {
                             state.settings.expense_categories = ['Food', 'Transportation', 'Salary', 'Rent', 'Marketing', 'Utility', 'Other'];
                         }
+                        // Load unlock password from settings (fallback to '1234' if missing)
+                        state.unlockPassword = state.settings.unlockPassword || state.unlockPassword || '1234';
                         if (state.view === 'verify' && state.currentDoc) {
                             app.renderPaper(state.currentDoc, state.currentDoc.type); 
                         }
@@ -1230,6 +1314,22 @@
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
+                } else if (type === 'adjustment') {
+                    container.innerHTML = `
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Desc</th><th class="p-3">Method</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <tbody class="divide-y">${data.map(a => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3">${new Date(a.date).toLocaleDateString()}</td>
+                                <td class="p-3 font-medium">${a.title}</td>
+                                <td class="p-3"><span class="bg-gray-100 text-xs px-2 py-1 rounded">${a.method||'-'}</span></td>
+                                <td class="p-3 text-right font-medium ${a.sign==='+'?'text-green-700':'text-red-600'}">${a.sign==='+' ? ('+' + Number(a.amount).toLocaleString()) : ('-' + Number(a.amount).toLocaleString())}</td>
+                                <td class="p-3 text-right">
+                                    <button onclick="app.duplicateDoc('${a.id}', 'adjustment')" class="text-green-600 p-1"><i data-lucide="copy" width="16"></i></button>
+                                    <button onclick="app.deleteDoc('${a.id}', 'adjustments')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                </td>
+                            </tr>`).join('')}</tbody>
+                    </table>`;
                 } else {
                     // Invoice & Quotation
                     container.innerHTML = `
@@ -1290,6 +1390,24 @@
                         const newData = {...e, date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()};
                         delete newData.id;
                         addDoc(collection(db, 'expenses'), newData);
+                    }
+                    return;
+                }
+                if (type === 'adjustments' || type === 'adjustment') {
+                    const a = state.adjustments.find(x => x.id === id);
+                    if(a) {
+                        const newData = {...a, date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()};
+                        delete newData.id;
+                        addDoc(collection(db, 'adjustments'), newData);
+                    }
+                    return;
+                }
+                if (type === 'adjustment') {
+                    const a = state.adjustments.find(x => x.id === id);
+                    if(a) {
+                        const newData = {...a, date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()};
+                        delete newData.id;
+                        addDoc(collection(db, 'adjustments'), newData);
                     }
                     return;
                 }
@@ -1362,6 +1480,7 @@
                 else if(tab === 'contract') { state.editingId = null; app.setView('contract-edit'); }
                 else if(tab === 'customer') app.openCustomerModal();
                 else if(tab === 'expense') app.openExpenseModal();
+                else if(tab === 'adjustment') app.openAdjustmentModal();
             },
 
             openCustomerModal: (cust = null) => {
@@ -1460,6 +1579,31 @@
                 app.closeModal();
             },
 
+            openAdjustmentModal: () => {
+                const modal = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-adjustment-form');
+                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                app.translatePage();
+                app.populatePaymentSelects();
+                document.getElementById('adj-date').valueAsDate = new Date();
+            },
+            saveAdjustment: async (e) => {
+                e.preventDefault();
+                const sign = document.getElementById('adj-sign') ? document.getElementById('adj-sign').value : '-';
+                const rawAmt = Number(document.getElementById('adj-amount').value || 0);
+                const data = {
+                    type: (sign === '+' ? 'refund' : 'adjustment'),
+                    sign: sign,
+                    title: document.getElementById('adj-title').value,
+                    amount: rawAmt,
+                    method: document.getElementById('adj-method').value,
+                    date: document.getElementById('adj-date').value,
+                    createdAt: serverTimestamp()
+                };
+                await addDoc(collection(db, 'adjustments'), data);
+                app.closeModal();
+            },
+
             initCreateForm: () => {
                 const title = state.editingId ? `Edit ${state.mode}` : `New ${state.mode}`;
                 document.getElementById('form-title').innerText = title;
@@ -1480,6 +1624,8 @@
                 if(!state.editingId) {
                     state.taxRate = state.settings.taxRate || 0;
                     document.getElementById('tax-input').value = state.taxRate;
+                    if(document.getElementById('service-fee')) document.getElementById('service-fee').value = state.serviceFee || 0;
+                    if(document.getElementById('service-desc')) document.getElementById('service-desc').value = state.serviceDesc || '';
                     docNumInput.value = (state.mode === 'invoice' ? 'INV-' : 'QTN-') + Date.now().toString().slice(-6);
                     app.calcTotal();
                 }
@@ -1500,11 +1646,16 @@
                 try {
                     const docData = {
                         clientName, clientId, items: state.items, discount: state.discount, 
-                        taxRate: state.taxRate, totalAmount: total, note,
+                            taxRate: state.taxRate, totalAmount: total, note,
                         clientEmail, clientPhone, clientAddress,
                         securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
                         createdBy: state.user.uid
                     };
+                        // Include service fee and description when saving invoice/quotation
+                        const feeEl = document.getElementById('service-fee');
+                        if(feeEl) docData.serviceFee = Number(feeEl.value || state.serviceFee || 0);
+                        const descEl = document.getElementById('service-desc');
+                        if(descEl) docData.serviceDesc = descEl.value || state.serviceDesc || '';
                     
                     if(state.mode === 'invoice') {
                         docData.invoiceNumber = docNumber;
@@ -1535,7 +1686,7 @@
                 } catch(e) { console.error(e); alert(e.message); }
             },
 
-            createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.taxRate = state.settings.taxRate || 0; state.initPayment = 0; app.setView('create'); },
+            createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.taxRate = state.settings.taxRate || 0; state.initPayment = 0; state.serviceFee = 0; app.setView('create'); },
             createManualInvoice: () => { 
                 app.closeModal(); 
                 state.isConverted = false; 
@@ -1558,6 +1709,10 @@
                     document.getElementById('doc-note').value = d.note || '';
                     
                     app.fillCustomerInfo(d.clientName); 
+
+                    // Populate service fee and description if present on document
+                    if(document.getElementById('service-fee')) document.getElementById('service-fee').value = d.serviceFee || 0;
+                    if(document.getElementById('service-desc')) document.getElementById('service-desc').value = d.serviceDesc || '';
 
                     if(type==='invoice'){ document.getElementById('init-payment-input').disabled = true; }
                     app.calcTotal();
@@ -1632,12 +1787,13 @@
                 if(t==='discount') state.discount=Number(v); 
                 if(t==='tax') state.taxRate=Number(v);
                 if(t==='payment') state.initPayment=Number(v); 
+                if(t==='service') state.serviceFee=Number(v);
                 app.calcTotal(); 
             },
             calcTotal: () => {
                 const sub = state.items.reduce((s,i)=>s+(i.price*i.qty),0); 
                 const taxAmt = sub * (state.taxRate / 100);
-                const tot = sub - state.discount + taxAmt;
+                const tot = sub - state.discount + taxAmt + (state.serviceFee || 0);
                 
                 document.getElementById('subtotal-display').innerText = sub.toLocaleString();
                 document.getElementById('create-total').innerText = tot.toLocaleString();
@@ -1665,6 +1821,7 @@
                 document.getElementById('setting-biz-web').value = state.settings.bizWeb || '';
                 document.getElementById('setting-biz-email').value = state.settings.bizEmail || '';
                 document.getElementById('setting-tax').value = state.settings.taxRate || 0;
+                if(document.getElementById('setting-unlock-pass')) document.getElementById('setting-unlock-pass').value = state.settings.unlockPassword || '';
             },
             handleSaveSettings: async (e) => {
                 e.preventDefault();
@@ -1678,6 +1835,9 @@
                 state.settings.bizWeb = document.getElementById('setting-biz-web').value;
                 state.settings.bizEmail = document.getElementById('setting-biz-email').value;
                 state.settings.taxRate = Number(document.getElementById('setting-tax').value);
+                // Save unlock password from settings UI
+                const up = document.getElementById('setting-unlock-pass');
+                if(up) state.settings.unlockPassword = up.value || '';
 
                 await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
                 alert("Saved"); app.setView('dashboard');
@@ -1937,8 +2097,10 @@
 
                 const filteredInvoices = state.invoices.filter(i => checkDate(i.createdAt) && (fCust === 'all' || i.clientName === fCust));
                 const filteredExpenses = state.expenses.filter(e => checkDate(e.date)); 
+                const filteredAdjustments = (state.adjustments||[]).filter(a => checkDate(a.date));
                 
                 let totalIncome = 0, totalExpense = 0, totalRefunds = 0, totalReceivable = 0;
+                let adjInTotal = 0, adjOutTotal = 0;
                 let manualInvCount = 0, manualInvTotal = 0;
                 let convertedInvCount = 0, convertedInvTotal = 0;
                 
@@ -1983,12 +2145,50 @@
                     expenseByCat[cat] += Number(e.amount);
                 });
 
-                const netProfit = totalIncome - totalExpense;
+                // Process adjustments: sign '+' or type 'refund' treated as income, otherwise expense
+                filteredAdjustments.forEach(a => {
+                    const amt = Number(a.amount || 0);
+                    const isIncome = (a.sign === '+') || (a.type === 'refund');
+                    if(isIncome) {
+                        // Adjustment positive amounts are NOT counted under Income total.
+                        // Track separately under Adjustments In.
+                        adjInTotal += amt;
+                    } else {
+                        // Negative adjustments count as expense (Adjustments Out)
+                        adjOutTotal += amt;
+                        totalExpense += amt;
+                        const cat = a.category || 'Adjustment';
+                        if(!expenseByCat[cat]) expenseByCat[cat] = 0;
+                        expenseByCat[cat] += amt;
+                    }
+                });
 
-                // 2. Data Prep: Line Chart
+                // Prepare monthly expense arrays (for green/red line chart)
                 const currentYear = new Date().getFullYear();
                 const selectedYear = fYear === 'all' ? currentYear : parseInt(fYear);
                 const prevYear = selectedYear - 1;
+                const monthlyExpenseCurrent = new Array(12).fill(0);
+                const monthlyExpensePrev = new Array(12).fill(0);
+                // Add regular expenses
+                filteredExpenses.forEach(e => {
+                    const d = new Date(e.date);
+                    const m = d.getMonth(); const y = d.getFullYear(); const amt = Number(e.amount || 0);
+                    if (y === selectedYear) monthlyExpenseCurrent[m] += amt;
+                    if (y === prevYear) monthlyExpensePrev[m] += amt;
+                });
+                // Add adjustments that are not refunds as expenses
+                filteredAdjustments.forEach(a => {
+                    if(a.type !== 'refund' && a.date) {
+                        const d = new Date(a.date);
+                        const m = d.getMonth(); const y = d.getFullYear(); const amt = Number(a.amount || 0);
+                        if (y === selectedYear) monthlyExpenseCurrent[m] += amt;
+                        if (y === prevYear) monthlyExpensePrev[m] += amt;
+                    }
+                });
+
+                const netProfit = totalIncome - totalExpense;
+
+                // 2. Data Prep: Line Chart
 
                 const monthlyIncomeCurrent = new Array(12).fill(0);
                 const monthlyIncomePrev = new Array(12).fill(0);
@@ -2004,6 +2204,8 @@
                         });
                     }
                 });
+
+                // Note: adjustments are shown separately in the Adjustments card/table
 
                 // --- UI Rendering ---
                 container.innerHTML = `
@@ -2021,7 +2223,7 @@
                     </div>
 
                     <h3 class="font-bold text-lg text-gray-700">${app.t('financial_overview')} (${fYear==='all'?'All':fYear})</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('income')}</div>
                             <div class="text-xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
@@ -2042,6 +2244,19 @@
                             <div class="text-xs text-gray-500 uppercase">${app.t('refund_total')}</div>
                             <div class="text-xl font-bold text-orange-600">${totalRefunds.toLocaleString()}</div>
                         </div>
+                        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-500">
+                            <div class="text-xs text-gray-500 uppercase">Adjustments</div>
+                            <div class="mt-2 flex gap-4">
+                                <div class="flex-1 text-center">
+                                    <div class="text-xs text-gray-500">In</div>
+                                    <div class="text-lg font-bold text-green-600">${adjInTotal.toLocaleString()}</div>
+                                </div>
+                                <div class="flex-1 text-center">
+                                    <div class="text-xs text-gray-500">Out</div>
+                                    <div class="text-lg font-bold text-red-600">${adjOutTotal.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2050,9 +2265,9 @@
                             <div class="relative h-64"><canvas id="pieChart"></canvas></div>
                         </div>
                         <div class="bg-white p-4 rounded-lg shadow border">
-                            <h4 class="font-bold text-gray-600 mb-4 text-sm">Monthly Income Trend (${selectedYear} vs ${prevYear})</h4>
-                            <div class="relative h-64"><canvas id="lineChart"></canvas></div>
-                        </div>
+                                <h4 class="font-bold text-gray-600 mb-4 text-sm">Monthly Income Trend (${selectedYear} vs ${prevYear})</h4>
+                                <div class="relative h-64"><canvas id="lineChart"></canvas></div>
+                            </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2130,6 +2345,29 @@
                                 tension: 0.3,
                                 fill: false
                             }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // --- Green/Red Line Chart (Income vs Expense) ---
+                const grContainer = document.createElement('div');
+                grContainer.className = 'bg-white p-4 rounded-lg shadow border mt-6';
+                grContainer.innerHTML = `<h4 class="font-bold text-gray-600 mb-4 text-sm">Income (Green) vs Expense (Red) - ${selectedYear}</h4><div class="relative h-64"><canvas id="grLineChart"></canvas></div>`;
+                document.querySelector('.p-4.bg-gray-50.min-h-screen.space-y-6').appendChild(grContainer);
+
+                const monthlyExpenseCurrentFinal = typeof monthlyExpenseCurrent !== 'undefined' ? monthlyExpenseCurrent : new Array(12).fill(0);
+                const monthlyExpensePrevFinal = typeof monthlyExpensePrev !== 'undefined' ? monthlyExpensePrev : new Array(12).fill(0);
+
+                const ctxGr = document.getElementById('grLineChart').getContext('2d');
+                if(state.charts.grLine) state.charts.grLine.destroy();
+                state.charts.grLine = new Chart(ctxGr, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                        datasets: [
+                            { label: 'Income', data: monthlyIncomeCurrent, borderColor: '#10B981', backgroundColor: '#10B98122', tension: 0.3, fill: false },
+                            { label: 'Expense', data: monthlyExpenseCurrentFinal, borderColor: '#EF4444', backgroundColor: '#EF444422', tension: 0.3, fill: false }
                         ]
                     },
                     options: { responsive: true, maintainAspectRatio: false }
