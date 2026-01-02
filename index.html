@@ -454,7 +454,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium mb-1">Unlock Password</label>
-                            <input type="text" id="setting-unlock-pass" class="w-full border p-2 rounded text-sm" placeholder="Security password for protected actions">
+                            <input type="password" id="setting-unlock-pass" class="w-full border p-2 rounded text-sm" placeholder="Enter new unlock password (leave blank to keep)">
+                            <div class="text-xs text-gray-400 mt-1">To change this password, enter the current password below.</div>
+                            <input type="password" id="setting-unlock-pass-current" class="w-full border p-2 rounded text-sm mt-2" placeholder="Current unlock password">
                         </div>
                     </div>
                 </div>
@@ -1075,7 +1077,7 @@
                     <div class="flex justify-between items-center bg-white p-2 border rounded text-sm">
                         <span class="font-medium">${m.name}</span>
                         <div>
-                            <button type="button" onclick="app.deletePaymentMethod('${m.id}')" class="text-red-600 hover:text-red-800 px-2">
+                            <button type="button" onclick="app.requireUnlockAndThen('deletePaymentMethod','${m.id}')" class="text-red-600 hover:text-red-800 px-2">
                                 <i data-lucide="trash-2" width="14"></i>
                             </button>
                         </div>
@@ -1282,8 +1284,8 @@
                                 <td class="p-3 text-right">
                                     <button onclick="app.showVerify('${c.id}', 'contract')" class="text-gray-600 p-1 mr-2"><i data-lucide="printer" width="16"></i></button>
                                     <button onclick="app.duplicateDoc('${c.id}', 'contract')" class="text-green-600 p-1 mr-2"><i data-lucide="copy" width="16"></i></button>
-                                    <button onclick="app.editContract('${c.id}')" class="text-blue-600 p-1 mr-2"><i data-lucide="pencil" width="16"></i></button>
-                                    <button onclick="app.deleteDoc('${c.id}', 'contracts')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('editContract','${c.id}')" class="text-blue-600 p-1 mr-2"><i data-lucide="pencil" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${c.id}','contracts')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
@@ -1296,8 +1298,8 @@
                                 <td class="p-3 font-mono text-gray-500">${c.customerId || '-'}</td>
                                 <td class="p-3 font-medium">${c.name}</td><td class="p-3">${c.phone || '-'}</td>
                                 <td class="p-3 text-right">
-                                    <button onclick="app.editCustomer('${c.id}')" class="text-blue-600 p-1"><i data-lucide="pencil" width="16"></i></button>
-                                    <button onclick="app.deleteDoc('${c.id}', 'customers')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('editCustomer','${c.id}')" class="text-blue-600 p-1"><i data-lucide="pencil" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${c.id}','customers')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
@@ -1310,7 +1312,7 @@
                                 <td class="p-3">${new Date(e.date).toLocaleDateString()}</td><td class="p-3 font-medium">${e.title}</td><td class="p-3"><span class="bg-gray-100 text-xs px-2 py-1 rounded">${e.category||'-'}</span></td><td class="p-3 text-right font-medium text-red-600">-${Number(e.amount).toLocaleString()}</td>
                                 <td class="p-3 text-right">
                                     <button onclick="app.duplicateDoc('${e.id}', 'expense')" class="text-green-600 p-1"><i data-lucide="copy" width="16"></i></button>
-                                    <button onclick="app.deleteDoc('${e.id}', 'expenses')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${e.id}','expenses')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
@@ -1326,7 +1328,7 @@
                                 <td class="p-3 text-right font-medium ${a.sign==='+'?'text-green-700':'text-red-600'}">${a.sign==='+' ? ('+' + Number(a.amount).toLocaleString()) : ('-' + Number(a.amount).toLocaleString())}</td>
                                 <td class="p-3 text-right">
                                     <button onclick="app.duplicateDoc('${a.id}', 'adjustment')" class="text-green-600 p-1"><i data-lucide="copy" width="16"></i></button>
-                                    <button onclick="app.deleteDoc('${a.id}', 'adjustments')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${a.id}','adjustments')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
@@ -1362,8 +1364,8 @@
                              
                              actionBtns += `
                                     <button onclick="app.duplicateDoc('${item.id}', '${type}')" class="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100" title="Copy"><i data-lucide="copy" width="14"></i></button>
-                                    <button onclick="app.editDoc('${item.id}', '${type}')" class="p-1.5 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100" title="Edit"><i data-lucide="pencil" width="14"></i></button>
-                                    <button onclick="app.deleteDoc('${item.id}', '${type}s')" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Delete"><i data-lucide="trash-2" width="14"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('editDoc','${item.id}','${type}')" class="p-1.5 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100" title="Edit"><i data-lucide="pencil" width="14"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${item.id}','${type}s')" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Delete"><i data-lucide="trash-2" width="14"></i></button>
                                 </div>
                              `;
 
@@ -1469,8 +1471,10 @@
 
             markRefund: async (id) => {
                 if(!confirm(app.t('refund_confirm'))) return;
-                if(prompt("Pass:") !== state.unlockPassword) return;
-                await updateDoc(doc(db, 'invoices', id), { status: 'refunded', refundedAt: serverTimestamp() });
+                app.requireUnlockAndThen('markRefundConfirmed', id);
+            },
+            markRefundConfirmed: async (id) => {
+                try { await updateDoc(doc(db, 'invoices', id), { status: 'refunded', refundedAt: serverTimestamp() }); } catch(e) { console.error(e); alert('Failed to mark refund.'); }
             },
 
             handleCreateButtonClick: () => {
@@ -1696,9 +1700,15 @@
             closeModal: () => document.getElementById('modal-container').innerHTML = '',
             
             editDoc: (id, type) => {
+                const d = state[type + 's'].find(i => i.id === id);
+                if(type === 'invoice' && d && d.status === 'paid') {
+                    return app.requireUnlockAndThen('editDocUnlocked', id, type);
+                }
+                return app.editDocUnlocked(id, type);
+            },
+            editDocUnlocked: (id, type) => {
                 state.mode = type; state.editingId = id;
                 const d = state[type + 's'].find(i => i.id === id);
-                if(type === 'invoice' && d.status === 'paid' && prompt("Locked. Pass:") !== state.unlockPassword) return;
                 state.items = JSON.parse(JSON.stringify(d.items)); state.discount = d.discount || 0; state.taxRate = d.taxRate || 0;
                 app.setView('create');
                 setTimeout(() => { 
@@ -1723,10 +1733,8 @@
                 app.setView('contract-edit'); 
             },
             deleteDoc: async (id, coll) => {
-                 if((coll === 'invoices' && state.invoices.find(i=>i.id===id).status === 'paid') || coll === 'expenses') {
-                     if(prompt("Pass:") !== state.unlockPassword) return;
-                 }
-                 if(confirm("Delete?")) await deleteDoc(doc(db, coll, id));
+                if(!confirm("Delete?")) return;
+                try { await deleteDoc(doc(db, coll, id)); } catch(e) { console.error(e); alert('Failed to delete.'); }
             },
             
             convertQuotation: (id) => {
@@ -1821,7 +1829,12 @@
                 document.getElementById('setting-biz-web').value = state.settings.bizWeb || '';
                 document.getElementById('setting-biz-email').value = state.settings.bizEmail || '';
                 document.getElementById('setting-tax').value = state.settings.taxRate || 0;
-                if(document.getElementById('setting-unlock-pass')) document.getElementById('setting-unlock-pass').value = state.settings.unlockPassword || '';
+                if(document.getElementById('setting-unlock-pass')) {
+                    // Do not pre-fill actual password. show placeholder stars if exists.
+                    document.getElementById('setting-unlock-pass').value = '';
+                    document.getElementById('setting-unlock-pass').placeholder = state.settings.unlockPassword ? '********' : 'Enter new unlock password (leave blank to keep)';
+                }
+                if(document.getElementById('setting-unlock-pass-current')) document.getElementById('setting-unlock-pass-current').value = '';
             },
             handleSaveSettings: async (e) => {
                 e.preventDefault();
@@ -1835,12 +1848,41 @@
                 state.settings.bizWeb = document.getElementById('setting-biz-web').value;
                 state.settings.bizEmail = document.getElementById('setting-biz-email').value;
                 state.settings.taxRate = Number(document.getElementById('setting-tax').value);
-                // Save unlock password from settings UI
+                // Save unlock password from settings UI - require current password when changing
                 const up = document.getElementById('setting-unlock-pass');
-                if(up) state.settings.unlockPassword = up.value || '';
+                const upc = document.getElementById('setting-unlock-pass-current');
+                if(up) {
+                    const newPass = up.value || '';
+                    const currentStored = state.settings.unlockPassword || state.unlockPassword || '1234';
+                    if(newPass && newPass !== currentStored) {
+                        // require current password
+                        if(!upc || upc.value !== currentStored) { alert('Current unlock password is incorrect.'); return; }
+                        state.settings.unlockPassword = newPass;
+                    } else if(newPass === '') {
+                        // keep existing
+                    } else {
+                        // unchanged
+                        state.settings.unlockPassword = currentStored;
+                    }
+                }
 
                 await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
+                // Update in-memory unlock password so changes apply immediately
+                state.unlockPassword = state.settings.unlockPassword || state.unlockPassword || '1234';
                 alert("Saved"); app.setView('dashboard');
+            },
+            requireUnlockAndThen: (fnName, ...args) => {
+                const pw = prompt('Enter unlock password to proceed:');
+                const stored = state.settings.unlockPassword || state.unlockPassword || '1234';
+                if (pw === stored) {
+                    if (typeof app[fnName] === 'function') {
+                        try { app[fnName](...args); } catch(e) { console.error(e); }
+                    } else {
+                        alert('Action not available');
+                    }
+                } else {
+                    alert('Incorrect unlock password');
+                }
             },
             processImageBase: (input, cb) => {
                 if(!input.files[0]) return;
@@ -2018,6 +2060,33 @@
                 app.scalePaper();
             },
             
+            downloadPLCSV: () => {
+                const d = state.reportPLData || {};
+                const rows = [];
+                rows.push(['Item','Value']);
+                rows.push(['Total Income', d.totalIncome || 0]);
+                rows.push(['Total Expense', d.totalExpense || 0]);
+                rows.push(['Adjustments In', d.adjInTotal || 0]);
+                rows.push(['Adjustments Out', d.adjOutTotal || 0]);
+                rows.push(['Net Profit', d.netProfit || 0]);
+                rows.push(['Receivable', d.totalReceivable || 0]);
+                rows.push(['Refunds', d.totalRefunds || 0]);
+                rows.push([]);
+                rows.push(['Payment Method','In','Out']);
+                const pms = d.paymentMethodSums || {};
+                Object.keys(pms).forEach(k => rows.push([k, pms[k].in || 0, pms[k].out || 0]));
+
+                const csv = rows.map(r => r.map(c => typeof c === 'number' ? c : `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `profit_and_loss_${d.year || 'all'}_${d.month || 'all'}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            },
             downloadPDF: async () => {
                 const element = document.getElementById('invoice-paper') || document.getElementById('contract-paper');
                 const oldTransform = element.style.transform;
@@ -2050,7 +2119,7 @@
             stopScanner: () => { if(state.html5QrCode) state.html5QrCode.stop().then(()=>document.getElementById('scanner-modal').classList.add('hidden')); else document.getElementById('scanner-modal').classList.add('hidden'); },
             handleStatusClick: (id) => {
                 const i = state.invoices.find(x=>x.id===id);
-                if(i.status==='paid'){ if(prompt("Pass:")!==state.unlockPassword) return; return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); }
+                if(i.status==='paid'){ return app.requireUnlockAndThen('unlockSetInvoicePending', id); }
                 const paid = i.payments?i.payments.reduce((s,p)=>s+p.amount,0):0;
                 state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
                 const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
@@ -2061,6 +2130,9 @@
                 document.getElementById('modal-paid').innerText = paid.toLocaleString();
                 document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
                 document.getElementById('payment-amount').value = state.tempInvoice.balance;
+            },
+            unlockSetInvoicePending: async (id) => {
+                try { return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); } catch(e) { console.error(e); alert('Failed to unlock invoice.'); }
             },
             confirmPayment: async () => {
                 const amt = Number(document.getElementById('payment-amount').value);
@@ -2150,8 +2222,7 @@
                     const amt = Number(a.amount || 0);
                     const isIncome = (a.sign === '+') || (a.type === 'refund');
                     if(isIncome) {
-                        // Adjustment positive amounts are NOT counted under Income total.
-                        // Track separately under Adjustments In.
+                        // Track positive adjustments under Adjustments In.
                         adjInTotal += amt;
                     } else {
                         // Negative adjustments count as expense (Adjustments Out)
@@ -2162,6 +2233,9 @@
                         expenseByCat[cat] += amt;
                     }
                 });
+
+                // Include adjustment "In" amounts into total income so Net Profit reflects them
+                totalIncome += adjInTotal;
 
                 // Prepare monthly expense arrays (for green/red line chart)
                 const currentYear = new Date().getFullYear();
@@ -2187,6 +2261,82 @@
                 });
 
                 const netProfit = totalIncome - totalExpense;
+
+                // --- Payment Method Aggregation (for column chart) ---
+                const paymentMethodSums = {};
+                const methodsList = (state.payment_methods && state.payment_methods.length > 0) ? state.payment_methods.map(m => m.name) : state.defaultMethods.map(m => m.name);
+                methodsList.forEach(m => { paymentMethodSums[m] = { in: 0, out: 0 }; });
+
+                // Aggregate from invoice payments
+                filteredInvoices.forEach(inv => {
+                    if (inv.payments) {
+                        inv.payments.forEach(p => {
+                            const m = p.method || 'Unknown';
+                            if (!paymentMethodSums[m]) paymentMethodSums[m] = { in: 0, out: 0 };
+                            paymentMethodSums[m].in += Number(p.amount || 0);
+                        });
+                    }
+                });
+
+                // Aggregate from expenses
+                filteredExpenses.forEach(e => {
+                    const m = e.method || 'Unknown';
+                    if (!paymentMethodSums[m]) paymentMethodSums[m] = { in: 0, out: 0 };
+                    paymentMethodSums[m].out += Number(e.amount || 0);
+                });
+
+                // Aggregate from adjustments
+                filteredAdjustments.forEach(a => {
+                    const m = a.method || 'Unknown';
+                    if (!paymentMethodSums[m]) paymentMethodSums[m] = { in: 0, out: 0 };
+                    const amt = Number(a.amount || 0);
+                    const isIncome = (a.sign === '+') || (a.type === 'refund');
+                    if (isIncome) paymentMethodSums[m].in += amt; else paymentMethodSums[m].out += amt;
+                });
+
+                // Save summary for download/export (now that paymentMethodSums exists)
+                state.reportPLData = {
+                    totalIncome, totalExpense, adjInTotal, adjOutTotal, netProfit,
+                    totalReceivable, totalRefunds, paymentMethodSums: paymentMethodSums,
+                    year: fYear, month: fMonth
+                };
+
+                // Prepare monthly detail rows if a specific month filter is selected
+                let monthDetailRowsHtml = '';
+                if (fMonth !== 'all') {
+                    const combined = [];
+                    // Invoice payments as income rows (In column)
+                    filteredInvoices.forEach(inv => {
+                        if (inv.payments && inv.payments.length) {
+                            inv.payments.forEach(p => combined.push({ date: new Date(p.date), type: 'Payment', desc: inv.clientName || (inv.note||''), method: p.method||'Unknown', in: Number(p.amount || 0), out: 0 }));
+                        } else {
+                            // invoice without payment (show as receivable in In column)
+                            const d = inv.createdAt && inv.createdAt.seconds ? new Date(inv.createdAt.seconds*1000) : new Date();
+                            combined.push({ date: d, type: 'Invoice (Unpaid)', desc: inv.clientName || '', method: '', in: Number(inv.totalAmount || 0), out: 0 });
+                        }
+                    });
+                    // Expenses go to Out column
+                    filteredExpenses.forEach(e => combined.push({ date: new Date(e.date), type: 'Expense', desc: e.title || '', method: e.method||'Unknown', in: 0, out: Number(e.amount || 0) }));
+                    // Adjustments: decide In or Out based on sign/type
+                    filteredAdjustments.forEach(a => {
+                        const amt = Number(a.amount || 0);
+                        const isIncome = (a.sign === '+') || (a.type === 'refund');
+                        combined.push({ date: new Date(a.date), type: a.type === 'refund' ? 'Refund' : 'Adjustment', desc: a.title || '', method: a.method||'Unknown', in: isIncome ? amt : 0, out: isIncome ? 0 : amt });
+                    });
+
+                    combined.sort((A,B)=>A.date - B.date);
+
+                    monthDetailRowsHtml = combined.map(r => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-2 text-xs">${r.date.toLocaleDateString()}</td>
+                            <td class="p-2 text-xs font-medium">${r.type}</td>
+                            <td class="p-2 text-xs">${r.desc}</td>
+                            <td class="p-2 text-xs">${r.method || '-'}</td>
+                            <td class="p-2 text-right text-sm text-green-700">${r.in? r.in.toLocaleString():''}</td>
+                            <td class="p-2 text-right text-sm text-red-600">${r.out? r.out.toLocaleString():''}</td>
+                        </tr>
+                    `).join('');
+                }
 
                 // 2. Data Prep: Line Chart
 
@@ -2261,9 +2411,9 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white p-4 rounded-lg shadow border">
-                            <h4 class="font-bold text-gray-600 mb-4 text-sm">Income vs Expense (Current Filter)</h4>
-                            <div class="relative h-64"><canvas id="pieChart"></canvas></div>
-                        </div>
+                                <h4 class="font-bold text-gray-600 mb-4 text-sm">Payment Methods - Inflow / Outflow</h4>
+                                <div class="relative h-64"><canvas id="methodBarChart"></canvas></div>
+                            </div>
                         <div class="bg-white p-4 rounded-lg shadow border">
                                 <h4 class="font-bold text-gray-600 mb-4 text-sm">Monthly Income Trend (${selectedYear} vs ${prevYear})</h4>
                                 <div class="relative h-64"><canvas id="lineChart"></canvas></div>
@@ -2308,46 +2458,53 @@
                 </div>`;
 
                 // --- Render Charts ---
-                // Pie Chart
-                const ctxPie = document.getElementById('pieChart').getContext('2d');
-                state.charts.pie = new Chart(ctxPie, {
-                    type: 'doughnut',
+                // Payment Method Column Chart
+                if (state.charts.methodBar) state.charts.methodBar.destroy();
+                const methodKeys = Object.keys(paymentMethodSums);
+                const methodInValues = methodKeys.map(k => paymentMethodSums[k].in);
+                const methodOutValues = methodKeys.map(k => paymentMethodSums[k].out);
+                const ctxMethod = document.getElementById('methodBarChart').getContext('2d');
+                state.charts.methodBar = new Chart(ctxMethod, {
+                    type: 'bar',
                     data: {
-                        labels: ['Income', 'Expense'],
-                        datasets: [{
-                            data: [totalIncome, totalExpense],
-                            backgroundColor: ['#10B981', '#EF4444'],
-                            borderWidth: 0
-                        }]
+                        labels: methodKeys,
+                        datasets: [
+                            { label: 'Inflow', data: methodInValues, backgroundColor: '#10B981' },
+                            { label: 'Outflow', data: methodOutValues, backgroundColor: '#EF4444' }
+                        ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: { stacked: false }, y: { stacked: false } } }
                 });
 
-                // Line Chart
+                // Monthly Income Trend -> Grouped Column Chart (bar)
                 const ctxLine = document.getElementById('lineChart').getContext('2d');
+                if (state.charts.line) state.charts.line.destroy();
                 state.charts.line = new Chart(ctxLine, {
-                    type: 'line',
+                    type: 'bar',
                     data: {
                         labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
                         datasets: [
                             {
                                 label: `${selectedYear}`,
                                 data: monthlyIncomeCurrent,
-                                borderColor: '#3B82F6',
-                                tension: 0.3,
-                                fill: false
+                                backgroundColor: '#3B82F6'
                             },
                             {
                                 label: `${prevYear}`,
                                 data: monthlyIncomePrev,
-                                borderColor: '#9CA3AF',
-                                borderDash: [5, 5],
-                                tension: 0.3,
-                                fill: false
+                                backgroundColor: '#9CA3AF'
                             }
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { stacked: false },
+                            y: { stacked: false, beginAtZero: true }
+                        }
+                    }
                 });
 
                 // --- Green/Red Line Chart (Income vs Expense) ---
@@ -2372,6 +2529,48 @@
                     },
                     options: { responsive: true, maintainAspectRatio: false }
                 });
+
+                // If month filter selected, append detailed transactions table for that month
+                if (fMonth !== 'all') {
+                    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                    const md = document.createElement('div');
+                    md.className = 'bg-white p-4 rounded-lg shadow border mt-6';
+                    md.innerHTML = `
+                        <div class="bg-gray-50 p-3 border-b font-bold text-gray-700 text-sm">Details for ${monthNames[Number(fMonth)]} ${fYear}</div>
+                        <div class="p-3 overflow-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="p-2 text-left">Date</th><th class="p-2 text-left">Type</th><th class="p-2 text-left">Desc / Client</th><th class="p-2 text-left">Method</th><th class="p-2 text-right">In</th><th class="p-2 text-right">Out</th></tr></thead>
+                                <tbody class="divide-y">
+                                    ${monthDetailRowsHtml || '<tr><td colspan="5" class="p-4 text-center text-gray-400">No transactions for this month.</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    document.querySelector('.p-4.bg-gray-50.min-h-screen.space-y-6').appendChild(md);
+                }
+
+                // Append Profit & Loss summary at the bottom of the page
+                const plContainer = document.createElement('div');
+                plContainer.className = 'bg-white p-4 rounded-lg shadow border mt-6';
+                plContainer.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase font-bold">Profit & Loss Summary</div>
+                            <div class="text-sm text-gray-700">${fYear==='all'?'All Years':fYear} ${fMonth==='all'?'':'- '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(fMonth)]}</div>
+                        </div>
+                        <div>
+                            <button onclick="app.downloadPLCSV()" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">Download CSV</button>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm">
+                        <div class="flex justify-between"><span>Total Income</span><span class="font-bold text-green-600">${totalIncome.toLocaleString()}</span></div>
+                        <div class="flex justify-between"><span>Total Expense</span><span class="font-bold text-red-600">${totalExpense.toLocaleString()}</span></div>
+                        <div class="flex justify-between"><span>Adjustments In</span><span class="font-bold text-green-600">${adjInTotal.toLocaleString()}</span></div>
+                        <div class="flex justify-between"><span>Adjustments Out</span><span class="font-bold text-red-600">${adjOutTotal.toLocaleString()}</span></div>
+                        <div class="flex justify-between border-t pt-2 mt-2 font-bold"><span>Net Profit</span><span class="text-blue-600">${netProfit.toLocaleString()}</span></div>
+                    </div>
+                `;
+                document.querySelector('.p-4.bg-gray-50.min-h-screen.space-y-6').appendChild(plContainer);
             }
         };
         window.app = app; app.init();
