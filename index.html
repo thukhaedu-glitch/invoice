@@ -454,23 +454,6 @@
                     </div>
                 </div>
 
-                <div class="p-4 bg-white rounded-lg border">
-                    <h3 class="font-bold text-gray-700">Security</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium mb-1">Unlock Password</label>
-                            <input type="password" id="setting-unlock-pass" class="w-full border p-2 rounded text-sm" placeholder="Enter new unlock password (leave blank to keep)">
-                            <div class="text-xs text-gray-400 mt-1">To change this password, enter the current password below.</div>
-                            <input type="password" id="setting-unlock-pass-current" class="w-full border p-2 rounded text-sm mt-2" placeholder="Current unlock password">
-                            <label class="block text-xs font-medium mb-1 mt-3">Unlock Hint (optional)</label>
-                            <input type="text" id="setting-unlock-hint" class="w-full border p-2 rounded text-sm" placeholder="Short hint to remind the user">
-                            <label class="block text-xs font-medium mb-1 mt-3">Backup Admin PIN (bypass)</label>
-                            <input type="password" id="setting-admin-pin" class="w-full border p-2 rounded text-sm" placeholder="Set a backup admin PIN (leave blank to keep)">
-                            <div class="text-xs text-gray-400 mt-1">To change backup PIN, enter the current unlock password above.</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2" data-translate="logo">Company Logo</label>
@@ -609,6 +592,9 @@
         const appInstance = initializeApp(firebaseConfig);
         const auth = getAuth(appInstance);
         const db = getFirestore(appInstance);
+
+        // Default PIN code for all protected operations
+        const DEFAULT_PIN = 'admin22';
 
         const resources = {
             en: {
@@ -890,8 +876,6 @@
                         if(!state.settings.expense_categories || state.settings.expense_categories.length === 0) {
                             state.settings.expense_categories = ['Food', 'Transportation', 'Salary', 'Rent', 'Marketing', 'Utility', 'Other'];
                         }
-                        // Load unlock password from settings (fallback to '1234' if missing)
-                        state.unlockPassword = state.settings.unlockPassword || state.unlockPassword || '1234';
                         if (state.view === 'verify' && state.currentDoc) {
                             app.renderPaper(state.currentDoc, state.currentDoc.type); 
                         }
@@ -1940,17 +1924,6 @@
                 document.getElementById('setting-biz-web').value = state.settings.bizWeb || '';
                 document.getElementById('setting-biz-email').value = state.settings.bizEmail || '';
                 document.getElementById('setting-tax').value = state.settings.taxRate || 0;
-                if(document.getElementById('setting-unlock-pass')) {
-                    // Do not pre-fill actual password. show placeholder stars if exists.
-                    document.getElementById('setting-unlock-pass').value = '';
-                    document.getElementById('setting-unlock-pass').placeholder = state.settings.unlockPassword ? '********' : 'Enter new unlock password (leave blank to keep)';
-                }
-                if(document.getElementById('setting-unlock-pass-current')) document.getElementById('setting-unlock-pass-current').value = '';
-                if(document.getElementById('setting-unlock-hint')) document.getElementById('setting-unlock-hint').value = state.settings.unlockHint || '';
-                if(document.getElementById('setting-admin-pin')) {
-                    document.getElementById('setting-admin-pin').value = '';
-                    document.getElementById('setting-admin-pin').placeholder = state.settings.adminPin ? '********' : 'Set a backup admin PIN (leave blank to keep)';
-                }
             },
             handleSaveSettings: async (e) => {
                 e.preventDefault();
@@ -1964,63 +1937,26 @@
                 state.settings.bizWeb = document.getElementById('setting-biz-web').value;
                 state.settings.bizEmail = document.getElementById('setting-biz-email').value;
                 state.settings.taxRate = Number(document.getElementById('setting-tax').value);
-                // Save unlock password from settings UI - require current password when changing
-                const up = document.getElementById('setting-unlock-pass');
-                const upc = document.getElementById('setting-unlock-pass-current');
-                if(up) {
-                    const newPass = up.value || '';
-                    const currentStored = state.settings.unlockPassword || state.unlockPassword || '1234';
-                    if(newPass && newPass !== currentStored) {
-                        // require current password
-                        if(!upc || upc.value !== currentStored) { alert('Current unlock password is incorrect.'); return; }
-                        state.settings.unlockPassword = newPass;
-                    } else if(newPass === '') {
-                        // keep existing
-                    } else {
-                        // unchanged
-                        state.settings.unlockPassword = currentStored;
-                    }
-                }
-
-                // Save unlock hint and backup admin PIN
-                const hintEl = document.getElementById('setting-unlock-hint');
-                if(hintEl) state.settings.unlockHint = hintEl.value || '';
-
-                const adminEl = document.getElementById('setting-admin-pin');
-                if(adminEl) {
-                    const newAdmin = adminEl.value || '';
-                    const adminStored = state.settings.adminPin || '';
-                    const currentStored = state.settings.unlockPassword || state.unlockPassword || '1234';
-                    // If admin PIN is being changed, require current password (allow adminStored or master as override)
-                    if(newAdmin && newAdmin !== adminStored) {
-                        if(!upc || (upc.value !== currentStored && upc.value !== adminStored && upc.value !== MASTER_UNLOCK_PIN)) { alert('Current unlock password is incorrect.'); return; }
-                        state.settings.adminPin = newAdmin;
-                    } else if(newAdmin === '') {
-                        // keep existing
-                    } else {
-                        state.settings.adminPin = adminStored;
-                    }
-                }
 
                 await setDoc(doc(db, 'invoices', 'config_general'), state.settings);
-                // Update in-memory unlock password so changes apply immediately
-                state.unlockPassword = state.settings.unlockPassword || state.unlockPassword || '1234';
                 alert("Saved"); app.setView('dashboard');
             },
             requireUnlockAndThen: (fnName, ...args) => {
-                const pw = prompt('Enter unlock password to proceed:');
-                const stored = state.settings.unlockPassword || state.unlockPassword || '1234';
-                const adminStored = state.settings.adminPin || null;
-
-                // allow either user unlock password, backup admin PIN, or master PIN
-                if (pw === stored || pw === adminStored || pw === MASTER_UNLOCK_PIN) {
+                const pw = prompt('Enter PIN code to proceed:');
+                if (!pw) {
+                    alert('PIN code is required.');
+                    return;
+                }
+                
+                // Check against the default PIN
+                if (pw === DEFAULT_PIN) {
                     if (typeof app[fnName] === 'function') {
                         try { app[fnName](...args); } catch(e) { console.error(e); }
                     } else {
                         alert('Action not available');
                     }
                 } else {
-                    alert('Incorrect unlock password');
+                    alert('Incorrect PIN code');
                 }
             },
             processImageBase: (input, cb) => {
