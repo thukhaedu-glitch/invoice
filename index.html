@@ -216,9 +216,15 @@
                 <span id="form-mode-badge" class="px-2 py-1 bg-gray-100 text-xs rounded uppercase font-bold text-gray-500">MODE</span>
             </div>
             <form onsubmit="app.handleSave(event)" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Document No.</label>
-                    <input type="text" id="doc-number" class="w-full border p-2 rounded bg-gray-50 focus:bg-white font-mono uppercase" required>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Document No.</label>
+                        <input type="text" id="doc-number" class="w-full border p-2 rounded bg-gray-50 focus:bg-white font-mono uppercase" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Creation Date</label>
+                        <input type="date" id="creation-date" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" required>
+                    </div>
                 </div>
 
                 <div class="relative grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -543,7 +549,7 @@
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm">
                 <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold" id="payment-modal-title" data-translate="add_payment">Add Payment</h3><button onclick="app.closeModal()" class="text-gray-400"><i data-lucide="x"></i></button></div>
-                <div class="bg-gray-50 p-3 rounded-lg mb-4 space-y-1">
+            <div class="bg-gray-50 p-3 rounded-lg mb-4 space-y-1">
                     <div class="flex justify-between text-sm"><span data-translate="total">Total:</span><span id="modal-total" class="font-medium">0</span></div>
                     <div class="flex justify-between text-sm text-green-600"><span data-translate="paid">Paid:</span><span id="modal-paid" class="font-medium">0</span></div>
                     <div class="flex justify-between text-sm font-bold text-red-600 border-t pt-1"><span data-translate="balance">Balance:</span><span id="modal-balance">0</span></div>
@@ -551,6 +557,7 @@
                 <div class="space-y-4">
                     <input type="number" id="payment-amount" class="w-full border p-2 rounded font-bold">
                     <select id="payment-method-select" class="w-full border p-2 rounded payment-method-select"></select>
+                    <input type="date" id="payment-date" class="w-full border p-2 rounded">
                 </div>
                 <div class="flex justify-end gap-2 mt-6"><button onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button><button onclick="app.confirmPayment()" class="px-4 py-2 bg-green-600 text-white rounded" data-translate="confirm">Confirm</button></div>
             </div>
@@ -1559,6 +1566,7 @@
                         document.getElementById('client-name').value = newData.clientName;
                         document.getElementById('doc-number').value = newData.invoiceNumber || newData.quotationNumber;
                         document.getElementById('doc-note').value = newData.note || '';
+                        document.getElementById('creation-date').valueAsDate = new Date();
                         app.fillCustomerInfo(newData.clientName);
                         app.calcTotal();
                     }, 200);
@@ -1708,7 +1716,7 @@
                 const title = state.editingId ? `Edit ${state.mode}` : `New ${state.mode}`;
                 document.getElementById('form-title').innerText = title;
                 document.getElementById('form-mode-badge').innerText = state.mode;
-                
+
                 const dl = document.getElementById('customer-list');
                 const dlIds = document.getElementById('customer-ids');
                 dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
@@ -1716,36 +1724,42 @@
 
                 const paySection = document.getElementById('invoice-payment-section');
                 paySection.style.display = state.mode === 'quotation' ? 'none' : 'block';
-                
-                app.populatePaymentSelects(); 
+
+                app.populatePaymentSelects();
                 app.renderCreateItems();
-                
+
                 const docNumInput = document.getElementById('doc-number');
+                const creationDateInput = document.getElementById('creation-date');
                 if(!state.editingId) {
                     state.taxRate = state.settings.taxRate || 0;
                     document.getElementById('tax-input').value = state.taxRate;
                     if(document.getElementById('service-fee')) document.getElementById('service-fee').value = state.serviceFee || 0;
                     if(document.getElementById('service-desc')) document.getElementById('service-desc').value = state.serviceDesc || '';
                     docNumInput.value = (state.mode === 'invoice' ? 'INV-' : 'QTN-') + Date.now().toString().slice(-6);
+                    creationDateInput.valueAsDate = new Date();
                     app.calcTotal();
+                } else {
+                    // For editing, set the creation date input to today (user can change if needed)
+                    creationDateInput.valueAsDate = new Date();
                 }
             },
 
             handleSave: async (e) => {
                 e.preventDefault();
                 const clientName = document.getElementById('client-name').value;
-                const clientId = document.getElementById('client-db-id').value; 
+                const clientId = document.getElementById('client-db-id').value;
                 const docNumber = document.getElementById('doc-number').value;
                 const clientEmail = document.getElementById('client-email-hidden').value;
                 const clientPhone = document.getElementById('client-phone-hidden').value;
                 const clientAddress = document.getElementById('client-address-hidden').value;
                 const note = document.getElementById('doc-note').value;
+                const creationDateValue = document.getElementById('creation-date').value;
 
                 const total = app.calcTotal();
-                const col = state.mode + 's'; 
+                const col = state.mode + 's';
                 try {
                     const docData = {
-                        clientName, clientId, items: state.items, discount: state.discount, 
+                        clientName, clientId, items: state.items, discount: state.discount,
                             taxRate: state.taxRate, totalAmount: total, note,
                         clientEmail, clientPhone, clientAddress,
                         securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
@@ -1756,7 +1770,12 @@
                         if(feeEl) docData.serviceFee = Number(feeEl.value || state.serviceFee || 0);
                         const descEl = document.getElementById('service-desc');
                         if(descEl) docData.serviceDesc = descEl.value || state.serviceDesc || '';
-                    
+
+                    // Add creation date
+                    if(creationDateValue) {
+                        docData.creationDate = new Date(creationDateValue).toISOString();
+                    }
+
                     if(state.mode === 'invoice') {
                         docData.invoiceNumber = docNumber;
                         if (!state.editingId) {
@@ -1807,14 +1826,21 @@
                 const d = state[type + 's'].find(i => i.id === id);
                 state.items = JSON.parse(JSON.stringify(d.items)); state.discount = d.discount || 0; state.taxRate = d.taxRate || 0;
                 app.setView('create');
-                setTimeout(() => { 
-                    document.getElementById('client-name').value = d.clientName; 
-                    document.getElementById('discount-input').value = state.discount; 
+                setTimeout(() => {
+                    document.getElementById('client-name').value = d.clientName;
+                    document.getElementById('discount-input').value = state.discount;
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = d.invoiceNumber || d.quotationNumber;
                     document.getElementById('doc-note').value = d.note || '';
-                    
-                    app.fillCustomerInfo(d.clientName); 
+
+                    // Load creation date
+                    if(d.creationDate) {
+                        document.getElementById('creation-date').valueAsDate = new Date(d.creationDate);
+                    } else {
+                        document.getElementById('creation-date').valueAsDate = new Date();
+                    }
+
+                    app.fillCustomerInfo(d.clientName);
 
                     // Populate service fee and description if present on document
                     if(document.getElementById('service-fee')) document.getElementById('service-fee').value = d.serviceFee || 0;
@@ -1837,16 +1863,17 @@
                 const q = state.quotations.find(i => i.id === id);
                 if(!q || !confirm("Convert to Invoice?")) return;
                 state.mode = 'invoice'; state.editingId = null; state.items = JSON.parse(JSON.stringify(q.items)); state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
-                
-                state.isConverted = true; 
+
+                state.isConverted = true;
 
                 app.setView('create');
-                setTimeout(() => { 
-                    document.getElementById('client-name').value = q.clientName; 
-                    document.getElementById('discount-input').value = state.discount; 
+                setTimeout(() => {
+                    document.getElementById('client-name').value = q.clientName;
+                    document.getElementById('discount-input').value = state.discount;
                     document.getElementById('tax-input').value = state.taxRate;
-                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6); 
-                    
+                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6);
+                    document.getElementById('creation-date').valueAsDate = new Date();
+
                     // PREFILL NOTE
                     document.getElementById('doc-note').value = `Ref: ${q.quotationNumber}`;
 
@@ -1860,15 +1887,16 @@
                 if(snap.empty) return alert("Not Found");
                 const q = snap.docs[0].data();
                 app.closeModal(); state.mode = 'invoice'; state.editingId = null; state.items = q.items; state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
-                
-                state.isConverted = true; 
 
-                app.setView('create'); 
-                setTimeout(() => { 
-                    document.getElementById('client-name').value = q.clientName; 
-                    document.getElementById('discount-input').value = state.discount; 
+                state.isConverted = true;
+
+                app.setView('create');
+                setTimeout(() => {
+                    document.getElementById('client-name').value = q.clientName;
+                    document.getElementById('discount-input').value = state.discount;
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6);
+                    document.getElementById('creation-date').valueAsDate = new Date();
                     document.getElementById('doc-note').value = `Ref: ${q.quotationNumber}`;
                     app.fillCustomerInfo(q.clientName);
                     app.calcTotal();
@@ -2074,8 +2102,8 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>
-                                ${t==='invoice' && d.status==='refunded' ? '<div class="text-red-600 font-bold border-2 border-red-600 inline-block px-2 mt-2">REFUNDED</div>' : 
+                                <h3 class="font-bold">${app.t('date')}</h3><p>${d.creationDate ? new Date(d.creationDate).toLocaleDateString() : new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>
+                                ${t==='invoice' && d.status==='refunded' ? '<div class="text-red-600 font-bold border-2 border-red-600 inline-block px-2 mt-2">REFUNDED</div>' :
                                   (t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':'')
                                 }
                                 ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">${app.t('payment_history')}</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
@@ -2200,12 +2228,14 @@
                 state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
                 const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
                 document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
-                app.translatePage(); 
-                app.populatePaymentSelects(); 
+                app.translatePage();
+                app.populatePaymentSelects();
                 document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
                 document.getElementById('modal-paid').innerText = paid.toLocaleString();
                 document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
                 document.getElementById('payment-amount').value = state.tempInvoice.balance;
+                // Set payment date to today by default
+                document.getElementById('payment-date').valueAsDate = new Date();
             },
             unlockSetInvoicePending: async (id) => {
                 try { return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); } catch(e) { console.error(e); alert('Failed to unlock invoice.'); }
@@ -2213,8 +2243,10 @@
             confirmPayment: async () => {
                 const amt = Number(document.getElementById('payment-amount').value);
                 const met = document.getElementById('payment-method-select').value;
+                const paymentDateInput = document.getElementById('payment-date').value;
+                const paymentDate = paymentDateInput ? new Date(paymentDateInput).toISOString() : new Date().toISOString();
                 const inv = state.tempInvoice;
-                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:new Date().toISOString()}];
+                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:paymentDate}];
                 const stat = pays.reduce((s,p)=>s+p.amount,0) >= inv.totalAmount ? 'paid' : 'partial';
                 await updateDoc(doc(db,'invoices',inv.id), {status:stat, payments:pays, paidAt: stat==='paid'?serverTimestamp():null});
                 app.closeModal();
