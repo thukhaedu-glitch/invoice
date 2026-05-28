@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freelance Services By Thukha Aung</title>
-   <link rel="stylesheet" href="styles.css">
-    
+   
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -37,7 +36,6 @@
         .invoice-table thead th { border-bottom: 2px solid #000 !important; background: transparent !important; }
         .invoice-table tbody tr:last-child td { border-bottom: none !important; }
 
-        /* Invoice table column widths */
         .invoice-table th:nth-child(1), .invoice-table td:nth-child(1) { width: 7%; }
         .invoice-table th:nth-child(2), .invoice-table td:nth-child(2) { width: 50%; }
         .invoice-table th:nth-child(3), .invoice-table td:nth-child(3) { width: 12%; text-align: center; }
@@ -159,6 +157,7 @@
                 <button onclick="app.switchTab('contract')" id="tab-contract" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="contracts">Contracts</button>
                 <button onclick="app.switchTab('customer')" id="tab-customer" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="customers">Customers</button>
                 <button onclick="app.switchTab('expense')" id="tab-expense" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="expenses">Expenses</button>
+                <button onclick="app.switchTab('salary')" id="tab-salary" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Salary</button>
                 <button onclick="app.switchTab('report')" id="tab-report" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="reports">Reports</button>
                 <button onclick="app.setView('settings')" class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50"><i data-lucide="settings" width="16" class="inline"></i></button>
             </div>
@@ -380,6 +379,28 @@
         </div>
     </template>
 
+    <template id="tpl-salary-form">
+        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4" id="sal-form-title">Add Salary</h3>
+                <form onsubmit="app.saveSalary(event)" class="space-y-3">
+                    <input type="hidden" id="sal-id">
+                    
+                    <label class="block text-xs font-medium text-gray-500">Company (ကုမ္ပဏီ)</label>
+                    <select id="sal-company" required class="w-full border p-2 rounded mb-2 bg-white"></select>
+                    
+                    <input type="text" id="sal-note" placeholder="Note (မှတ်ချက်)" required class="w-full border p-2 rounded">
+                    <input type="number" id="sal-amount" placeholder="Amount (ပမာဏ)" required class="w-full border p-2 rounded">
+                    <input type="date" id="sal-date" required class="w-full border p-2 rounded">
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
     <template id="tpl-customer-form">
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
             <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
@@ -404,44 +425,6 @@
                     <div class="flex justify-end gap-2 mt-4">
                         <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    <template id="tpl-adjustment-form">
-        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
-            <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4">Add Adjustment</h3>
-                <form onsubmit="app.saveAdjustment(event)" class="space-y-3">
-                    <input type="hidden" id="adj-id">
-                    <div class="flex gap-2">
-                        <div class="flex-1">
-                            <label class="block text-xs font-medium text-gray-500">Type</label>
-                            <select id="adj-type" class="w-full border p-2 rounded mb-2 bg-white">
-                                <option value="adjustment">Adjustment</option>
-                                <option value="refund">Refund</option>
-                            </select>
-                        </div>
-                        <div class="w-24">
-                            <label class="block text-xs font-medium text-gray-500">Sign</label>
-                            <select id="adj-sign" class="w-full border p-2 rounded mb-2 bg-white">
-                                <option value="-">-</option>
-                                <option value="+">+</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <input type="text" id="adj-title" placeholder="Description" required class="w-full border p-2 rounded">
-                    <div class="flex gap-2">
-                        <input type="number" id="adj-amount" placeholder="Amount" required class="w-full border p-2 rounded">
-                        <select id="adj-method" class="border p-2 rounded bg-white payment-method-select"></select>
-                    </div>
-                    <input type="date" id="adj-date" required class="w-full border p-2 rounded">
-                    <div class="flex justify-end gap-2 mt-4">
-                        <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded" data-translate="cancel">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Save</button>
                     </div>
                 </form>
             </div>
@@ -608,7 +591,6 @@
         const auth = getAuth(appInstance);
         const db = getFirestore(appInstance);
 
-        // Default PIN code for all protected operations
         const DEFAULT_PIN = 'admin22';
 
         const resources = {
@@ -780,7 +762,7 @@
 
         const state = {
             user: null, isAdmin: false, view: 'home', activeTab: 'invoice', mode: 'invoice',
-            invoices: [], quotations: [], customers: [], expenses: [], contracts: [], payment_methods: [], adjustments: [],
+            invoices: [], quotations: [], customers: [], expenses: [], contracts: [], payment_methods: [],
             currentDoc: null, items: [{desc: '', price: 0, qty: 1, image: null}],
             discount: 0, taxRate: 0, initPayment: 0, serviceFee: 0, tempInvoice: null, html5QrCode: null, editingId: null,
             unlockPassword: null, uploadingRowIndex: null,
@@ -804,9 +786,8 @@
                             app.listenCollection('quotations');
                             app.listenCollection('customers');
                             app.listenCollection('expenses');
-                            app.listenCollection('adjustments');
                             app.listenCollection('contracts');
-                                app.listenCollection('salary_incomes');
+                            app.listenCollection('salary_incomes');
                             app.listenCollection('payment_methods');
                         }
                     } else { try { await signInAnonymously(auth); } catch(e){} }
@@ -867,7 +848,6 @@
             listenCollection: (coll) => {
                 onSnapshot(collection(db, coll), (snapshot) => {
                     const items = snapshot.docs.map(doc => ({id: doc.id, ...doc.data(), type: coll.slice(0,-1)}));
-                    // map collection name to state key (salary_incomes -> salaryIncomes)
                     const targetKey = coll === 'salary_incomes' ? 'salaryIncomes' : coll;
                     state[targetKey] = items;
                     if (coll !== 'payment_methods') {
@@ -887,7 +867,6 @@
                 onSnapshot(doc(db, 'invoices', 'config_general'), (doc) => {
                     if (doc.exists()) {
                         state.settings = doc.data();
-                        // Populate default expense categories if missing
                         if(!state.settings.expense_categories || state.settings.expense_categories.length === 0) {
                             state.settings.expense_categories = ['Food', 'Transportation', 'Salary', 'Rent', 'Marketing', 'Utility', 'Other'];
                         }
@@ -1242,7 +1221,6 @@
                     if(document.getElementById('filter-customer-wrapper')) document.getElementById('filter-customer-wrapper').style.display = 'block';
                 }
 
-                // Show/Hide Invoice Status Filter
                 if (tab === 'invoice') {
                     document.getElementById('filter-status-wrapper').classList.remove('hidden');
                 } else {
@@ -1254,7 +1232,8 @@
                     app.renderReports();
                 } else if (tab === 'salary') {
                     if(actionBar) actionBar.style.display = 'flex';
-                    app.renderSalaryList();
+                    if(document.getElementById('create-btn-text')) document.getElementById('create-btn-text').innerText = `Add Salary`;
+                    app.applyFilters();
                 } else {
                     if(actionBar) actionBar.style.display = 'flex';
                     if(document.getElementById('create-btn-text')) document.getElementById('create-btn-text').innerText = `${app.t('create_new')}`;
@@ -1262,7 +1241,6 @@
                 }
             },
 
-            // --- Generic Filter Logic ---
             initGenericFilters: () => {
                 const yearSelect = document.getElementById('filter-year');
                 const custSelect = document.getElementById('filter-customer');
@@ -1302,6 +1280,7 @@
                 let allData = [];
                 if(state.activeTab === 'salary') allData = state.salaryIncomes || [];
                 else allData = state[state.activeTab + 's'] || [];
+                
                 const fYear = state.filters.year;
                 const fMonth = state.filters.month;
                 const fCust = state.filters.customer;
@@ -1328,7 +1307,6 @@
                         }
                     }
 
-                    // Status Filter Logic for Invoices
                     if (state.activeTab === 'invoice' && fStatus !== 'all') {
                         if (item.status !== fStatus) {
                             if (fStatus === 'pending' && item.status !== 'pending') return false;
@@ -1397,19 +1375,19 @@
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
-                } else if (type === 'adjustment') {
+                } else if (type === 'salary') {
                     container.innerHTML = `
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Desc</th><th class="p-3">Method</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
-                        <tbody class="divide-y">${data.map(a => `
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Company</th><th class="p-3">Note</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <tbody class="divide-y">${data.map(s => `
                             <tr class="hover:bg-gray-50">
-                                <td class="p-3">${new Date(a.date).toLocaleDateString()}</td>
-                                <td class="p-3 font-medium">${a.title}</td>
-                                <td class="p-3"><span class="bg-gray-100 text-xs px-2 py-1 rounded">${a.method||'-'}</span></td>
-                                <td class="p-3 text-right font-medium ${a.sign==='+'?'text-green-700':'text-red-600'}">${a.sign==='+' ? ('+' + Number(a.amount).toLocaleString()) : ('-' + Number(a.amount).toLocaleString())}</td>
+                                <td class="p-3">${s.date ? new Date(s.date).toLocaleDateString() : '-'}</td>
+                                <td class="p-3 font-medium">${s.company||'-'}</td>
+                                <td class="p-3">${s.note||'-'}</td>
+                                <td class="p-3 text-right font-medium text-green-600">+${Number(s.amount).toLocaleString()}</td>
                                 <td class="p-3 text-right">
-                                    <button onclick="app.duplicateDoc('${a.id}', 'adjustment')" class="text-green-600 p-1"><i data-lucide="copy" width="16"></i></button>
-                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${a.id}','adjustments')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('editSalary','${s.id}')" class="text-blue-600 p-1 mr-1"><i data-lucide="pencil" width="16"></i></button>
+                                    <button onclick="app.requireUnlockAndThen('deleteDoc','${s.id}','salary_incomes')" class="text-red-600 p-1"><i data-lucide="trash-2" width="16"></i></button>
                                 </td>
                             </tr>`).join('')}</tbody>
                     </table>`;
@@ -1463,36 +1441,6 @@
                 lucide.createIcons();
             },
 
-            renderSalaryList: () => {
-                const container = document.getElementById('dashboard-content');
-                if(!container) return;
-                const data = state.salaryIncomes || [];
-                if(data.length === 0) { container.innerHTML = `<div class="p-8 text-center text-gray-400">No salary entries.</div>`; return; }
-                container.innerHTML = `
-                    <div class="p-4 bg-white rounded-lg shadow">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold">Salary Entries</h3>
-                            <button onclick="document.getElementById('salary-manage-modal')?.remove(); app.openSalaryModal()" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">Add Salary</button>
-                        </div>
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Title</th><th class="p-3">Company</th><th class="p-3">Method</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
-                            <tbody class="divide-y">${data.map(s => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="p-3">${s.date ? new Date(s.date).toLocaleDateString() : '-'}</td>
-                                    <td class="p-3 font-medium">${s.source||'-'}</td>
-                                    <td class="p-3">${s.company||'-'}</td>
-                                    <td class="p-3">${s.method||'-'}</td>
-                                    <td class="p-3 text-right font-medium">${Number(s.amount||0).toLocaleString()}</td>
-                                    <td class="p-3 text-right"><button onclick="app.requireUnlockAndThen('deleteDoc','${s.id||''}','salary_incomes')" class="text-red-600">Delete</button></td>
-                                </tr>
-                            `).join('')}</tbody>
-                        </table>
-                    </div>
-                `;
-                lucide.createIcons();
-            },
-
-            // --- Handlers & Actions ---
             duplicateDoc: (id, type) => {
                 if(!confirm("Duplicate this record?")) return;
                 
@@ -1505,26 +1453,7 @@
                     }
                     return;
                 }
-                if (type === 'adjustments' || type === 'adjustment') {
-                    const a = state.adjustments.find(x => x.id === id);
-                    if(a) {
-                        const newData = {...a, date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()};
-                        delete newData.id;
-                        addDoc(collection(db, 'adjustments'), newData);
-                    }
-                    return;
-                }
-                if (type === 'adjustment') {
-                    const a = state.adjustments.find(x => x.id === id);
-                    if(a) {
-                        const newData = {...a, date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()};
-                        delete newData.id;
-                        addDoc(collection(db, 'adjustments'), newData);
-                    }
-                    return;
-                }
 
-                // For Inv/Quote/Contract
                 const coll = type + 's';
                 const docData = state[coll].find(x => x.id === id);
                 if (!docData) return;
@@ -1534,14 +1463,13 @@
                 newData.createdAt = serverTimestamp();
                 newData.securityCode = (type==='contract'?'CON-':(type==='invoice'?'SEC-':'QTN-')) + Math.random().toString(36).substring(2,8).toUpperCase();
                 
-                // Generate new ID based on type
                 const rnd = Date.now().toString().slice(-6);
                 if (type === 'invoice') {
                     newData.invoiceNumber = 'INV-' + rnd;
                     newData.status = 'pending';
                     newData.payments = [];
                     newData.paidAt = null;
-                    if(newData.source) newData.source = 'manual'; // Reset source on duplicate
+                    if(newData.source) newData.source = 'manual'; 
                 } else if (type === 'quotation') {
                     newData.quotationNumber = 'QTN-' + rnd;
                 } else if (type === 'contract') {
@@ -1549,13 +1477,9 @@
                 }
 
                 state.mode = type;
-                state.editingId = null; // Create Mode
+                state.editingId = null; 
                 
-                // Pre-fill form state
                 if (type === 'contract') {
-                    // Contracts handled differently
-                    // We just save it directly for simplicity or open editor?
-                    // Let's open editor with data
                     app.setView('contract-edit');
                     setTimeout(() => {
                         document.getElementById('contract-title').value = newData.title + " (Copy)";
@@ -1573,7 +1497,6 @@
                         document.getElementById('client-name').value = newData.clientName;
                         document.getElementById('doc-number').value = newData.invoiceNumber || newData.quotationNumber;
                         document.getElementById('doc-note').value = newData.note || '';
-                        document.getElementById('creation-date').valueAsDate = new Date();
                         app.fillCustomerInfo(newData.clientName);
                         app.calcTotal();
                     }, 200);
@@ -1595,7 +1518,7 @@
                 else if(tab === 'contract') { state.editingId = null; app.setView('contract-edit'); }
                 else if(tab === 'customer') app.openCustomerModal();
                 else if(tab === 'expense') app.openExpenseModal();
-                else if(tab === 'adjustment') app.openAdjustmentModal();
+                else if(tab === 'salary') app.openSalaryModal();
             },
 
             openCustomerModal: (cust = null) => {
@@ -1604,10 +1527,7 @@
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
                 app.translatePage();
                 
-                if(!cust) {
-                    document.getElementById('cust-display-id').value = 'CUST-' + Date.now().toString().slice(-6);
-                }
-
+                if(!cust) { document.getElementById('cust-display-id').value = 'CUST-' + Date.now().toString().slice(-6); }
                 if(cust) {
                     document.getElementById('cust-form-title').innerText = 'Edit Customer';
                     document.getElementById('cust-id').value = cust.id;
@@ -1662,9 +1582,7 @@
             
             fillCustomerById: (idVal) => {
                 const cust = state.customers.find(c => c.customerId === idVal);
-                if (cust) {
-                    app.fillCustomerInfo(cust.name);
-                }
+                if (cust) { app.fillCustomerInfo(cust.name); }
             },
 
             openExpenseModal: () => {
@@ -1675,7 +1593,6 @@
                 app.populatePaymentSelects(); 
                 document.getElementById('exp-date').valueAsDate = new Date();
 
-                // Populate Categories
                 const catSelect = document.getElementById('exp-cat');
                 const cats = state.settings.expense_categories || ['Other'];
                 catSelect.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -1694,36 +1611,67 @@
                 app.closeModal();
             },
 
-            openAdjustmentModal: () => {
+            openSalaryModal: () => {
+                state.editingId = null;
                 const modal = document.getElementById('modal-container');
-                const tpl = document.getElementById('tpl-adjustment-form');
+                const tpl = document.getElementById('tpl-salary-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
                 app.translatePage();
-                app.populatePaymentSelects();
-                document.getElementById('adj-date').valueAsDate = new Date();
+                
+                document.getElementById('sal-form-title').innerText = 'Add Salary';
+                document.getElementById('sal-date').valueAsDate = new Date();
+                
+                const compSelect = document.getElementById('sal-company');
+                const comps = state.settings.companies || [];
+                compSelect.innerHTML = comps.map(c => `<option value="${c}">${c}</option>`).join('');
+                if(comps.length === 0) compSelect.innerHTML = `<option value="">No companies in settings</option>`;
             },
-            saveAdjustment: async (e) => {
+            editSalary: (id) => {
+                state.editingId = id;
+                const s = state.salaryIncomes.find(x => x.id === id);
+                if(!s) return;
+                
+                const modal = document.getElementById('modal-container');
+                const tpl = document.getElementById('tpl-salary-form');
+                modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
+                app.translatePage();
+                
+                document.getElementById('sal-form-title').innerText = 'Edit Salary';
+                document.getElementById('sal-id').value = id;
+                document.getElementById('sal-note').value = s.note || '';
+                document.getElementById('sal-amount').value = s.amount || '';
+                if(s.date) document.getElementById('sal-date').value = s.date;
+
+                const compSelect = document.getElementById('sal-company');
+                const comps = state.settings.companies || [];
+                compSelect.innerHTML = comps.map(c => `<option value="${c}" ${c === s.company ? 'selected' : ''}>${c}</option>`).join('');
+                if(comps.length === 0) compSelect.innerHTML = `<option value="${s.company}">${s.company}</option>`; 
+            },
+            saveSalary: async (e) => {
                 e.preventDefault();
-                const sign = document.getElementById('adj-sign') ? document.getElementById('adj-sign').value : '-';
-                const rawAmt = Number(document.getElementById('adj-amount').value || 0);
+                const id = document.getElementById('sal-id').value;
                 const data = {
-                    type: (sign === '+' ? 'refund' : 'adjustment'),
-                    sign: sign,
-                    title: document.getElementById('adj-title').value,
-                    amount: rawAmt,
-                    method: document.getElementById('adj-method').value,
-                    date: document.getElementById('adj-date').value,
-                    createdAt: serverTimestamp()
+                    company: document.getElementById('sal-company').value,
+                    note: document.getElementById('sal-note').value,
+                    amount: Number(document.getElementById('sal-amount').value),
+                    date: document.getElementById('sal-date').value,
                 };
-                await addDoc(collection(db, 'adjustments'), data);
+                
+                if (id) {
+                    await updateDoc(doc(db, 'salary_incomes', id), data);
+                } else {
+                    data.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'salary_incomes'), data);
+                }
                 app.closeModal();
+                state.editingId = null;
             },
 
             initCreateForm: () => {
                 const title = state.editingId ? `Edit ${state.mode}` : `New ${state.mode}`;
                 document.getElementById('form-title').innerText = title;
                 document.getElementById('form-mode-badge').innerText = state.mode;
-
+                
                 const dl = document.getElementById('customer-list');
                 const dlIds = document.getElementById('customer-ids');
                 dl.innerHTML = state.customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
@@ -1731,63 +1679,49 @@
 
                 const paySection = document.getElementById('invoice-payment-section');
                 paySection.style.display = state.mode === 'quotation' ? 'none' : 'block';
-
-                app.populatePaymentSelects();
+                
+                app.populatePaymentSelects(); 
                 app.renderCreateItems();
-
+                
                 const docNumInput = document.getElementById('doc-number');
-                const creationDateInput = document.getElementById('creation-date');
                 if(!state.editingId) {
                     state.taxRate = state.settings.taxRate || 0;
                     document.getElementById('tax-input').value = state.taxRate;
                     if(document.getElementById('service-fee')) document.getElementById('service-fee').value = state.serviceFee || 0;
                     if(document.getElementById('service-desc')) document.getElementById('service-desc').value = state.serviceDesc || '';
                     docNumInput.value = (state.mode === 'invoice' ? 'INV-' : 'QTN-') + Date.now().toString().slice(-6);
-                    creationDateInput.valueAsDate = new Date();
                     app.calcTotal();
-                } else {
-                    // For editing, set the creation date input to today (user can change if needed)
-                    creationDateInput.valueAsDate = new Date();
                 }
             },
 
             handleSave: async (e) => {
                 e.preventDefault();
                 const clientName = document.getElementById('client-name').value;
-                const clientId = document.getElementById('client-db-id').value;
+                const clientId = document.getElementById('client-db-id').value; 
                 const docNumber = document.getElementById('doc-number').value;
                 const clientEmail = document.getElementById('client-email-hidden').value;
                 const clientPhone = document.getElementById('client-phone-hidden').value;
                 const clientAddress = document.getElementById('client-address-hidden').value;
                 const note = document.getElementById('doc-note').value;
-                const creationDateValue = document.getElementById('creation-date').value;
 
                 const total = app.calcTotal();
-                const col = state.mode + 's';
+                const col = state.mode + 's'; 
                 try {
                     const docData = {
-                        clientName, clientId, items: state.items, discount: state.discount,
-                            taxRate: state.taxRate, totalAmount: total, note,
+                        clientName, clientId, items: state.items, discount: state.discount, 
+                        taxRate: state.taxRate, totalAmount: total, note,
                         clientEmail, clientPhone, clientAddress,
                         securityCode: state.editingId ? undefined : `SEC-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
                         createdBy: state.user.uid
                     };
-                        // Include service fee and description when saving invoice/quotation
-                        const feeEl = document.getElementById('service-fee');
-                        if(feeEl) docData.serviceFee = Number(feeEl.value || state.serviceFee || 0);
-                        const descEl = document.getElementById('service-desc');
-                        if(descEl) docData.serviceDesc = descEl.value || state.serviceDesc || '';
-
-                    // Add creation date
-                    if(creationDateValue) {
-                        docData.creationDate = new Date(creationDateValue).toISOString();
-                    }
-
+                    const feeEl = document.getElementById('service-fee');
+                    if(feeEl) docData.serviceFee = Number(feeEl.value || state.serviceFee || 0);
+                    const descEl = document.getElementById('service-desc');
+                    if(descEl) docData.serviceDesc = descEl.value || state.serviceDesc || '';
+                    
                     if(state.mode === 'invoice') {
                         docData.invoiceNumber = docNumber;
-                        if (!state.editingId) {
-                            docData.source = state.isConverted ? 'converted' : 'manual';
-                        }
+                        if (!state.editingId) { docData.source = state.isConverted ? 'converted' : 'manual'; }
                     } else {
                         docData.quotationNumber = docNumber;
                     }
@@ -1813,19 +1747,13 @@
             },
 
             createMode: (mode) => { state.mode = mode; state.editingId = null; state.items = [{desc:'', price:0, qty:1}]; state.discount = 0; state.taxRate = state.settings.taxRate || 0; state.initPayment = 0; state.serviceFee = 0; app.setView('create'); },
-            createManualInvoice: () => { 
-                app.closeModal(); 
-                state.isConverted = false; 
-                app.createMode('invoice'); 
-            },
+            createManualInvoice: () => { app.closeModal(); state.isConverted = false; app.createMode('invoice'); },
             showInvoiceOptionModal: () => { document.getElementById('modal-container').appendChild(document.getElementById('tpl-invoice-option').content.cloneNode(true)); app.translatePage(); lucide.createIcons(); },
             closeModal: () => document.getElementById('modal-container').innerHTML = '',
             
             editDoc: (id, type) => {
                 const d = state[type + 's'].find(i => i.id === id);
-                if(type === 'invoice' && d && d.status === 'paid') {
-                    return app.requireUnlockAndThen('editDocUnlocked', id, type);
-                }
+                if(type === 'invoice' && d && d.status === 'paid') { return app.requireUnlockAndThen('editDocUnlocked', id, type); }
                 return app.editDocUnlocked(id, type);
             },
             editDocUnlocked: (id, type) => {
@@ -1833,34 +1761,20 @@
                 const d = state[type + 's'].find(i => i.id === id);
                 state.items = JSON.parse(JSON.stringify(d.items)); state.discount = d.discount || 0; state.taxRate = d.taxRate || 0;
                 app.setView('create');
-                setTimeout(() => {
-                    document.getElementById('client-name').value = d.clientName;
-                    document.getElementById('discount-input').value = state.discount;
+                setTimeout(() => { 
+                    document.getElementById('client-name').value = d.clientName; 
+                    document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = d.invoiceNumber || d.quotationNumber;
                     document.getElementById('doc-note').value = d.note || '';
-
-                    // Load creation date
-                    if(d.creationDate) {
-                        document.getElementById('creation-date').valueAsDate = new Date(d.creationDate);
-                    } else {
-                        document.getElementById('creation-date').valueAsDate = new Date();
-                    }
-
-                    app.fillCustomerInfo(d.clientName);
-
-                    // Populate service fee and description if present on document
+                    app.fillCustomerInfo(d.clientName); 
                     if(document.getElementById('service-fee')) document.getElementById('service-fee').value = d.serviceFee || 0;
                     if(document.getElementById('service-desc')) document.getElementById('service-desc').value = d.serviceDesc || '';
-
                     if(type==='invoice'){ document.getElementById('init-payment-input').disabled = true; }
                     app.calcTotal();
                 }, 100);
             },
-            editContract: (id) => { 
-                state.editingId = id; 
-                app.setView('contract-edit'); 
-            },
+            editContract: (id) => { state.editingId = id; app.setView('contract-edit'); },
             deleteDoc: async (id, coll) => {
                 if(!confirm("Delete?")) return;
                 try { await deleteDoc(doc(db, coll, id)); } catch(e) { console.error(e); alert('Failed to delete.'); }
@@ -1870,20 +1784,15 @@
                 const q = state.quotations.find(i => i.id === id);
                 if(!q || !confirm("Convert to Invoice?")) return;
                 state.mode = 'invoice'; state.editingId = null; state.items = JSON.parse(JSON.stringify(q.items)); state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
-
-                state.isConverted = true;
+                state.isConverted = true; 
 
                 app.setView('create');
-                setTimeout(() => {
-                    document.getElementById('client-name').value = q.clientName;
-                    document.getElementById('discount-input').value = state.discount;
+                setTimeout(() => { 
+                    document.getElementById('client-name').value = q.clientName; 
+                    document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
-                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6);
-                    document.getElementById('creation-date').valueAsDate = new Date();
-
-                    // PREFILL NOTE
+                    document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6); 
                     document.getElementById('doc-note').value = `Ref: ${q.quotationNumber}`;
-
                     app.fillCustomerInfo(q.clientName);
                     app.calcTotal();
                 }, 100);
@@ -1894,16 +1803,14 @@
                 if(snap.empty) return alert("Not Found");
                 const q = snap.docs[0].data();
                 app.closeModal(); state.mode = 'invoice'; state.editingId = null; state.items = q.items; state.discount = q.discount || 0; state.taxRate = q.taxRate || 0; state.initPayment = 0;
+                state.isConverted = true; 
 
-                state.isConverted = true;
-
-                app.setView('create');
-                setTimeout(() => {
-                    document.getElementById('client-name').value = q.clientName;
-                    document.getElementById('discount-input').value = state.discount;
+                app.setView('create'); 
+                setTimeout(() => { 
+                    document.getElementById('client-name').value = q.clientName; 
+                    document.getElementById('discount-input').value = state.discount; 
                     document.getElementById('tax-input').value = state.taxRate;
                     document.getElementById('doc-number').value = 'INV-' + Date.now().toString().slice(-6);
-                    document.getElementById('creation-date').valueAsDate = new Date();
                     document.getElementById('doc-note').value = `Ref: ${q.quotationNumber}`;
                     app.fillCustomerInfo(q.clientName);
                     app.calcTotal();
@@ -1979,21 +1886,10 @@
             },
             requireUnlockAndThen: (fnName, ...args) => {
                 const pw = prompt('Enter PIN code to proceed:');
-                if (!pw) {
-                    alert('PIN code is required.');
-                    return;
-                }
-                
-                // Check against the default PIN
+                if (!pw) { alert('PIN code is required.'); return; }
                 if (pw === DEFAULT_PIN) {
-                    if (typeof app[fnName] === 'function') {
-                        try { app[fnName](...args); } catch(e) { console.error(e); }
-                    } else {
-                        alert('Action not available');
-                    }
-                } else {
-                    alert('Incorrect PIN code');
-                }
+                    if (typeof app[fnName] === 'function') { try { app[fnName](...args); } catch(e) { console.error(e); } } else { alert('Action not available'); }
+                } else { alert('Incorrect PIN code'); }
             },
             processImageBase: (input, cb) => {
                 if(!input.files[0]) return;
@@ -2086,7 +1982,6 @@
                     return;
                 }
 
-                // Invoice/Quotation Render
                 document.getElementById('verify-content').innerHTML = `
                 <div id="invoice-paper" class="a4-paper">
                     <div>
@@ -2109,8 +2004,8 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <h3 class="font-bold">${app.t('date')}</h3><p>${d.creationDate ? new Date(d.creationDate).toLocaleDateString() : new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>
-                                ${t==='invoice' && d.status==='refunded' ? '<div class="text-red-600 font-bold border-2 border-red-600 inline-block px-2 mt-2">REFUNDED</div>' :
+                                <h3 class="font-bold">${app.t('date')}</h3><p>${new Date(d.createdAt?.seconds*1000||Date.now()).toLocaleDateString()}</p>
+                                ${t==='invoice' && d.status==='refunded' ? '<div class="text-red-600 font-bold border-2 border-red-600 inline-block px-2 mt-2">REFUNDED</div>' : 
                                   (t==='invoice'&&d.status==='paid'?'<div class="text-green-700 font-bold border-2 border-green-700 inline-block px-2 mt-2">PAID</div>':'')
                                 }
                                 ${t==='invoice'&&d.payments?.length?`<div class="mt-4 text-xs text-gray-500 text-right"><p class="font-bold mb-1 underline">${app.t('payment_history')}</p><table class="w-full text-right ml-auto" style="width: auto;">${d.payments.map(p=>`<tr><td class="pr-2">${new Date(p.date).toLocaleDateString()}</td><td class="pr-2">(${p.method})</td><td class="font-bold">${p.amount.toLocaleString()}</td></tr>`).join('')}</table></div>`:''}
@@ -2209,7 +2104,6 @@
 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                const margin = 0; 
                 const pdfWidth = 210;
                 const contentWidth = pdfWidth; 
                 const contentHeight = (canvas.height * contentWidth) / canvas.width;
@@ -2233,14 +2127,12 @@
                 state.tempInvoice = {...i, paid, balance: i.totalAmount-paid};
                 const m = document.getElementById('tpl-payment-modal').content.cloneNode(true);
                 document.getElementById('modal-container').innerHTML = ''; document.getElementById('modal-container').appendChild(m);
-                app.translatePage();
-                app.populatePaymentSelects();
+                app.translatePage(); 
+                app.populatePaymentSelects(); 
                 document.getElementById('modal-total').innerText = i.totalAmount.toLocaleString();
                 document.getElementById('modal-paid').innerText = paid.toLocaleString();
                 document.getElementById('modal-balance').innerText = state.tempInvoice.balance.toLocaleString();
                 document.getElementById('payment-amount').value = state.tempInvoice.balance;
-                // Set payment date to today by default
-                document.getElementById('payment-date').valueAsDate = new Date();
             },
             unlockSetInvoicePending: async (id) => {
                 try { return updateDoc(doc(db,'invoices',id),{status:'pending',payments:[]}); } catch(e) { console.error(e); alert('Failed to unlock invoice.'); }
@@ -2248,18 +2140,14 @@
             confirmPayment: async () => {
                 const amt = Number(document.getElementById('payment-amount').value);
                 const met = document.getElementById('payment-method-select').value;
-                const paymentDateInput = document.getElementById('payment-date').value;
-                const paymentDate = paymentDateInput ? new Date(paymentDateInput).toISOString() : new Date().toISOString();
                 const inv = state.tempInvoice;
-                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:paymentDate}];
+                const pays = [...(inv.payments||[]), {amount:amt, method:met, date:new Date().toISOString()}];
                 const stat = pays.reduce((s,p)=>s+p.amount,0) >= inv.totalAmount ? 'paid' : 'partial';
                 await updateDoc(doc(db,'invoices',inv.id), {status:stat, payments:pays, paidAt: stat==='paid'?serverTimestamp():null});
                 app.closeModal();
             },
 
-            // --- Reports Logic (Updated with Charts & Pivots) ---
             initReportFilters: () => {
-                // populate year/customer selects used in reports
                 const ysel = document.getElementById('filter-year');
                 if(ysel){ const yearNow = new Date().getFullYear(); ysel.innerHTML = '<option value="all">All Years</option>'; for(let y=yearNow; y>=yearNow-5; y--){ ysel.innerHTML += `<option value="${y}">${y}</option>`; } }
                 const cust = document.getElementById('filter-customer'); if(cust){ cust.innerHTML = '<option value="all">All Customers</option>'; (state.customers||[]).forEach(c=> cust.innerHTML += `<option value="${c.name}">${c.name}</option>`); }
@@ -2269,92 +2157,49 @@
                 app.closeIncomePanel();
                 const modal = document.createElement('div');
                 modal.id = 'income-panel';
-                modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 fade-in';
+                
+                const r = state.reportPLData || { totalIncome:0 };
+                const salarySum = r.salaryIncomeSum || 0;
+                const invoiceOnly = (r.totalIncome || 0) - salarySum;
+                const total = r.totalIncome || 0;
+
                 modal.innerHTML = `
-                    <div class="bg-white w-full max-w-3xl rounded-xl p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-lg">Income Breakdown</h3>
-                            <div class="flex items-center gap-2">
-                                <button onclick="app.closeIncomePanel()" class="text-sm px-3 py-1 rounded bg-gray-100">Close</button>
+                    <div class="bg-white w-full max-w-sm rounded-xl p-6 shadow-xl relative">
+                        <button onclick="app.closeIncomePanel()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+                        <h3 class="font-bold text-lg mb-4 text-gray-800">Income Breakdown</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <div>
+                                    <div class="font-bold text-blue-800">Invoice Amount</div>
+                                    <div class="text-xs text-blue-600">From customer payments</div>
+                                </div>
+                                <div class="font-bold text-lg text-blue-700">${invoiceOnly.toLocaleString()}</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                                <div>
+                                    <div class="font-bold text-green-800">Salary Amount</div>
+                                    <div class="text-xs text-green-600">From Salary tab</div>
+                                </div>
+                                <div class="font-bold text-lg text-green-700">${salarySum.toLocaleString()}</div>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <div class="flex gap-2 text-sm">
-                                <button id="inc-tab-invoice" class="inc-tab px-3 py-1 rounded bg-gray-100">Invoice Income</button>
-                            </div>
+                        
+                        <div class="mt-4 pt-4 border-t flex justify-between items-center">
+                            <span class="font-bold text-gray-600">Total Income</span>
+                            <span class="font-bold text-2xl text-gray-900">${total.toLocaleString()}</span>
                         </div>
-                        <div id="inc-panel-body"></div>
-                        <div class="mt-4 border-t pt-2 text-right"><span class="text-sm mr-2">Total:</span><span id="inc-total" class="font-bold text-lg">0</span></div>
                     </div>
                 `;
                 document.getElementById('modal-container').appendChild(modal);
-                document.getElementById('inc-tab-invoice').onclick = ()=>app.renderIncomePanel('invoice');
-                app.renderIncomePanel('invoice');
+                lucide.createIcons();
             },
-
             closeIncomePanel: () => { const el = document.getElementById('income-panel'); if(el) el.remove(); },
 
-            renderIncomePanel: (tab) => {
-                const body = document.getElementById('inc-panel-body'); if(!body) return;
-                // use previously computed reportPLData if available
-                const r = state.reportPLData || { totalIncome:0 };
-                const invoiceOnly = r.totalIncome || 0;
-                const salaryList = state.salaryIncomes || [];
-                const salarySum = salaryList.reduce((s,i)=>s+Number(i.amount||0),0);
-                const total = invoiceOnly + salarySum;
-                document.getElementById('inc-total').innerText = total.toLocaleString();
-
-                if(tab==='invoice'){
-                    body.innerHTML = `<div class="text-sm">Invoice Income: <div class="mt-2 text-green-700 font-bold">${invoiceOnly.toLocaleString()}</div>
-                        <div class="mt-3 text-xs text-gray-600">This is aggregated from invoice payments.</div></div>`;
-                } else {
-                    // salary tab: show list and form
-                    body.innerHTML = `
-                        <div>
-                            <div class="mb-3 text-sm font-medium">Salary Entries</div>
-                            <div id="salary-list" class="space-y-2 mb-4">${salaryList.map((s,idx)=>`<div class="flex justify-between items-center p-2 border rounded"><div><div class="font-medium">${s.source||'-'} <span class="text-xs text-gray-400">(${s.type||'income'})</span></div><div class="text-xs text-gray-500">${s.company? s.company + ' • ' : ''}${s.method||'-'}</div></div><div class="font-bold">${Number(s.amount||0).toLocaleString()}</div></div>`).join('') || '<div class="text-xs text-gray-400">No salary entries</div>'}</div>
-
-                            <form id="salary-form" class="space-y-2" onsubmit="app.saveSalaryIncome(event)">
-                                <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
-                                    <input required name="source" placeholder="Entry title (e.g. Salary)" class="border p-2 rounded" />
-                                    ${ (state.settings && state.settings.companies && state.settings.companies.length) ?
-                                        `<select name="company" class="border p-2 rounded">${state.settings.companies.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>` :
-                                        `<input name="company" placeholder="Company name (optional)" class="border p-2 rounded" />` }
-                                    <select required name="method" class="border p-2 rounded">${(state.payment_methods && state.payment_methods.length? state.payment_methods.map(m=>`<option value="${m.name}">${m.name}</option>`).join('') : state.defaultMethods.map(m=>`<option value="${m.name}">${m.name}</option>`).join(''))}</select>
-                                    <select required name="type" class="border p-2 rounded"><option value="income">Income</option><option value="expense">Expense</option></select>
-                                    <input required name="amount" type="number" min="0" placeholder="Amount" class="border p-2 rounded" />
-                                    <input name="period" type="month" class="border p-2 rounded" title="Select month and year (optional)" />
-                                </div>
-                                <div class="flex justify-end"><button type="submit" class="px-3 py-1 bg-green-600 text-white rounded">Add Salary</button></div>
-                            </form>
-                        </div>
-                    `;
-                }
-            },
-
-            saveSalaryIncome: async (ev) => {
-                ev.preventDefault();
-                const f = document.getElementById('salary-form'); if(!f) return;
-                const fd = new FormData(f);
-                const period = fd.get('period');
-                const dateIso = period ? new Date(period + '-01').toISOString() : new Date().toISOString();
-                const entry = { source: fd.get('source'), company: fd.get('company') || '', method: fd.get('method'), type: fd.get('type') || 'income', amount: Number(fd.get('amount')||0), date: dateIso };
-
-                // Persist to Firestore when admin (so entries survive reloads)
-                if(state.isAdmin && typeof addDoc === 'function'){
-                    try {
-                        const docRef = await addDoc(collection(db, 'salary_incomes'), entry);
-                        entry.id = docRef.id;
-                    } catch(e){ console.error('Failed to save salary to Firestore', e); }
-                }
-
-                state.salaryIncomes.push(entry);
-                // update total display and re-render salary tab
-                app.renderIncomePanel('salary');
-            },
             renderReports: () => {
                 const container = document.getElementById('dashboard-content');
-                // Cleanup old charts
                 if (state.charts.pie) state.charts.pie.destroy();
                 if (state.charts.line) state.charts.line.destroy();
 
@@ -2362,7 +2207,6 @@
                 const fMonth = document.getElementById('filter-month').value;
                 const fCust = document.getElementById('filter-customer').value;
 
-                // 1. Data Prep: General Overview
                 const checkDate = (timestamp) => {
                     if(!timestamp) return false;
                     const d = timestamp.seconds ? new Date(timestamp.seconds*1000) : new Date(timestamp);
@@ -2373,15 +2217,13 @@
 
                 const filteredInvoices = state.invoices.filter(i => checkDate(i.createdAt) && (fCust === 'all' || i.clientName === fCust));
                 const filteredExpenses = state.expenses.filter(e => checkDate(e.date)); 
-
+                
                 let totalIncome = 0, totalExpense = 0, totalRefunds = 0, totalReceivable = 0;
                 let manualInvCount = 0, manualInvTotal = 0;
                 let convertedInvCount = 0, convertedInvTotal = 0;
                 
-                // NEW: Counters
                 const totalInvCount = state.invoices.length;
                 const totalQtnCount = state.quotations.length;
-                // Count Invoice marked as converted source
                 const convertedCount = state.invoices.filter(i => i.source === 'converted').length;
 
                 const clientIncome = {};
@@ -2401,7 +2243,6 @@
                                 paid += p.amount;
                                 totalIncome += p.amount;
                                 
-                                // Client Pivot Data
                                 if(!clientIncome[inv.clientName]) clientIncome[inv.clientName] = 0;
                                 clientIncome[inv.clientName] += p.amount;
                             });
@@ -2410,7 +2251,6 @@
                     }
                 });
 
-                // Expense Pivot Data
                 const expenseByCat = {};
                 filteredExpenses.forEach(e => {
                     totalExpense += Number(e.amount);
@@ -2419,7 +2259,7 @@
                     expenseByCat[cat] += Number(e.amount);
                 });
 
-                // --- Salary entries (custom) ---
+                // --- Salary entries calculation ---
                 const salaryFiltered = (state.salaryIncomes||[]).filter(s => {
                     if(!s.date) return true;
                     const d = new Date(s.date);
@@ -2427,33 +2267,30 @@
                     if(fMonth !== 'all' && d.getMonth() != fMonth) return false;
                     return true;
                 });
-                const salaryIncomeSum = salaryFiltered.filter(s=> (s.type||'income')==='income').reduce((s,i)=>s+Number(i.amount||0),0);
-                const salaryExpenseSum = salaryFiltered.filter(s=> (s.type||'income')==='expense').reduce((s,i)=>s+Number(i.amount||0),0);
-                // Add salary income to income, and salary expense to expense totals
+                
+                const salaryIncomeSum = salaryFiltered.reduce((s,i)=>s+Number(i.amount||0),0);
                 totalIncome += salaryIncomeSum;
-                totalExpense += salaryExpenseSum;
+                const salaryExpenseSum = 0; 
 
-                // Prepare monthly expense arrays (for green/red line chart)
                 const currentYear = new Date().getFullYear();
                 const selectedYear = fYear === 'all' ? currentYear : parseInt(fYear);
                 const prevYear = selectedYear - 1;
                 const monthlyExpenseCurrent = new Array(12).fill(0);
                 const monthlyExpensePrev = new Array(12).fill(0);
-                // Add regular expenses
+                
                 filteredExpenses.forEach(e => {
                     const d = new Date(e.date);
                     const m = d.getMonth(); const y = d.getFullYear(); const amt = Number(e.amount || 0);
                     if (y === selectedYear) monthlyExpenseCurrent[m] += amt;
                     if (y === prevYear) monthlyExpensePrev[m] += amt;
                 });
+
                 const netProfit = totalIncome - totalExpense;
 
-                // --- Payment Method Aggregation (for column chart) ---
                 const paymentMethodSums = {};
                 const methodsList = (state.payment_methods && state.payment_methods.length > 0) ? state.payment_methods.map(m => m.name) : state.defaultMethods.map(m => m.name);
                 methodsList.forEach(m => { paymentMethodSums[m] = { in: 0, out: 0 }; });
 
-                // Aggregate from invoice payments
                 filteredInvoices.forEach(inv => {
                     if (inv.payments) {
                         inv.payments.forEach(p => {
@@ -2464,45 +2301,31 @@
                     }
                 });
 
-                // Aggregate from expenses
                 filteredExpenses.forEach(e => {
                     const m = e.method || 'Unknown';
                     if (!paymentMethodSums[m]) paymentMethodSums[m] = { in: 0, out: 0 };
                     paymentMethodSums[m].out += Number(e.amount || 0);
                 });
 
-                // Aggregate from salary entries
-                (salaryFiltered||[]).forEach(s => {
-                    const m = s.method || 'Unknown';
-                    if (!paymentMethodSums[m]) paymentMethodSums[m] = { in: 0, out: 0 };
-                    const amt = Number(s.amount || 0);
-                    if ((s.type||'income') === 'income') paymentMethodSums[m].in += amt; else paymentMethodSums[m].out += amt;
-                });
-
-                // Save summary for download/export (now that paymentMethodSums exists)
                 state.reportPLData = {
                     totalIncome, totalExpense, netProfit,
                     totalReceivable, totalRefunds, paymentMethodSums: paymentMethodSums,
                     year: fYear, month: fMonth, salaryIncomeSum, salaryExpenseSum
                 };
 
-                // Prepare monthly detail rows if a specific month filter is selected
                 let monthDetailRowsHtml = '';
                 if (fMonth !== 'all') {
                     const combined = [];
-                    // Invoice payments as income rows (In column)
                     filteredInvoices.forEach(inv => {
                         if (inv.payments && inv.payments.length) {
                             inv.payments.forEach(p => combined.push({ date: new Date(p.date), type: 'Payment', desc: inv.clientName || (inv.note||''), method: p.method||'Unknown', in: Number(p.amount || 0), out: 0 }));
                         } else {
-                            // invoice without payment (show as receivable in In column)
                             const d = inv.createdAt && inv.createdAt.seconds ? new Date(inv.createdAt.seconds*1000) : new Date();
                             combined.push({ date: d, type: 'Invoice (Unpaid)', desc: inv.clientName || '', method: '', in: Number(inv.totalAmount || 0), out: 0 });
                         }
                     });
-                    // Expenses go to Out column
                     filteredExpenses.forEach(e => combined.push({ date: new Date(e.date), type: 'Expense', desc: e.title || '', method: e.method||'Unknown', in: 0, out: Number(e.amount || 0) }));
-
+                    
                     combined.sort((A,B)=>A.date - B.date);
 
                     monthDetailRowsHtml = combined.map(r => `
@@ -2516,8 +2339,6 @@
                         </tr>
                     `).join('');
                 }
-
-                // 2. Data Prep: Line Chart
 
                 const monthlyIncomeCurrent = new Array(12).fill(0);
                 const monthlyIncomePrev = new Array(12).fill(0);
@@ -2534,21 +2355,17 @@
                     }
                 });
 
-                // Prepare some complex HTML fragments to avoid nested template literal parsing issues
                 const salaryByCompanyHtml = (() => {
                     const sb = {};
                     (salaryFiltered||[]).forEach(s => {
-                        if((s.type||'income') === 'income'){
-                            const c = s.company || 'Unknown';
-                            sb[c] = (sb[c]||0) + Number(s.amount||0);
-                        }
+                        const c = s.company || 'Unknown';
+                        sb[c] = (sb[c]||0) + Number(s.amount||0);
                     });
                     return Object.entries(sb).sort((a,b)=>b[1]-a[1]).map(([comp,amt])=>{
                         return `<tr><td class="p-3 font-medium">${comp}</td><td class="p-3 text-right text-green-600">${amt.toLocaleString()}</td><td class="p-3 text-right text-gray-500">${totalIncome>0?Math.round((amt/totalIncome)*100)+'%':'0%'}</td></tr>`
                     }).join('');
                 })();
 
-                // --- UI Rendering ---
                 container.innerHTML = `
                 <div class="p-4 bg-gray-50 min-h-screen space-y-6">
                     <div class="flex gap-4 mb-4">
@@ -2564,10 +2381,10 @@
                     </div>
 
                     <h3 class="font-bold text-lg text-gray-700">${app.t('financial_overview')} (${fYear==='all'?'All':fYear})</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <button onclick="app.openIncomePanel()" class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500 text-left hover:bg-gray-50 transition-colors">
                                 <div class="text-xs text-gray-500 uppercase">${app.t('income')}</div>
-                                <div class="text-xl font-bold text-green-600" title="Salary: ${salaryIncomeSum && totalIncome? Math.round((salaryIncomeSum/totalIncome)*100) : 0}%">${totalIncome.toLocaleString()}</div>
+                                <div class="text-xl font-bold text-green-600">${totalIncome.toLocaleString()}</div>
                         </button>
                         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
                             <div class="text-xs text-gray-500 uppercase">${app.t('expense_label')}</div>
@@ -2585,7 +2402,6 @@
                             <div class="text-xs text-gray-500 uppercase">${app.t('refund_total')}</div>
                             <div class="text-xl font-bold text-orange-600">${totalRefunds.toLocaleString()}</div>
                         </div>
-
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2635,18 +2451,7 @@
                                             <thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="p-3 text-left">Company</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">%</th></tr></thead>
                                             <tbody class="divide-y">
                                                 ${salaryByCompanyHtml}
-                                                ${ (salaryFiltered||[]).filter(s=> (s.type||'income')==='income').length===0 ? '<tr><td colspan="3" class="p-4 text-center text-gray-400">No salary income</td></tr>' : '' }
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div class="bg-white rounded-lg shadow border overflow-hidden">
-                                        <div class="bg-gray-50 p-3 border-b font-bold text-gray-700 text-sm">By Company (Salaries)</div>
-                                        <table class="w-full text-sm">
-                                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="p-3 text-left">Company</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">%</th></tr></thead>
-                                            <tbody class="divide-y">
-                                                ${salaryByCompanyHtml}
-                                                ${ (salaryFiltered||[]).filter(s=> (s.type||'income')==='income').length===0 ? '<tr><td colspan="3" class="p-4 text-center text-gray-400">No salary income</td></tr>' : '' }
+                                                ${ (salaryFiltered||[]).length===0 ? '<tr><td colspan="3" class="p-4 text-center text-gray-400">No salary income</td></tr>' : '' }
                                             </tbody>
                                         </table>
                                     </div>
@@ -2654,8 +2459,6 @@
                     </div>
                 </div>`;
 
-                // --- Render Charts ---
-                // Payment Method Column Chart
                 if (state.charts.methodBar) state.charts.methodBar.destroy();
                 const methodKeys = Object.keys(paymentMethodSums);
                 const methodInValues = methodKeys.map(k => paymentMethodSums[k].in);
@@ -2673,7 +2476,6 @@
                     options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: { stacked: false }, y: { stacked: false } } }
                 });
 
-                // Monthly Income Trend -> Grouped Column Chart (bar)
                 const ctxLine = document.getElementById('lineChart').getContext('2d');
                 if (state.charts.line) state.charts.line.destroy();
                 state.charts.line = new Chart(ctxLine, {
@@ -2681,38 +2483,23 @@
                     data: {
                         labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
                         datasets: [
-                            {
-                                label: `${selectedYear}`,
-                                data: monthlyIncomeCurrent,
-                                backgroundColor: '#3B82F6'
-                            },
-                            {
-                                label: `${prevYear}`,
-                                data: monthlyIncomePrev,
-                                backgroundColor: '#9CA3AF'
-                            }
+                            { label: `${selectedYear}`, data: monthlyIncomeCurrent, backgroundColor: '#3B82F6' },
+                            { label: `${prevYear}`, data: monthlyIncomePrev, backgroundColor: '#9CA3AF' }
                         ]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        scales: {
-                            x: { stacked: false },
-                            y: { stacked: false, beginAtZero: true }
-                        }
+                        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                        scales: { x: { stacked: false }, y: { stacked: false, beginAtZero: true } }
                     }
                 });
 
-                // --- Green/Red Line Chart (Income vs Expense) ---
                 const grContainer = document.createElement('div');
                 grContainer.className = 'bg-white p-4 rounded-lg shadow border mt-6';
                 grContainer.innerHTML = `<h4 class="font-bold text-gray-600 mb-4 text-sm">Income (Green) vs Expense (Red) - ${selectedYear}</h4><div class="relative h-64"><canvas id="grLineChart"></canvas></div>`;
                 document.querySelector('.p-4.bg-gray-50.min-h-screen.space-y-6').appendChild(grContainer);
 
                 const monthlyExpenseCurrentFinal = typeof monthlyExpenseCurrent !== 'undefined' ? monthlyExpenseCurrent : new Array(12).fill(0);
-                const monthlyExpensePrevFinal = typeof monthlyExpensePrev !== 'undefined' ? monthlyExpensePrev : new Array(12).fill(0);
-
+                
                 const ctxGr = document.getElementById('grLineChart').getContext('2d');
                 if(state.charts.grLine) state.charts.grLine.destroy();
                 state.charts.grLine = new Chart(ctxGr, {
@@ -2727,7 +2514,6 @@
                     options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // If month filter selected, append detailed transactions table for that month
                 if (fMonth !== 'all') {
                     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
                     const md = document.createElement('div');
@@ -2746,7 +2532,6 @@
                     document.querySelector('.p-4.bg-gray-50.min-h-screen.space-y-6').appendChild(md);
                 }
 
-                // Append Profit & Loss summary at the bottom of the page
                 const plContainer = document.createElement('div');
                 plContainer.className = 'bg-white p-4 rounded-lg shadow border mt-6';
                 plContainer.innerHTML = `
