@@ -390,7 +390,10 @@
                     <select id="sal-company" required class="w-full border p-2 rounded mb-2 bg-white"></select>
                     
                     <input type="text" id="sal-note" placeholder="Note (မှတ်ချက်)" required class="w-full border p-2 rounded">
-                    <input type="number" id="sal-amount" placeholder="Amount (ပမာဏ)" required class="w-full border p-2 rounded">
+                    <div class="flex gap-2">
+                        <input type="number" id="sal-amount" placeholder="Amount (ပမာဏ)" required class="w-full border p-2 rounded">
+                        <select id="sal-method" class="border p-2 rounded bg-white payment-method-select"></select>
+                    </div>
                     <input type="date" id="sal-date" required class="w-full border p-2 rounded">
                     <div class="flex justify-end gap-2 mt-4">
                         <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
@@ -1378,12 +1381,13 @@
                 } else if (type === 'salary') {
                     container.innerHTML = `
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Company</th><th class="p-3">Note</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
+                        <thead class="bg-gray-50 border-b text-gray-600"><tr><th class="p-3">Date</th><th class="p-3">Company</th><th class="p-3">Note</th><th class="p-3">Method</th><th class="p-3 text-right">Amount</th><th class="p-3 text-right">Actions</th></tr></thead>
                         <tbody class="divide-y">${data.map(s => `
                             <tr class="hover:bg-gray-50">
                                 <td class="p-3">${s.date ? new Date(s.date).toLocaleDateString() : '-'}</td>
                                 <td class="p-3 font-medium">${s.company||'-'}</td>
                                 <td class="p-3">${s.note||'-'}</td>
+                                <td class="p-3"><span class="bg-gray-100 text-xs px-2 py-1 rounded">${s.method||'-'}</span></td>
                                 <td class="p-3 text-right font-medium text-green-600">+${Number(s.amount).toLocaleString()}</td>
                                 <td class="p-3 text-right">
                                     <button onclick="app.requireUnlockAndThen('editSalary','${s.id}')" class="text-blue-600 p-1 mr-1"><i data-lucide="pencil" width="16"></i></button>
@@ -1617,6 +1621,7 @@
                 const tpl = document.getElementById('tpl-salary-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
                 app.translatePage();
+                app.populatePaymentSelects();
                 
                 document.getElementById('sal-form-title').innerText = 'Add Salary';
                 document.getElementById('sal-date').valueAsDate = new Date();
@@ -1635,11 +1640,13 @@
                 const tpl = document.getElementById('tpl-salary-form');
                 modal.innerHTML = ''; modal.appendChild(tpl.content.cloneNode(true));
                 app.translatePage();
+                app.populatePaymentSelects();
                 
                 document.getElementById('sal-form-title').innerText = 'Edit Salary';
                 document.getElementById('sal-id').value = id;
                 document.getElementById('sal-note').value = s.note || '';
                 document.getElementById('sal-amount').value = s.amount || '';
+                if(s.method) document.getElementById('sal-method').value = s.method;
                 if(s.date) document.getElementById('sal-date').value = s.date;
 
                 const compSelect = document.getElementById('sal-company');
@@ -1654,6 +1661,7 @@
                     company: document.getElementById('sal-company').value,
                     note: document.getElementById('sal-note').value,
                     amount: Number(document.getElementById('sal-amount').value),
+                    method: document.getElementById('sal-method').value,
                     date: document.getElementById('sal-date').value,
                 };
                 
@@ -2307,6 +2315,12 @@
                     paymentMethodSums[m].out += Number(e.amount || 0);
                 });
 
+                salaryFiltered.forEach(s => {
+                    const m = s.method || 'Unknown';
+                    if (!paymentMethodSums[m]) paymentMethodSums[m] = { in: 0, out: 0 };
+                    paymentMethodSums[m].in += Number(s.amount || 0);
+                });
+
                 state.reportPLData = {
                     totalIncome, totalExpense, netProfit,
                     totalReceivable, totalRefunds, paymentMethodSums: paymentMethodSums,
@@ -2326,6 +2340,8 @@
                     });
                     filteredExpenses.forEach(e => combined.push({ date: new Date(e.date), type: 'Expense', desc: e.title || '', method: e.method||'Unknown', in: 0, out: Number(e.amount || 0) }));
                     
+                    salaryFiltered.forEach(s => combined.push({ date: new Date(s.date || Date.now()), type: 'Salary', desc: s.company + (s.note ? ' - '+s.note : ''), method: s.method||'Unknown', in: Number(s.amount || 0), out: 0 }));
+
                     combined.sort((A,B)=>A.date - B.date);
 
                     monthDetailRowsHtml = combined.map(r => `
