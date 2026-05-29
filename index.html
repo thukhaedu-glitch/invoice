@@ -268,7 +268,7 @@
         <button onclick="app.switchTab('contract')"  id="tab-contract"  class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="contracts">Contracts</button>
         <button onclick="app.switchTab('customer')"  id="tab-customer"  class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="customers">Customers</button>
         <button onclick="app.switchTab('expense')"   id="tab-expense"   class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="expenses">Expenses</button>
-        <button onclick="app.switchTab('salary')"    id="tab-salary"    class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Salary</button>
+        <button onclick="app.switchTab('project')"    id="tab-project"    class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Project</button>
         <button onclick="app.switchTab('report')"    id="tab-report"    class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="reports">Reports</button>
         <button onclick="app.setView('members')"     class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50" data-translate="members">Members</button>
         <button onclick="app.setView('settings')"    class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">
@@ -629,20 +629,20 @@
 </div>
 </template>
 
-<template id="tpl-salary-form">
+<template id="tpl-project-form">
 <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 fade-in">
     <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-        <h3 class="text-lg font-bold mb-4" id="sal-form-title">Add Salary</h3>
-        <form onsubmit="app.saveSalary(event)" class="space-y-3">
-            <input type="hidden" id="sal-id">
+        <h3 class="text-lg font-bold mb-4" id="proj-form-title">Add Project</h3>
+        <form onsubmit="app.saveProject(event)" class="space-y-3">
+            <input type="hidden" id="proj-id">
             <label class="block text-xs font-medium text-gray-500">Company</label>
-            <select id="sal-company" required class="w-full border p-2 rounded bg-white"></select>
-            <input type="text" id="sal-note" placeholder="Note" required class="w-full border p-2 rounded">
+            <select id="proj-company" required class="w-full border p-2 rounded bg-white"></select>
+            <input type="text" id="proj-note" placeholder="Note" required class="w-full border p-2 rounded">
             <div class="flex gap-2">
-                <input type="number" id="sal-amount" placeholder="Amount" required class="w-full border p-2 rounded">
-                <select id="sal-method" class="border p-2 rounded bg-white payment-method-select"></select>
+                <input type="number" id="proj-amount" placeholder="Amount" required class="w-full border p-2 rounded">
+                <select id="proj-method" class="border p-2 rounded bg-white payment-method-select"></select>
             </div>
-            <input type="date" id="sal-date" required class="w-full border p-2 rounded">
+            <input type="date" id="proj-date" required class="w-full border p-2 rounded">
             <div class="flex justify-end gap-2 mt-4">
                 <button type="button" onclick="app.closeModal()" class="px-4 py-2 bg-gray-100 rounded">Cancel</button>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
