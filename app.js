@@ -35,7 +35,7 @@ const ROLE_PERMISSIONS = {
         "view_dashboard","create_invoice","edit_invoice","delete_invoice",
         "create_quotation","edit_quotation","delete_quotation",
         "create_contract","edit_contract","delete_contract",
-        "manage_customers","manage_expenses","manage_salary",
+        "manage_customers","manage_expenses","manage_project",
         "view_reports","manage_settings","manage_members",
         "delete_company"
     ],
@@ -43,12 +43,12 @@ const ROLE_PERMISSIONS = {
         "view_dashboard","create_invoice","edit_invoice","delete_invoice",
         "create_quotation","edit_quotation","delete_quotation",
         "create_contract","edit_contract","delete_contract",
-        "manage_customers","manage_expenses","manage_salary",
+        "manage_customers","manage_expenses","manage_project",
         "view_reports","manage_settings"
     ],
     staff: [
         "view_dashboard","create_invoice","create_quotation",
-        "manage_customers"
+        "create_contract","manage_customers"
     ]
 };
 
@@ -150,7 +150,7 @@ const state = {
 
     // Collections (scoped to company)
     invoices: [], quotations: [], customers: [], expenses: [],
-    contracts: [], payment_methods: [], adjustments: [], salaryIncomes: [],
+    contracts: [], payment_methods: [], adjustments: [], projects: [],
 
     // Listeners (to unsubscribe when switching company)
     listeners: [],
@@ -293,7 +293,7 @@ const app = {
     listenCompanyData() {
         const colls = [
             'invoices','quotations','customers','expenses',
-            'adjustments','contracts','salary_incomes','payment_methods'
+            'adjustments','contracts','projects','payment_methods'
         ];
         colls.forEach(coll => {
             const unsub = onSnapshot(cCol(coll), (snapshot) => {
@@ -301,7 +301,7 @@ const app = {
                     id: d.id, ...d.data(),
                     type: coll.replace('_incomes','').replace(/s$/,'')
                 }));
-                const key = coll === 'salary_incomes' ? 'salaryIncomes' : coll;
+                const key = coll === 'projects' ? 'projects' : coll;
                 state[key] = items;
                 if (coll !== 'payment_methods') {
                     state[key].sort((a, b) => {
@@ -614,11 +614,11 @@ const app = {
 
         // Hide tabs based on role
         const reportTab  = document.getElementById('tab-report');
-        const salaryTab  = document.getElementById('tab-salary');
+        const salaryTab  = document.getElementById('tab-project');
         const expenseTab = document.getElementById('tab-expense');
         const contractTab = document.getElementById('tab-contract');
         if (reportTab)   reportTab.style.display   = can('view_reports')    ? '' : 'none';
-        if (salaryTab)   salaryTab.style.display    = can('manage_salary')   ? '' : 'none';
+        if (salaryTab)   salaryTab.style.display    = can('manage_project')   ? '' : 'none';
         if (expenseTab)  expenseTab.style.display   = can('manage_expenses') ? '' : 'none';
         if (contractTab) contractTab.style.display  = can('create_contract') ? '' : 'none';
 
@@ -679,8 +679,8 @@ const app = {
 
         if (state.activeTab === 'report') { app.renderReports(); return; }
 
-        const src = state.activeTab === 'salary'
-            ? state.salaryIncomes
+        const src = state.activeTab === 'project'
+            ? state.projects
             : (state[state.activeTab + 's'] || []);
 
         const filtered = src.filter(item => {
@@ -786,9 +786,9 @@ const app = {
                         <td class="p-3"><span class="bg-gray-100 text-xs px-2 py-1 rounded">${s.method || '-'}</span></td>
                         <td class="p-3 text-right font-medium text-green-600">+${Number(s.amount).toLocaleString()}</td>
                         <td class="p-3 text-right">
-                            ${can('manage_salary') ? `
-                            <button onclick="app.requirePin('editSalary','${s.id}')" class="icon-btn text-blue-600"><i data-lucide="pencil" width="14"></i></button>
-                            <button onclick="app.requirePin('deleteDoc','${s.id}','salary_incomes')" class="icon-btn text-red-600"><i data-lucide="trash-2" width="14"></i></button>` : '—'}
+                            ${can('manage_project') ? `
+                            <button onclick="app.requirePin('editProject','${s.id}')" class="icon-btn text-blue-600"><i data-lucide="pencil" width="14"></i></button>
+                            <button onclick="app.requirePin('deleteDoc','${s.id}','projects')" class="icon-btn text-red-600"><i data-lucide="trash-2" width="14"></i></button>` : '—'}
                         </td>
                     </tr>`).join('')}</tbody>
             </table>`;
@@ -872,7 +872,7 @@ const app = {
         else if (tab === 'contract')  { state.editingId = null; app.setView('contract-edit'); }
         else if (tab === 'customer')  app.openCustomerModal();
         else if (tab === 'expense')   app.openExpenseModal();
-        else if (tab === 'salary')    app.openSalaryModal();
+        else if (tab === 'project')    app.openProjectModal();
     },
 
     initCreateForm() {
@@ -1115,40 +1115,40 @@ const app = {
     },
 
     // ── SALARY ────────────────────────────────
-    openSalaryModal(existing = null) {
+    openProjectModal(existing = null) {
         state.editingId = existing?.id || null;
-        const tpl = document.getElementById('tpl-salary-form');
+        const tpl = document.getElementById('tpl-project-form');
         document.getElementById('modal-container').innerHTML = '';
         document.getElementById('modal-container').appendChild(tpl.content.cloneNode(true));
         app.translatePage(); app.populatePaymentSelects();
-        document.getElementById('sal-form-title').innerText = existing ? 'Edit Salary' : 'Add Salary';
-        document.getElementById('sal-date').valueAsDate = new Date();
+        document.getElementById('proj-form-title').innerText = existing ? 'Edit Salary' : 'Add Salary';
+        document.getElementById('proj-date').valueAsDate = new Date();
         const comps = state.settings.companies || [];
-        const compSel = document.getElementById('sal-company');
+        const compSel = document.getElementById('proj-company');
         compSel.innerHTML = comps.map(c => `<option value="${c}">${c}</option>`).join('');
         if (comps.length === 0) compSel.innerHTML = '<option value="">No companies</option>';
         if (existing) {
-            document.getElementById('sal-id').value     = existing.id;
-            document.getElementById('sal-note').value   = existing.note   || '';
-            document.getElementById('sal-amount').value = existing.amount || '';
-            if (existing.method) document.getElementById('sal-method').value  = existing.method;
-            if (existing.date)   document.getElementById('sal-date').value    = existing.date;
+            document.getElementById('proj-id').value     = existing.id;
+            document.getElementById('proj-note').value   = existing.note   || '';
+            document.getElementById('proj-amount').value = existing.amount || '';
+            if (existing.method) document.getElementById('proj-method').value  = existing.method;
+            if (existing.date)   document.getElementById('proj-date').value    = existing.date;
             if (existing.company) compSel.value = existing.company;
         }
     },
-    editSalary(id) { app.openSalaryModal(state.salaryIncomes.find(x => x.id === id)); },
-    async saveSalary(e) {
+    editProject(id) { app.openProjectModal(state.projects.find(x => x.id === id)); },
+    async saveProject(e) {
         e.preventDefault();
-        const id   = document.getElementById('sal-id').value;
+        const id   = document.getElementById('proj-id').value;
         const data = {
-            company: document.getElementById('sal-company').value,
-            note:    document.getElementById('sal-note').value,
-            amount:  Number(document.getElementById('sal-amount').value),
-            method:  document.getElementById('sal-method').value,
-            date:    document.getElementById('sal-date').value,
+            company: document.getElementById('proj-company').value,
+            note:    document.getElementById('proj-note').value,
+            amount:  Number(document.getElementById('proj-amount').value),
+            method:  document.getElementById('proj-method').value,
+            date:    document.getElementById('proj-date').value,
         };
-        if (id) await updateDoc(cDoc('salary_incomes', id), data);
-        else    { data.createdAt = serverTimestamp(); await addDoc(cCol('salary_incomes'), data); }
+        if (id) await updateDoc(cDoc('projects', id), data);
+        else    { data.createdAt = serverTimestamp(); await addDoc(cCol('projects'), data); }
         app.closeModal(); state.editingId = null;
     },
 
@@ -1739,7 +1739,7 @@ const app = {
             expByCat[e.category || 'Other'] = (expByCat[e.category || 'Other'] || 0) + Number(e.amount);
         });
 
-        const salaryF = state.salaryIncomes.filter(s => checkDate(s.date || s.createdAt));
+        const salaryF = state.projects.filter(s => checkDate(s.date || s.createdAt));
         const salarySum = salaryF.reduce((s, x) => s + Number(x.amount || 0), 0);
         income += salarySum;
 
@@ -1953,7 +1953,7 @@ const app = {
     // ── MIGRATION (one-time) ──────────────────
     async migrateOldData(targetCompanyId) {
         if (!confirm(`Migrate all old data to company ${targetCompanyId}?\nThis is irreversible.`)) return;
-        const colls = ['invoices','quotations','customers','expenses','contracts','salary_incomes','payment_methods'];
+        const colls = ['invoices','quotations','customers','expenses','contracts','projects','payment_methods'];
         let count = 0;
         for (const coll of colls) {
             const snap = await getDocs(collection(db, coll));
