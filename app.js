@@ -48,7 +48,7 @@ const ROLE_PERMISSIONS = {
     ],
     staff: [
         "view_dashboard","create_invoice","create_quotation",
-        "manage_customers","view_reports"
+        "manage_customers"
     ]
 };
 
@@ -598,6 +598,16 @@ const app = {
                     ? 'bg-white border shadow-sm text-gray-800'
                     : 'text-gray-500 hover:bg-gray-50'}`;
         });
+
+        // Hide tabs based on role
+        const reportTab  = document.getElementById('tab-report');
+        const salaryTab  = document.getElementById('tab-salary');
+        const expenseTab = document.getElementById('tab-expense');
+        const contractTab = document.getElementById('tab-contract');
+        if (reportTab)   reportTab.style.display   = can('view_reports')    ? '' : 'none';
+        if (salaryTab)   salaryTab.style.display    = can('manage_salary')   ? '' : 'none';
+        if (expenseTab)  expenseTab.style.display   = can('manage_expenses') ? '' : 'none';
+        if (contractTab) contractTab.style.display  = can('create_contract') ? '' : 'none';
 
         const actionBar     = document.getElementById('action-bar');
         const genericFilters = document.getElementById('generic-filters');
