@@ -4,7 +4,7 @@ import {
     getAuth, signInAnonymously, onAuthStateChanged,
     signInWithPopup, GoogleAuthProvider,
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    signOut, updateProfile
+    signOut, updateProfile, sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -574,6 +574,19 @@ const app = {
 
     async googleLogin() {
         try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { alert(e.message); }
+    },
+
+    async resetPassword() {
+        const email = document.getElementById('reset-email')?.value
+                   || document.getElementById('email')?.value
+                   || prompt('Enter your email address:');
+        if (!email) return;
+        try {
+            await sendPasswordResetEmail(auth, email);
+            alert(`Password reset email sent to ${email}\n\nCheck your inbox and follow the link.`);
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
     },
 
     async logout() {
