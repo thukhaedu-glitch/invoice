@@ -117,6 +117,9 @@
             <div id="auth-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200"></div>
             <input type="email" id="email" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Email" required>
             <input type="password" id="password" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Password" required>
+            <div class="text-right">
+                <button type="button" onclick="app.resetPassword()" class="text-xs text-blue-500 hover:text-blue-700 underline">Forgot Password?</button>
+            </div>
             <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium" data-translate="login_btn">Login</button>
         </form>
     </div>
@@ -152,6 +155,9 @@
         <div id="auth-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200"></div>
         <input type="email" id="email" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Email" required>
         <input type="password" id="password" class="w-full border px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Password" required>
+        <div class="text-right">
+            <button type="button" onclick="app.resetPassword()" class="text-xs text-blue-500 hover:text-blue-700 underline">Forgot Password?</button>
+        </div>
         <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium" data-translate="login_btn">Login</button>
     </form>
     <p class="text-center text-sm text-gray-500 mt-4">No account? <button onclick="app.setView('register')" class="text-blue-600 underline">Sign Up</button></p>
