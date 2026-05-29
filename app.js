@@ -241,11 +241,20 @@ const app = {
 
     // ── COMPANY LOADING ────────────────────────
     async loadUserCompanies() {
-        const snap = await getDocs(
-            query(collection(db, 'companies'),
-                  where(`members.${state.user.uid}`, 'in', ['owner','admin','staff']))
-        );
-        state.userCompanies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Firestore doesn't support 'in' on map fields — use != null instead
+        let snap;
+        try {
+            snap = await getDocs(
+                query(collection(db, 'companies'),
+                      where(`members.${state.user.uid}`, '!=', null))
+            );
+        } catch(e) {
+            // Fallback: get all companies and filter client-side
+            snap = await getDocs(collection(db, 'companies'));
+        }
+        state.userCompanies = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(c => c.members && c.members[state.user.uid]);
 
         const saved = localStorage.getItem('activeCompany');
         const match = state.userCompanies.find(c => c.id === saved);
@@ -1814,6 +1823,12 @@ const app = {
         </div>`;
 
         const mkChart = () => {
+            ['methodBarChart','lineChart','grLineChart'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { const ex = Chart.getChart(el); if (ex) ex.destroy(); }
+            });
+            Object.values(state.charts).forEach(ch => { try { ch.destroy(); } catch(_){} });
+            state.charts = {};
             const ctxM = document.getElementById('methodBarChart')?.getContext('2d');
             const ctxL = document.getElementById('lineChart')?.getContext('2d');
             const ctxG = document.getElementById('grLineChart')?.getContext('2d');
