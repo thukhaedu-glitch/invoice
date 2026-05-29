@@ -197,22 +197,31 @@ const app = {
     // ── INIT ──────────────────────────────────
     init() {
         app.updateLangButton();
+        // Show loading screen while auth resolves
+        document.getElementById('main-container').innerHTML =
+            '<div class="flex items-center justify-center min-h-screen"><div class="text-gray-400 text-sm">Loading...</div></div>';
+
         onAuthStateChanged(auth, async (u) => {
-            if (u && !u.isAnonymous) {
-                state.user    = u;
-                state.isAdmin = true;
-                await app.loadUserCompanies();
-            } else {
-                state.user    = u;
-                state.isAdmin = false;
-                state.companyId = null;
-                unsubAll();
-            }
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('code') || params.get('id')) {
-                app.handleSearch(params.get('code') || params.get('id'));
-            } else {
-                app.setView(state.isAdmin && state.companyId ? 'dashboard' : 'home');
+            try {
+                if (u && !u.isAnonymous) {
+                    state.user    = u;
+                    state.isAdmin = true;
+                    await app.loadUserCompanies();
+                } else {
+                    state.user      = u;
+                    state.isAdmin   = false;
+                    state.companyId = null;
+                    unsubAll();
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.get('code') || params.get('id')) {
+                        app.handleSearch(params.get('code') || params.get('id'));
+                    } else {
+                        app.setView('home');
+                    }
+                }
+            } catch(err) {
+                console.error('Auth state error:', err);
+                app.setView('home');
             }
         });
         window.addEventListener('resize', app.scalePaper);
@@ -241,7 +250,6 @@ const app = {
 
     // ── COMPANY LOADING ────────────────────────
     async loadUserCompanies() {
-        // Firestore doesn't support 'in' on map fields — use != null instead
         let snap;
         try {
             snap = await getDocs(
@@ -249,7 +257,7 @@ const app = {
                       where(`members.${state.user.uid}`, '!=', null))
             );
         } catch(e) {
-            // Fallback: get all companies and filter client-side
+            console.warn('Query fallback:', e.message);
             snap = await getDocs(collection(db, 'companies'));
         }
         state.userCompanies = snap.docs
@@ -529,11 +537,16 @@ const app = {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const pass  = document.getElementById('password').value;
+        const btn   = e.target.querySelector('button[type="submit"]');
+        const errEl = document.getElementById('auth-error');
+        if (btn) { btn.disabled = true; btn.innerText = 'Logging in...'; }
+        if (errEl) errEl.classList.add('hidden');
         try {
             await signInWithEmailAndPassword(auth, email, pass);
+            // onAuthStateChanged will handle redirect
         } catch (err) {
-            const el = document.getElementById('auth-error');
-            if (el) { el.innerText = err.message; el.classList.remove('hidden'); }
+            if (errEl) { errEl.innerText = err.message; errEl.classList.remove('hidden'); }
+            if (btn) { btn.disabled = false; btn.innerText = 'Login'; }
         }
     },
 
@@ -542,16 +555,20 @@ const app = {
         const email    = document.getElementById('reg-email').value;
         const pass     = document.getElementById('reg-password').value;
         const name     = document.getElementById('reg-name').value;
+        const btn      = e.target.querySelector('button[type="submit"]');
+        const errEl    = document.getElementById('reg-error');
+        if (btn) { btn.disabled = true; btn.innerText = 'Creating...'; }
+        if (errEl) errEl.classList.add('hidden');
         try {
             const cred = await createUserWithEmailAndPassword(auth, email, pass);
             await updateProfile(cred.user, { displayName: name });
-            // Save to users collection for display names
             await setDoc(doc(db, 'users', cred.user.uid), {
                 displayName: name, email, createdAt: serverTimestamp()
             });
+            // onAuthStateChanged will handle redirect to onboarding
         } catch (err) {
-            const el = document.getElementById('reg-error');
-            if (el) { el.innerText = err.message; el.classList.remove('hidden'); }
+            if (errEl) { errEl.innerText = err.message; errEl.classList.remove('hidden'); }
+            if (btn) { btn.disabled = false; btn.innerText = 'Create Account'; }
         }
     },
 
