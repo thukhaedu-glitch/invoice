@@ -1917,6 +1917,15 @@ const app = {
             await setDoc(doc(db, 'companies', targetCompanyId, '_config', 'general'), oldConfig.data());
         }
         alert(`Migration complete! ${count} documents moved.`);
+    },
+
+    // Wrapper — called from Settings button (no args needed)
+    runMigration() {
+        if (!state.companyId) {
+            alert('Please select a company first.');
+            return;
+        }
+        app.migrateOldData(state.companyId);
     }
 };
 
